@@ -1,37 +1,48 @@
 cmake_minimum_required(VERSION 3.20)
-project(MiniStateLib)
+project(WoWControlSDK)
 
 set(CMAKE_CXX_STANDARD 17)
 
-# Añadir Detours como subproyecto
+add_compile_definitions(
+    _WIN32_WINNT=0x0601
+    WIN32_LEAN_AND_MEAN
+)
+
 add_subdirectory(deps/Detours)
 
-# --- Fuentes de la mini DLL ---
-add_library(MiniStateLib SHARED
+add_library(WoWControlSDK SHARED
     DllMain.cpp
-    GameState.cpp
-    Hooks.cpp
+
+    core/GameState.cpp
+    core/CharCache.cpp
+
+    hooks/Hooks.cpp
+
+    ipc/CommandPipe.cpp
+    ipc/PipeServer.cpp
+
+    commands/CommandHandler.cpp
+
+    utils/JsonUtils.cpp
 )
 
-# --- Includes ---
-target_include_directories(MiniStateLib PRIVATE
+target_include_directories(WoWControlSDK PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/deps/Detours
 )
 
-# --- Linkeo ---
-target_link_libraries(MiniStateLib PRIVATE
+target_link_libraries(WoWControlSDK PRIVATE
     Detours
 )
 
-# --- Opciones de compilador (x86 obligatorio para WoW 3.3.5a) ---
-target_compile_options(MiniStateLib PRIVATE
+target_compile_options(WoWControlSDK PRIVATE
     /arch:IA32
     /GS-
 )
 
-# --- Output ---
-set_target_properties(MiniStateLib PROPERTIES
-    OUTPUT_NAME "MiniStateLib"
-    SUFFIX ".dll"
+set_target_properties(WoWControlSDK PROPERTIES
+    OUTPUT_NAME "WoWControlSDK"
+
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_SOURCE_DIR}/bin/release
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_SOURCE_DIR}/bin/debug
 )
