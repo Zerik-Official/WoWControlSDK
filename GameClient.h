@@ -5,8 +5,8 @@
 
 struct lua_State;
 struct Frame;
-using guid_t      = uint64_t;
-using lua_Number  = double;
+using guid_t        = uint64_t;
+using lua_Number    = double;
 using lua_CFunction = int(*)(lua_State*);
 
 template <typename T> struct Vec3D { T x, y, z; };
@@ -124,7 +124,7 @@ inline void EnterWorld(int idx)
 }
 
 struct luaL_Reg {
-    const char*  name;
+    const char*   name;
     lua_CFunction func;
 };
 
@@ -134,9 +134,9 @@ inline lua_State* GetLuaState() { return ((decltype(&GetLuaState))0x00817DB0)();
 #define LUA_GLOBALSINDEX     (-10002)
 #define lua_setglobal(L,s)   lua_setfield(L, LUA_GLOBALSINDEX, (s))
 
-inline void lua_settop(lua_State* L, int idx)              { return ((decltype(&lua_settop))0x0084DBF0)(L, idx); }
+inline void lua_settop(lua_State* L, int idx)                      { return ((decltype(&lua_settop))0x0084DBF0)(L, idx); }
 inline void lua_pushcclosure(lua_State* L, lua_CFunction f, int c) { return ((decltype(&lua_pushcclosure))0x0084E400)(L, f, c); }
-inline void lua_setfield(lua_State* L, int idx, const char* s) { return ((decltype(&lua_setfield))0x0084E900)(L, idx, s); }
+inline void lua_setfield(lua_State* L, int idx, const char* s)     { return ((decltype(&lua_setfield))0x0084E900)(L, idx, s); }
 
 #define lua_pushcfunction(L, f) lua_pushcclosure(L, f, 0)
 
