@@ -1,5 +1,5 @@
-#include "GameState.h"
-#include "Hooks.h"
+#include "core/GameState.h"
+#include "hooks/Hooks.h"
 #include <Windows.h>
 #include <deps/Detours/detours.h>
 
