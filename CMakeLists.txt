@@ -15,8 +15,11 @@ add_library(WoWControlSDK SHARED
 
     core/GameState.cpp
     core/CharCache.cpp
+    core/LuaEngine.cpp
+    core/PlayerState.cpp
 
     hooks/Hooks.cpp
+    hooks/EndSceneHook.cpp
 
     ipc/CommandPipe.cpp
     ipc/PipeServer.cpp
