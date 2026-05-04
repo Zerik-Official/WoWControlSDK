@@ -1,6 +1,9 @@
 #include "CommandHandler.h"
 #include "../GameClient.h"
 #include "core/GameState.h"
+#include "core/LuaEngine.h"
+#include "core/PlayerState.h"
+#include "hooks/EndSceneHook.h"
 #include "utils/JsonUtils.h"
 
 static const char* ERR_UNKNOWN_CMD   = "{\"ok\":false,\"error\":\"unknown command\"}";
@@ -45,6 +48,27 @@ std::string handle(const std::string& raw)
         std::string resp = "{\"ok\":true,\"value\":\"";
         resp += JsonUtils::escape(val);
         resp += "\"}";
+        return resp;
+    }
+
+    if (cmd == "getPlayerState") {
+        std::string resp = EndSceneHook::dispatch([]() -> std::string {
+            char* json = PlayerState::toJson();
+            std::string result(json);
+            delete[] json;
+            return result;
+        });
+        return resp;
+    }
+
+    if (cmd == "execLua") {
+        std::string code = JsonUtils::getString(json, "code");
+        if (code.empty())
+            return ERR_MISSING_PARAM;
+
+        std::string resp = EndSceneHook::dispatch([code]() -> std::string {
+            return LuaEngine::execute(code);
+        });
         return resp;
     }
 
