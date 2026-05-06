@@ -48,7 +48,6 @@ static bool readName(uint64_t guid, char* out, size_t outSize)
     uint32_t nextOff = safeRead<uint32_t>(nameBase + offset);
 
     if (!current) return false;
-
     if (current & 1) return false;
 
     uint32_t testGuid = safeRead<uint32_t>(current);
@@ -71,6 +70,48 @@ static bool readName(uint64_t guid, char* out, size_t outSize)
     strncpy_s(out, outSize, str, 16);
 
     return true;
+}
+
+static constexpr uintptr_t AURA_COUNT1_OFFSET = 0xDD0;
+static constexpr uintptr_t AURA_COUNT2_OFFSET = 0xC54;
+static constexpr uintptr_t AURA_TABLE1_OFFSET = 0xC50;
+static constexpr uintptr_t AURA_TABLE2_OFFSET = 0xC58;
+static constexpr int        AURA_ENTRY_SIZE    = 0x18;
+
+static bool hasAuraById(uintptr_t base, int spellId)
+{
+    if (!base || spellId <= 0) return false;
+
+    int auraCount = 0;
+    uintptr_t auraTable = 0;
+
+    int count1 = safeRead<int>(base + AURA_COUNT1_OFFSET);
+    if (count1 == -1)
+    {
+        int count2 = safeRead<int>(base + AURA_COUNT2_OFFSET);
+        if (count2 <= 0 || count2 > 40) return false;
+
+        auraTable = safeRead<uintptr_t>(base + AURA_TABLE2_OFFSET);
+        auraCount = count2;
+    }
+    else
+    {
+        if (count1 <= 0 || count1 > 40) return false;
+
+        auraTable = base + AURA_TABLE1_OFFSET;
+        auraCount = count1;
+    }
+
+    if (!auraTable) return false;
+
+    for (int i = 0; i < auraCount; ++i)
+    {
+        uintptr_t entry = auraTable + (uintptr_t)(i * AURA_ENTRY_SIZE);
+        int id = safeRead<int>(entry + 8);
+        if (id == spellId) return true;
+    }
+
+    return false;
 }
 
 namespace PlayerState {
@@ -104,13 +145,9 @@ Info read()
             uint64_t playerGuid = safeRead<uint64_t>(om + LOCAL_GUID_OFFSET);
             char nameBuf[32] = {};
             if (readName(playerGuid, nameBuf, sizeof(nameBuf)))
-            {
                 strncpy_s(info.name, nameBuf, sizeof(info.name));
-            }
             else
-            {
                 strcpy_s(info.name, "unknown");
-            }
         }
     }
 
@@ -148,6 +185,32 @@ Info read()
     info.xp    = safeRead<int>(playerDesc + PDESC_XP);
     info.xpMax = safeRead<int>(playerDesc + PDESC_NEXTLEVELXP);
 
+    uint32_t unitFlags  = safeRead<uint32_t>(unitDesc + UDESC_FLAGS);
+    uint32_t unitFlags2 = safeRead<uint32_t>(unitDesc + UDESC_FLAGS2);
+    uint32_t dynFlags   = safeRead<uint32_t>(unitDesc + UDESC_DYNAMIC_FLAGS);
+
+    info.isGhost = hasAuraById(base, GHOST_SPELL_ID);
+
+    bool feignDeath = (unitFlags2 & UNIT_FLAG2_FEIGN_DEATH) != 0;
+    bool deadByHealth = (info.health == 0);
+    bool deadByFlags  = (dynFlags & DYNFLAG_DEAD) != 0;
+
+    info.isDead = (deadByHealth || deadByFlags || info.isGhost) && !feignDeath;
+
+    info.isMounted = (unitFlags & UNIT_FLAG_MOUNTED) != 0;
+
+    uintptr_t flyFlagsPtr = safeRead<uintptr_t>(base + FLY_FLAGS_POINTER_OFFSET);
+    if (flyFlagsPtr)
+    {
+        uint32_t flyFlags = safeRead<uint32_t>(flyFlagsPtr + FLY_FLAGS_OFFSET);
+        info.isFlying = (flyFlags & MOVE_FLAG_FLYING) != 0;
+    }
+
+    uint32_t moveFlags = safeRead<uint32_t>(base + MOVE_FLAGS_OFFSET);
+    info.isSwimming = (moveFlags & MOVE_FLAG_SWIMMING) != 0;
+
+    info.isUnderwater = safeRead<int>(ADDR_BREATH_TIMER) > 0;
+
     return info;
 }
 
@@ -165,15 +228,15 @@ char* toJson()
             "\"isIngame\":%s"
             "}",
             info.isLoading ? "true" : "false",
-            info.isIngame ? "true" : "false"
+            info.isIngame  ? "true" : "false"
         );
 
-        char* buf = new char[strlen(tmp)+1];
+        char* buf = new char[strlen(tmp) + 1];
         strcpy(buf, tmp);
         return buf;
     }
 
-    char tmp[768];
+    char tmp[1024];
     snprintf(tmp, sizeof(tmp),
         "{"
         "\"ok\":true,"
@@ -190,24 +253,33 @@ char* toJson()
         "\"mapId\":%d,\"zoneId\":%d,"
         "\"tick\":%d,"
         "\"isIngame\":%s,\"isWorld\":%s,"
-        "\"isLoading\":%s,\"isReady\":%s"
+        "\"isLoading\":%s,\"isReady\":%s,"
+        "\"isDead\":%s,\"isGhost\":%s,"
+        "\"isMounted\":%s,\"isFlying\":%s,"
+        "\"isSwimming\":%s,\"isUnderwater\":%s"
         "}",
         info.x, info.y, info.z, info.rotation,
-        info.health, info.healthMax,
-        info.mana,   info.manaMax,
-        info.rage,   info.rageMax,
-        info.energy, info.energyMax,
-        info.runicPower, info.runicPowerMax,
+        info.health,      info.healthMax,
+        info.mana,        info.manaMax,
+        info.rage,        info.rageMax,
+        info.energy,      info.energyMax,
+        info.runicPower,  info.runicPowerMax,
         info.level,
         info.race, info.class_, info.gender, info.powerType,
         info.xp, info.xpMax,
         info.name,
         info.mapId, info.zoneId,
         info.tick,
-        info.isIngame ? "true" : "false",
-        info.isWorld  ? "true" : "false",
-        info.isLoading ? "true" : "false",
-        info.isReady   ? "true" : "false"
+        info.isIngame    ? "true" : "false",
+        info.isWorld     ? "true" : "false",
+        info.isLoading   ? "true" : "false",
+        info.isReady     ? "true" : "false",
+        info.isDead      ? "true" : "false",
+        info.isGhost     ? "true" : "false",
+        info.isMounted   ? "true" : "false",
+        info.isFlying    ? "true" : "false",
+        info.isSwimming  ? "true" : "false",
+        info.isUnderwater ? "true" : "false"
     );
 
     size_t len = strlen(tmp) + 1;
