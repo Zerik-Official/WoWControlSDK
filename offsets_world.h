@@ -61,6 +61,27 @@ static constexpr uintptr_t UDESC_MAXPOWER7    = 0x84;
 
 static constexpr uintptr_t UDESC_LEVEL        = 0xC0;
 
+static constexpr uintptr_t UDESC_FLAGS        = 0xD4;
+static constexpr uintptr_t UDESC_FLAGS2       = 0xD8;
+static constexpr uintptr_t UDESC_DYNAMIC_FLAGS = 0x124;
+
+static constexpr uint32_t UNIT_FLAG_MOUNTED   = 0x08000000;
+
+static constexpr uint32_t UNIT_FLAG2_FEIGN_DEATH = 0x1;
+
+static constexpr uint32_t DYNFLAG_DEAD        = 0x00000020;
+
+static constexpr uintptr_t MOVE_FLAGS_OFFSET          = 0xA30;
+static constexpr uintptr_t FLY_FLAGS_POINTER_OFFSET   = 0xD8;
+static constexpr uintptr_t FLY_FLAGS_OFFSET           = 0x44;
+
+static constexpr uint32_t MOVE_FLAG_SWIMMING  = 0x00200000;
+static constexpr uint32_t MOVE_FLAG_FLYING    = 0x02000000;
+
+static constexpr uintptr_t ADDR_BREATH_TIMER  = 0xBD0BA0;
+
+static constexpr int GHOST_SPELL_ID           = 8326;
+
 static constexpr uintptr_t PDESC_XP           = 0x798;
 static constexpr uintptr_t PDESC_NEXTLEVELXP  = 0x79C;
 
