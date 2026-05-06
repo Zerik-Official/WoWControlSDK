@@ -33,3 +33,36 @@ constexpr uintptr_t UNIT_DESCRIPTOR_BASE   = 0x8;
 
 constexpr uintptr_t DESC_LEVEL             = 0x36 * 4;
 constexpr uintptr_t DESC_RACE_CLASS_GENDER = 0x37 * 4;
+
+constexpr uintptr_t NAME_STORE   = 0x00C5D940;
+constexpr uintptr_t NAME_BASE    = 0x1C;
+constexpr uintptr_t NAME_MASK    = 0x24;
+constexpr uintptr_t NAME_STRING  = 0x20;
+
+static constexpr uintptr_t ADDR_MAP_ID       = 0xADFBC4;
+static constexpr uintptr_t ADDR_ZONE_ID      = 0xBD080C;
+static constexpr uintptr_t ADDR_IS_INGAME    = 0xBEBAA4;
+static constexpr uintptr_t ADDR_IS_WORLD     = 0xBEBA40;
+static constexpr uintptr_t ADDR_TICK         = 0xB499A4;
+
+static constexpr uintptr_t OBJ_DESC_END  = 24;
+
+static constexpr uintptr_t UDESC_RACE_CLASS_GENDER_POWERTYPE = 0x44;
+static constexpr uintptr_t UDESC_HEALTH       = 0x48;
+static constexpr uintptr_t UDESC_POWER1       = 0x4C;
+static constexpr uintptr_t UDESC_POWER2       = 0x50;
+static constexpr uintptr_t UDESC_POWER4       = 0x58;
+static constexpr uintptr_t UDESC_POWER7       = 0x64;
+static constexpr uintptr_t UDESC_MAXHEALTH    = 0x68;
+static constexpr uintptr_t UDESC_MAXPOWER1    = 0x6C;
+static constexpr uintptr_t UDESC_MAXPOWER2    = 0x70;
+static constexpr uintptr_t UDESC_MAXPOWER4    = 0x78;
+static constexpr uintptr_t UDESC_MAXPOWER7    = 0x84;
+
+static constexpr uintptr_t UDESC_LEVEL        = 0xC0;
+
+static constexpr uintptr_t PDESC_XP           = 0x798;
+static constexpr uintptr_t PDESC_NEXTLEVELXP  = 0x79C;
+
+static constexpr uintptr_t POS_OFFSET        = 0x798;
+static constexpr uintptr_t ROT_OFFSET        = 0x7A8;
