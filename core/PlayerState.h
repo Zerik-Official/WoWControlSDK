@@ -39,6 +39,8 @@ struct Info {
     bool     isFlying;
     bool     isSwimming;
     bool     isUnderwater;
+    bool     isAfk;
+    bool     isDnd;
 };
 
 bool  available();
