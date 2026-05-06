@@ -153,15 +153,25 @@ Info read()
 
 char* toJson()
 {
-    if (!available()) {
-        const char* msg = "{\"ok\":false,\"error\":\"not in world\"}";
-        size_t len = strlen(msg) + 1;
-        char* buf = new char[len];
-        memcpy(buf, msg, len);
+    Info info = read();
+
+    if (!info.isWorld) {
+        char tmp[256];
+        snprintf(tmp, sizeof(tmp),
+            "{"
+            "\"ok\":false,"
+            "\"isLoading\":%s,"
+            "\"isWorld\":false,"
+            "\"isIngame\":%s"
+            "}",
+            info.isLoading ? "true" : "false",
+            info.isIngame ? "true" : "false"
+        );
+
+        char* buf = new char[strlen(tmp)+1];
+        strcpy(buf, tmp);
         return buf;
     }
-
-    Info info = read();
 
     char tmp[768];
     snprintf(tmp, sizeof(tmp),
