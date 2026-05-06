@@ -211,6 +211,17 @@ Info read()
 
     info.isUnderwater = safeRead<int>(ADDR_BREATH_TIMER) > 0;
 
+    uintptr_t presencePtr = safeRead<uintptr_t>(base + 0x1008);
+    if (presencePtr) {
+        uint32_t flags = safeRead<uint32_t>(presencePtr + 0x8);
+        
+        info.isAfk = (flags & (1 << 1)) != 0;
+        info.isDnd = (flags & (1 << 2)) != 0;
+    } else {
+        info.isAfk = false;
+        info.isDnd = false;
+    }
+
     return info;
 }
 
@@ -255,6 +266,7 @@ char* toJson()
         "\"isIngame\":%s,\"isWorld\":%s,"
         "\"isLoading\":%s,\"isReady\":%s,"
         "\"isDead\":%s,\"isGhost\":%s,"
+        "\"isAfk\":%s,\"isDnd\":%s,"
         "\"isMounted\":%s,\"isFlying\":%s,"
         "\"isSwimming\":%s,\"isUnderwater\":%s"
         "}",
@@ -276,6 +288,8 @@ char* toJson()
         info.isReady     ? "true" : "false",
         info.isDead      ? "true" : "false",
         info.isGhost     ? "true" : "false",
+        info.isAfk       ? "true" : "false",
+        info.isDnd       ? "true" : "false",
         info.isMounted   ? "true" : "false",
         info.isFlying    ? "true" : "false",
         info.isSwimming  ? "true" : "false",
