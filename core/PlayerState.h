@@ -31,8 +31,14 @@ struct Info {
     bool     isIngame;
     bool     isWorld;
     char     name[32];
-    bool isLoading;
-    bool isReady;
+    bool     isLoading;
+    bool     isReady;
+    bool     isDead;
+    bool     isGhost;
+    bool     isMounted;
+    bool     isFlying;
+    bool     isSwimming;
+    bool     isUnderwater;
 };
 
 bool  available();
