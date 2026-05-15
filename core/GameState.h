@@ -16,5 +16,7 @@ Screen      getScreen();
 void        setScreen(Screen s);
 bool        isLoginLatched();
 void        setLoginLatch(bool value);
+void        setPendingCharacter(const char* name);
+const char* getPendingCharacter();
 
 }

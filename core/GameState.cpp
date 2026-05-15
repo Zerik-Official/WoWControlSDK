@@ -13,6 +13,7 @@
 
 static GameState::Screen s_screen     = GameState::Screen::UNKNOWN;
 static volatile bool     s_loginLatch = false;
+static std::string       s_pendingCharacter;
 
 static HANDLE s_pipeThread = nullptr;
 static HANDLE s_cmdThread  = nullptr;
@@ -52,10 +53,20 @@ static GameState::Screen resolveScreen()
 
 namespace GameState {
 
-Screen getScreen()              { return s_screen; }
-void   setScreen(Screen s)      { s_screen = s; }
-bool   isLoginLatched()         { return s_loginLatch; }
-void   setLoginLatch(bool value){ s_loginLatch = value; }
+Screen getScreen()               { return s_screen; }
+void   setScreen(Screen s)       { s_screen = s; }
+bool   isLoginLatched()          { return s_loginLatch; }
+void   setLoginLatch(bool value) { s_loginLatch = value; }
+
+void setPendingCharacter(const char* name)
+{
+    s_pendingCharacter = name ? name : "";
+}
+
+const char* getPendingCharacter()
+{
+    return s_pendingCharacter.c_str();
+}
 
 const char* getRealmList()
 {
@@ -175,6 +186,20 @@ static void OnCharSelect()
     GameState::setLoginLatch(false);
     GameState::setScreen(GameState::Screen::CHARSELECT);
     CharCache::refresh();
+
+    const char* pending = GameState::getPendingCharacter();
+    if (pending && pending[0]) {
+        LoginUI::CharVector* chars = LoginUI::GetChars();
+        if (chars) {
+            for (int i = 0; i < chars->size; i++) {
+                if (strcmp(chars->buf[i].data.name, pending) == 0) {
+                    GameState::setPendingCharacter("");
+                    LoginUI::EnterWorld(i);
+                    break;
+                }
+            }
+        }
+    }
 }
 
 namespace GameState {
