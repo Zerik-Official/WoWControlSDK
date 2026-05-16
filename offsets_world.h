@@ -98,3 +98,13 @@ static constexpr uintptr_t AURA_COUNT2_OFFSET = 0xC54;
 static constexpr uintptr_t AURA_TABLE1_OFFSET = 0xC50;
 static constexpr uintptr_t AURA_TABLE2_OFFSET = 0xC58;
 static constexpr int        AURA_ENTRY_SIZE    = 0x18;
+
+static constexpr uintptr_t UDESC_TARGET_GUID         = 0x48;
+static constexpr uintptr_t UNIT_CASTING_SPELL_ID     = 0xA6C;
+static constexpr uintptr_t UNIT_CHANNELING_SPELL_ID  = 0xA80;
+static constexpr uintptr_t UNIT_IS_AUTO_ATTACKING    = 0xA20;
+
+static constexpr uintptr_t ADDR_PARTY_LEADER         = 0xBD1968;
+static constexpr uintptr_t ADDR_PARTY_PLAYER_GUIDS   = 0xBD1948;
+static constexpr uintptr_t ADDR_RAID_LEADER          = 0xBD1990;
+static constexpr uintptr_t ADDR_RAID_GROUP_START     = 0xBEB568;
