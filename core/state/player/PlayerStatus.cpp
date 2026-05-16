@@ -4,12 +4,6 @@
 #include "../../../GameClient.h"
 #include <Windows.h>
 
-static constexpr uintptr_t AURA_COUNT1_OFFSET = 0xDD0;
-static constexpr uintptr_t AURA_COUNT2_OFFSET = 0xC54;
-static constexpr uintptr_t AURA_TABLE1_OFFSET = 0xC50;
-static constexpr uintptr_t AURA_TABLE2_OFFSET = 0xC58;
-static constexpr int        AURA_ENTRY_SIZE    = 0x18;
-
 static bool hasAuraById(uintptr_t base, int spellId)
 {
     if (!base || spellId <= 0) return false;
