@@ -42,29 +42,40 @@ int getContinent()
 int getLuaAreaId()
 {
     int continent = Memory::safeRead<int>(0xACCF04);
+    int zone      = Memory::safeRead<int>(0xACCF08);
 
-    if (continent < 0)
-        return Memory::safeRead<int>(0xACCF10) + 1;
-
-    int       zone     = Memory::safeRead<int>(0xACCF08);
     uintptr_t worldMap = Memory::safeRead<uintptr_t>(0xBE8F10);
-
     if (!worldMap)
         return 0;
 
-    uintptr_t continentEntry = worldMap + (continent * 0x28);
+    int base = 0;
 
-    if (zone >= 0)
+    if (continent >= 0)
     {
-        uintptr_t zoneTable = Memory::safeRead<uintptr_t>(continentEntry + 0x10);
+        uintptr_t continentEntry =
+            worldMap + (continent * 0x10028);
 
-        if (!zoneTable)
-            return 0;
+        if (zone >= 0)
+        {
+            uintptr_t zoneTable =
+                Memory::safeRead<uintptr_t>(continentEntry + 0x10);
 
-        return Memory::safeRead<int>(zoneTable + (zone * 4)) + 1;
+            if (!zoneTable)
+                return 0;
+
+            base = Memory::safeRead<int>(zoneTable + (zone * 4));
+        }
+        else
+        {
+            base = Memory::safeRead<int>(continentEntry + 0x4);
+        }
+    }
+    else
+    {
+        base = Memory::safeRead<int>(0xACCF10);
     }
 
-    return Memory::safeRead<int>(continentEntry + 0x4) + 1;
+    return base + 1;
 }
 
 int getZone()
