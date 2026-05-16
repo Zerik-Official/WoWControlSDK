@@ -15,6 +15,7 @@ Info read(uintptr_t objectBase)
     info.zoneId      = Memory::safeRead<int>(ADDR_ZONE_ID);
     info.continentId = MapInfo::getContinent();
     info.luaMapId    = MapInfo::getLuaAreaId();
+    info.luaZoneId   = MapInfo::getZone();
 
     uintptr_t zoneTextPtr = Memory::safeRead<uintptr_t>(ADDR_ZONE_TEXT);
     uintptr_t subZonePtr  = Memory::safeRead<uintptr_t>(ADDR_SUBZONE_TEXT);

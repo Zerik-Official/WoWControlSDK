@@ -12,6 +12,7 @@ struct Info {
     int      zoneId;
     int      continentId;
     int      luaMapId;
+    int      luaZoneId;
     char     zoneName[128];
     char     subZoneName[128];
 };
