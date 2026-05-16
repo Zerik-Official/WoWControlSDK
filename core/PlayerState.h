@@ -28,6 +28,8 @@ struct Info {
     int      mapId;
     int      zoneId;
     int      tick;
+    int      continentId;
+    int      luaMapId;
     bool     isIngame;
     bool     isWorld;
     char     name[32];
@@ -42,6 +44,8 @@ struct Info {
     bool     isAfk;
     bool     isDnd;
     bool     isInCombat;
+    char zoneName[128];
+    char subZoneName[128];
 };
 
 bool  available();
