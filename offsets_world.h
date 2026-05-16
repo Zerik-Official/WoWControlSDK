@@ -89,3 +89,6 @@ static constexpr uintptr_t POS_OFFSET        = 0x798;
 static constexpr uintptr_t ROT_OFFSET        = 0x7A8;
 
 static constexpr uint32_t UNIT_FLAG_COMBAT = 0x00080000;
+
+static constexpr uintptr_t ADDR_ZONE_TEXT     = 0xBD0788;
+static constexpr uintptr_t ADDR_SUBZONE_TEXT  = 0xBD0784;
