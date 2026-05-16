@@ -41,6 +41,7 @@ struct Info {
     bool     isUnderwater;
     bool     isAfk;
     bool     isDnd;
+    bool     isInCombat;
 };
 
 bool  available();

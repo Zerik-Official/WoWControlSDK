@@ -222,6 +222,8 @@ Info read()
         info.isDnd = false;
     }
 
+    info.isInCombat = (unitFlags & UNIT_FLAG_COMBAT) != 0;
+
     return info;
 }
 
@@ -268,7 +270,8 @@ char* toJson()
         "\"isDead\":%s,\"isGhost\":%s,"
         "\"isAfk\":%s,\"isDnd\":%s,"
         "\"isMounted\":%s,\"isFlying\":%s,"
-        "\"isSwimming\":%s,\"isUnderwater\":%s"
+        "\"isSwimming\":%s,\"isUnderwater\":%s,"
+        "\"isInCombat\":%s"
         "}",
         info.x, info.y, info.z, info.rotation,
         info.health,      info.healthMax,
@@ -293,7 +296,8 @@ char* toJson()
         info.isMounted   ? "true" : "false",
         info.isFlying    ? "true" : "false",
         info.isSwimming  ? "true" : "false",
-        info.isUnderwater ? "true" : "false"
+        info.isUnderwater ? "true" : "false",
+        info.isInCombat ? "true" : "false"
     );
 
     size_t len = strlen(tmp) + 1;
