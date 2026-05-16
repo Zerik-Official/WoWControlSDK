@@ -92,3 +92,9 @@ static constexpr uint32_t UNIT_FLAG_COMBAT = 0x00080000;
 
 static constexpr uintptr_t ADDR_ZONE_TEXT     = 0xBD0788;
 static constexpr uintptr_t ADDR_SUBZONE_TEXT  = 0xBD0784;
+
+static constexpr uintptr_t AURA_COUNT1_OFFSET = 0xDD0;
+static constexpr uintptr_t AURA_COUNT2_OFFSET = 0xC54;
+static constexpr uintptr_t AURA_TABLE1_OFFSET = 0xC50;
+static constexpr uintptr_t AURA_TABLE2_OFFSET = 0xC58;
+static constexpr int        AURA_ENTRY_SIZE    = 0x18;
