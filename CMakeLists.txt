@@ -15,7 +15,7 @@ add_library(WoWControlSDK SHARED
 
     core/GameState.cpp
     core/CharCache.cpp
-    core/LuaEngine.cpp
+    core/engine/LuaEngine.cpp
     core/PlayerState.cpp
     core/state/player/PlayerBase.cpp
     core/state/player/PlayerPower.cpp
