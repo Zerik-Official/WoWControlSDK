@@ -114,6 +114,128 @@ static bool hasAuraById(uintptr_t base, int spellId)
     return false;
 }
 
+static int GetCurrentMapContinent()
+{
+    int v1;
+
+    int accf10 = safeRead<int>(0xACCF10);
+
+    if (accf10 == -1)
+        v1 = -1;
+    else
+        v1 = safeRead<int>(0xACCF0C);
+
+    int min = safeRead<int>(0xAD36E4);
+    int max = safeRead<int>(0xAD36E0);
+
+    if (v1 < min || v1 > max)
+        return safeRead<int>(0xACCF04) + 1;
+
+    uintptr_t table = safeRead<uintptr_t>(0xAD36F4);
+
+    uintptr_t v2 =
+        safeRead<uintptr_t>(
+            table + 4 * (v1 - min)
+        );
+
+    if (!v2)
+        return safeRead<int>(0xACCF04) + 1;
+
+    int count = safeRead<int>(0xBE8F0C);
+
+    if (!count)
+        return safeRead<int>(0xACCF04) + 1;
+
+    uintptr_t cur = safeRead<uintptr_t>(0xBE8F10);
+
+    int target = safeRead<int>(v2 + 4);
+
+    for (int i = 0; i < count; i++)
+    {
+        int current = safeRead<int>(cur);
+
+        if (current == target)
+            return i + 1;
+
+        cur += 16394 * 4;
+    }
+
+    return safeRead<int>(0xACCF04) + 1;
+}
+
+static int GetLuaMapAreaID()
+{
+    int continent = safeRead<int>(0xACCF04);
+
+    if (continent < 0)
+    {
+        return safeRead<int>(0xACCF10) + 1;
+    }
+
+    int zone = safeRead<int>(0xACCF08);
+
+    uintptr_t worldMap = safeRead<uintptr_t>(0xBE8F10);
+
+    if (!worldMap)
+        return 0;
+
+    uintptr_t continentEntry =
+        worldMap + (continent * 0x28);
+
+    if (zone >= 0)
+    {
+        uintptr_t zoneTable =
+            safeRead<uintptr_t>(continentEntry + 0x10);
+
+        if (!zoneTable)
+            return 0;
+
+        return safeRead<int>(
+            zoneTable + (zone * 4)
+        ) + 1;
+    }
+
+    return safeRead<int>(
+        continentEntry + 0x4
+    ) + 1;
+}
+
+static int GetCurrentMapZone()
+{
+    int zone = safeRead<int>(0xACCF08);
+
+    if (zone >= 0)
+        return zone + 1;
+
+    int area = safeRead<int>(0xACCF10);
+
+    if (area == -1)
+        return 0;
+
+    int min = safeRead<int>(0xAD36E4);
+    int max = safeRead<int>(0xAD36E0);
+
+    if (area < min || area > max)
+        return 0;
+
+    uintptr_t table = safeRead<uintptr_t>(0xAD36F4);
+
+    if (!table)
+        return 0;
+
+    uintptr_t entry =
+        safeRead<uintptr_t>(
+            table + ((area - min) * 4)
+        );
+
+    if (!entry)
+        return 0;
+
+    int zoneIndex = safeRead<int>(entry + 0x8);
+
+    return zoneIndex;
+}
+
 namespace PlayerState {
 
 bool available()
@@ -134,6 +256,37 @@ Info read()
     info.mapId    = safeRead<int>(ADDR_MAP_ID);
     info.zoneId   = safeRead<int>(ADDR_ZONE_ID);
     info.tick     = safeRead<int>(ADDR_TICK);
+    info.continentId = GetCurrentMapContinent();
+    info.luaMapId = GetLuaMapAreaID();
+
+    uintptr_t zoneTextPtr = safeRead<uintptr_t>(ADDR_ZONE_TEXT);
+    uintptr_t subZonePtr  = safeRead<uintptr_t>(ADDR_SUBZONE_TEXT);
+
+    if (zoneTextPtr)
+    {
+        strncpy_s(
+            info.zoneName,
+            reinterpret_cast<const char*>(zoneTextPtr),
+            sizeof(info.zoneName) - 1
+        );
+    }
+    else
+    {
+        info.zoneName[0] = '\0';
+    }
+
+    if (subZonePtr)
+    {
+        strncpy_s(
+            info.subZoneName,
+            reinterpret_cast<const char*>(subZonePtr),
+            sizeof(info.subZoneName) - 1
+        );
+    }
+    else
+    {
+        info.subZoneName[0] = '\0';
+    }
 
     void* obj = getPlayerObject();
     if (!obj) return info;
@@ -211,6 +364,19 @@ Info read()
 
     info.isUnderwater = safeRead<int>(ADDR_BREATH_TIMER) > 0;
 
+    info.isInCombat = (unitFlags & UNIT_FLAG_COMBAT) != 0;
+
+    uintptr_t presencePtr = safeRead<uintptr_t>(base + 0x1008);
+    if (presencePtr) {
+        uint32_t flags = safeRead<uint32_t>(presencePtr + 0x8);
+        
+        info.isAfk = (flags & (1 << 1)) != 0;
+        info.isDnd = (flags & (1 << 2)) != 0;
+    } else {
+        info.isAfk = false;
+        info.isDnd = false;
+    }
+
     return info;
 }
 
@@ -232,7 +398,7 @@ char* toJson()
         );
 
         char* buf = new char[strlen(tmp) + 1];
-        strcpy(buf, tmp);
+        strcpy_s(buf, strlen(tmp) + 1, tmp);
         return buf;
     }
 
@@ -240,6 +406,7 @@ char* toJson()
     snprintf(tmp, sizeof(tmp),
         "{"
         "\"ok\":true,"
+        "\"name\":\"%s\","
         "\"x\":%g,\"y\":%g,\"z\":%g,\"rotation\":%g,"
         "\"health\":%d,\"healthMax\":%d,"
         "\"mana\":%d,\"manaMax\":%d,"
@@ -249,15 +416,19 @@ char* toJson()
         "\"level\":%d,"
         "\"race\":%d,\"class\":%d,\"gender\":%d,\"powerType\":%d,"
         "\"xp\":%d,\"xpMax\":%d,"
-        "\"name\":\"%s\","
         "\"mapId\":%d,\"zoneId\":%d,"
+        "\"continentId\":%d,\"luaMapId\":%d,"
         "\"tick\":%d,"
+        "\"zoneName\":\"%s\",\"subZoneName\":\"%s\","
         "\"isIngame\":%s,\"isWorld\":%s,"
         "\"isLoading\":%s,\"isReady\":%s,"
         "\"isDead\":%s,\"isGhost\":%s,"
+        "\"isAfk\":%s,\"isDnd\":%s,"
         "\"isMounted\":%s,\"isFlying\":%s,"
-        "\"isSwimming\":%s,\"isUnderwater\":%s"
+        "\"isSwimming\":%s,\"isUnderwater\":%s,"
+        "\"isInCombat\":%s"
         "}",
+        info.name,
         info.x, info.y, info.z, info.rotation,
         info.health,      info.healthMax,
         info.mana,        info.manaMax,
@@ -267,19 +438,23 @@ char* toJson()
         info.level,
         info.race, info.class_, info.gender, info.powerType,
         info.xp, info.xpMax,
-        info.name,
         info.mapId, info.zoneId,
+        info.continentId, info.luaMapId,
         info.tick,
+        info.zoneName, info.subZoneName,
         info.isIngame    ? "true" : "false",
         info.isWorld     ? "true" : "false",
         info.isLoading   ? "true" : "false",
         info.isReady     ? "true" : "false",
         info.isDead      ? "true" : "false",
         info.isGhost     ? "true" : "false",
+        info.isAfk       ? "true" : "false",
+        info.isDnd       ? "true" : "false",
         info.isMounted   ? "true" : "false",
         info.isFlying    ? "true" : "false",
         info.isSwimming  ? "true" : "false",
-        info.isUnderwater ? "true" : "false"
+        info.isUnderwater ? "true" : "false",
+        info.isInCombat ? "true" : "false"
     );
 
     size_t len = strlen(tmp) + 1;
