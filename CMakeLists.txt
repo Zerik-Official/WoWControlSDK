@@ -15,8 +15,14 @@ add_library(WoWControlSDK SHARED
 
     core/GameState.cpp
     core/CharCache.cpp
-    core/LuaEngine.cpp
+    core/engine/LuaEngine.cpp
     core/PlayerState.cpp
+    core/state/player/PlayerBase.cpp
+    core/state/player/PlayerPower.cpp
+    core/state/player/PlayerStatus.cpp
+
+    core/map/MapInfo.cpp
+    core/map/MapReader.cpp
 
     hooks/Hooks.cpp
     hooks/EndSceneHook.cpp
@@ -31,6 +37,8 @@ add_library(WoWControlSDK SHARED
 
 target_include_directories(WoWControlSDK PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/core
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/state
 )
 
 target_link_libraries(WoWControlSDK PRIVATE
