@@ -87,26 +87,63 @@ int getZone()
 
     int area = Memory::safeRead<int>(0xACCF10);
 
-    if (area == -1)
+    if (area < 0)
         return 0;
 
-    int min = Memory::safeRead<int>(0xAD36E4);
-    int max = Memory::safeRead<int>(0xAD36E0);
+    int min = Memory::safeRead<int>(0xAD4ECC);
+    int max = Memory::safeRead<int>(0xAD4EC8);
 
     if (area < min || area > max)
+        return area + 1;
+
+    uintptr_t regionTable = Memory::safeRead<uintptr_t>(0xAD4EDC);
+    if (!regionTable)
         return 0;
 
-    uintptr_t table = Memory::safeRead<uintptr_t>(0xAD36F4);
-
-    if (!table)
-        return 0;
-
-    uintptr_t entry = Memory::safeRead<uintptr_t>(table + ((area - min) * 4));
+    uintptr_t entry = Memory::safeRead<uintptr_t>(
+        regionTable + (area - min) * 4
+    );
 
     if (!entry)
         return 0;
 
-    return Memory::safeRead<int>(entry + 0x8);
+    uintptr_t worldMap = Memory::safeRead<uintptr_t>(0xBE8F10);
+    if (!worldMap)
+        return area + 1;
+
+    int count = Memory::safeRead<int>(0xBE8F0C);
+    if (count <= 0)
+        return area + 1;
+
+    int targetZone = Memory::safeRead<int>(entry + 4);
+
+    uintptr_t ptr = worldMap + 0xC;
+
+    for (int i = 0; i < count; i++)
+    {
+        int id = Memory::safeRead<int>(ptr - 0xC);
+
+        if (id == targetZone)
+        {
+            int subCount = Memory::safeRead<int>(ptr);
+            uintptr_t list = Memory::safeRead<uintptr_t>(ptr + 4);
+
+            if (!list || subCount <= 0)
+                break;
+
+            for (int j = 0; j < subCount; j++)
+            {
+                int val = Memory::safeRead<int>(list + j * 4);
+
+                if (val == Memory::safeRead<int>(entry))
+                    return j + 1;
+            }
+        }
+
+        ptr += 0x400A * 4;
+    }
+
+    return area + 1;
 }
 
 }
