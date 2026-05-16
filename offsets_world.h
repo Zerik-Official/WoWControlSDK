@@ -69,6 +69,8 @@ static constexpr uint32_t UNIT_FLAG_MOUNTED   = 0x08000000;
 
 static constexpr uint32_t UNIT_FLAG2_FEIGN_DEATH = 0x1;
 
+static constexpr uint32_t UNIT_FLAG_COMBAT = 0x00080000;
+
 static constexpr uint32_t DYNFLAG_DEAD        = 0x00000020;
 
 static constexpr uintptr_t MOVE_FLAGS_OFFSET          = 0xA30;
@@ -87,3 +89,6 @@ static constexpr uintptr_t PDESC_NEXTLEVELXP  = 0x79C;
 
 static constexpr uintptr_t POS_OFFSET        = 0x798;
 static constexpr uintptr_t ROT_OFFSET        = 0x7A8;
+
+static constexpr uintptr_t ADDR_ZONE_TEXT     = 0xBD0788;
+static constexpr uintptr_t ADDR_SUBZONE_TEXT  = 0xBD0784;
