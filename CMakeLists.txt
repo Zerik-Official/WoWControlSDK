@@ -17,6 +17,12 @@ add_library(WoWControlSDK SHARED
     core/CharCache.cpp
     core/LuaEngine.cpp
     core/PlayerState.cpp
+    core/state/player/PlayerBase.cpp
+    core/state/player/PlayerPower.cpp
+    core/state/player/PlayerStatus.cpp
+
+    core/map/MapInfo.cpp
+    core/map/MapReader.cpp
 
     hooks/Hooks.cpp
     hooks/EndSceneHook.cpp
