@@ -102,7 +102,7 @@ char* toJson()
         "\"power\":%d,\"powerMax\":%d,"
         "\"x\":%g,\"y\":%g,\"z\":%g,\"rotation\":%g,"
         "\"mapId\":%d,\"zoneId\":%d,"
-        "\"continentId\":%d,\"luaMapId\":%d,"
+        "\"continentId\":%d,\"luaMapId\":%d,\"luaZoneId\":%d,"
         "\"zoneName\":\"%s\",\"subZoneName\":\"%s\","
         "\"isIngame\":%s,\"isWorld\":%s,"
         "\"isLoading\":%s,\"isReady\":%s,"
@@ -121,7 +121,7 @@ char* toJson()
         power.current, power.max,
         map.x, map.y, map.z, map.rotation,
         map.mapId, map.zoneId,
-        map.continentId, map.luaMapId,
+        map.continentId, map.luaMapId, map.luaZoneId,
         map.zoneName, map.subZoneName,
         status.isIngame    ? "true" : "false",
         status.isWorld     ? "true" : "false",
