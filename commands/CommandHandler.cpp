@@ -23,6 +23,24 @@ std::string handle(const std::string& raw)
         if (user.empty() || pass.empty())
             return ERR_MISSING_PARAM;
 
+        std::string realmList = JsonUtils::getString(json, "realmList");
+        if (!realmList.empty()) {
+            Console::CVar* cvar = Console::FindCVar("realmList");
+            if (cvar)
+                Console::SetCVarValue(cvar, realmList.c_str(), 1, 0, 0, 1);
+        }
+
+        std::string realmname = JsonUtils::getString(json, "realmname");
+        if (!realmname.empty()) {
+            Console::CVar* cvar = Console::FindCVar("realmName");
+            if (cvar)
+                Console::SetCVarValue(cvar, realmname.c_str(), 1, 0, 0, 1);
+        }
+
+        std::string character = JsonUtils::getString(json, "character");
+        if (!character.empty())
+            GameState::setPendingCharacter(character.c_str());
+
         NetClient::Login(user.c_str(), pass.c_str());
         return RESP_OK;
     }
