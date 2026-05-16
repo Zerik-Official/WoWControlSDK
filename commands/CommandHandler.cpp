@@ -1,7 +1,7 @@
 #include "CommandHandler.h"
 #include "../GameClient.h"
 #include "core/GameState.h"
-#include "core/LuaEngine.h"
+#include "core/engine/LuaEngine.h"
 #include "core/PlayerState.h"
 #include "hooks/EndSceneHook.h"
 #include "utils/JsonUtils.h"

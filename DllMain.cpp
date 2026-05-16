@@ -1,5 +1,5 @@
 #include "core/GameState.h"
-#include "core/LuaEngine.h"
+#include "core/engine/LuaEngine.h"
 #include "hooks/Hooks.h"
 #include "hooks/EndSceneHook.h"
 
@@ -18,7 +18,7 @@ static void InitConsole()
     freopen_s(&f, "CONOUT$", "w", stderr);
     freopen_s(&f, "CONIN$",  "r", stdin);
 
-    SetConsoleTitleA("StateLib Debug");
+    SetConsoleTitleA("WowControlSDK Debug");
 
     printf("console initialized\n");
 }
