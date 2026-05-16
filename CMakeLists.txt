@@ -21,6 +21,10 @@ add_library(WoWControlSDK SHARED
     core/state/player/PlayerPower.cpp
     core/state/player/PlayerStatus.cpp
 
+    core/state/group/GroupMemberState.cpp
+    core/state/group/GroupState.cpp
+    core/state/group/GroupCombatState.cpp
+
     core/map/MapInfo.cpp
     core/map/MapReader.cpp
 
