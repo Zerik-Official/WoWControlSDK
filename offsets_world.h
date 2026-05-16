@@ -87,3 +87,5 @@ static constexpr uintptr_t PDESC_NEXTLEVELXP  = 0x79C;
 
 static constexpr uintptr_t POS_OFFSET        = 0x798;
 static constexpr uintptr_t ROT_OFFSET        = 0x7A8;
+
+static constexpr uint32_t UNIT_FLAG_COMBAT = 0x00080000;
