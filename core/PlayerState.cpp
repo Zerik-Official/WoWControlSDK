@@ -2,11 +2,13 @@
 #include "player/PlayerBase.h"
 #include "player/PlayerPower.h"
 #include "player/PlayerStatus.h"
+#include "OffsetsObjectMgr.h"
+#include "OffsetsUnit.h"
 #include "map/MapReader.h"
 #include "../../GameClient.h"
-#include "../offsets_world.h"
 #include <cstdio>
 #include <cstring>
+#include "memory/MemReader.h"
 
 static const char* powerTypeName(PlayerPower::Type t)
 {
@@ -55,7 +57,7 @@ char* toJson()
         return buf;
     }
 
-    uintptr_t unitDesc = base.descPtr + OBJ_DESC_END;
+    uintptr_t unitDesc = base.descPtr + Offsets::ObjectMgr::OBJ_DESC_END;
 
     status = PlayerStatus::read(base.objectBase, unitDesc);
 
@@ -82,12 +84,8 @@ char* toJson()
     PlayerPower::Info power = PlayerPower::read(unitDesc, base.powerType);
     MapReader::Info   map   = MapReader::read(base.objectBase);
 
-    int health    = 0;
-    int healthMax = 0;
-    {
-        health    = *reinterpret_cast<int*>(unitDesc + UDESC_HEALTH);
-        healthMax = *reinterpret_cast<int*>(unitDesc + UDESC_MAXHEALTH);
-    }
+    int health    = Memory::safeRead<int>(unitDesc + Offsets::Unit::Desc::HEALTH);
+    int healthMax = Memory::safeRead<int>(unitDesc + Offsets::Unit::Desc::MAX_HEALTH);
 
     char tmp[1024];
     snprintf(tmp, sizeof(tmp),
