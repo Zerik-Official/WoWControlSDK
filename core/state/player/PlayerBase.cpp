@@ -1,4 +1,5 @@
 #include "PlayerBase.h"
+#include "core/api/internal/NameResolver.h"
 #include "memory/MemReader.h"
 #include "OffsetsObjectMgr.h"
 #include "OffsetsUnit.h"
@@ -10,44 +11,6 @@ typedef void* (__cdecl* findObjectByGuidAndFlags_t)(uint64_t guid, int flags);
 
 static const findObjectByGuidAndFlags_t s_findObject =
     reinterpret_cast<findObjectByGuidAndFlags_t>(Offsets::ObjectMgr::FIND_OBJ_BY_GUID);
-
-static bool readName(uint64_t guid, char* out, size_t outSize)
-{
-    if (!guid || !out) return false;
-
-    uint32_t nameMask = Memory::safeRead<uint32_t>(Offsets::Player::Name::STORE + Offsets::Player::Name::MASK);
-    uint32_t nameBase = Memory::safeRead<uint32_t>(Offsets::Player::Name::STORE + Offsets::Player::Name::BASE);
-
-    if (!nameMask || !nameBase) return false;
-
-    uint32_t shortGuid = (uint32_t)(guid & 0x0FFFFFFF);
-    uint32_t offset    = 12 * (nameMask & shortGuid);
-
-    uint32_t current = Memory::safeRead<uint32_t>(nameBase + offset + 8);
-    uint32_t nextOff = Memory::safeRead<uint32_t>(nameBase + offset);
-
-    if (!current || (current & 1)) return false;
-
-    uint32_t testGuid = Memory::safeRead<uint32_t>(current);
-
-    while (testGuid != shortGuid)
-    {
-        current = Memory::safeRead<uint32_t>(current + nextOff + 4);
-
-        if (!current || (current & 1))
-            return false;
-
-        testGuid = Memory::safeRead<uint32_t>(current);
-    }
-
-    const char* str = reinterpret_cast<const char*>(current + Offsets::Player::Name::STRING);
-
-    if (IsBadReadPtr((void*)str, 16))
-        return false;
-
-    strncpy_s(out, outSize, str, 16);
-    return true;
-}
 
 namespace PlayerBase {
 
@@ -71,7 +34,7 @@ Info read()
     info.guid       = guid;
     info.objectBase = reinterpret_cast<uintptr_t>(obj);
 
-    if (!readName(guid, info.name, sizeof(info.name)))
+    if (!NameResolver::readName(guid, info.name, sizeof(info.name)))
         strcpy_s(info.name, "unknown");
 
     uintptr_t descPtr = Memory::safeRead<uintptr_t>(info.objectBase + Offsets::Unit::DESCRIPTOR_BASE);
