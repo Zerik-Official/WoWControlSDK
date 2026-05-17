@@ -63,12 +63,12 @@ std::string Unit::getName() const
 
 int Unit::getHealth() const
 {
-    return Memory::safeRead<int>(m_base + Offsets::Unit::HEALTH);
+    return Memory::safeRead<int>(unitDesc() + Offsets::Unit::Desc::HEALTH);
 }
 
 int Unit::getMaxHealth() const
 {
-    return Memory::safeRead<int>(m_base + Offsets::Unit::HEALTH_MAX);
+    return Memory::safeRead<int>(unitDesc() + Offsets::Unit::Desc::MAX_HEALTH);
 }
 
 int Unit::getMana() const
@@ -172,6 +172,16 @@ bool Unit::isDead() const
 bool Unit::isCasting() const
 {
     return getCastingSpellId() != 0 || getChannelingSpellId() != 0;
+}
+
+bool Unit::isChanneling() const
+{
+    return getChannelingSpellId() != 0;
+}
+
+bool Unit::isAutoAttacking() const
+{
+    return Memory::safeRead<int>(m_base + Offsets::Unit::IS_AUTO_ATTACKING) != 0;
 }
 
 int Unit::getCastingSpellId() const

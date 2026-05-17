@@ -38,10 +38,11 @@ public:
 
     std::string getName() const;
 
-    bool isInCombat() const;
-    bool isDead()     const;
-    bool isCasting()  const;
-    bool isChanneling() const;
+    bool isInCombat()     const;
+    bool isDead()         const;
+    bool isCasting()      const;
+    bool isChanneling()   const;
+    bool isAutoAttacking() const;
 
     int getCastingSpellId()    const;
     int getChannelingSpellId() const;
