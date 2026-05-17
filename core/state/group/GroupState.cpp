@@ -2,6 +2,7 @@
 #include "memory/MemReader.h"
 #include "offsets_world.h"
 #include <cstring>
+#include <algorithm>
 
 namespace GroupState {
 
@@ -50,7 +51,6 @@ Info read()
     uint64_t partyLeader = Memory::safeRead<uint64_t>(ADDR_PARTY_LEADER);
 
     info.leaderGuid = raidLeader ? raidLeader : partyLeader;
-
     if (!info.leaderGuid) return info;
 
     uintptr_t cc = Memory::safeRead<uintptr_t>(STATIC_CLIENT_CONNECTION);
@@ -63,21 +63,28 @@ Info read()
 
     std::vector<uint64_t> guids;
 
-    if (raidLeader)
+    if (partyLeader != 0)
+    {
+        info.type  = GroupType::PARTY;
+        auto pg    = readPartyGuids();
+        guids.insert(guids.end(), pg.begin(), pg.end());
+    }
+
+    if (raidLeader != 0)
     {
         info.type = GroupType::RAID;
-        guids     = readRaidGuids(localGuid);
+        auto rg   = readRaidGuids(localGuid);
+        guids.insert(guids.end(), rg.begin(), rg.end());
     }
-    else
-    {
-        info.type = GroupType::PARTY;
-        guids     = readPartyGuids();
-    }
+
+    std::sort(guids.begin(), guids.end());
+    guids.erase(std::unique(guids.begin(), guids.end()), guids.end());
+    guids.erase(std::remove_if(guids.begin(), guids.end(),
+        [&](uint64_t g) { return g == 0 || g == localGuid; }), guids.end());
 
     info.members.reserve(guids.size());
     for (uint64_t guid : guids)
     {
-        if (guid == localGuid) continue;
         GroupMemberState::Info member = GroupMemberState::read(guid);
         if (member.valid) info.members.push_back(member);
     }
