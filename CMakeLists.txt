@@ -31,6 +31,8 @@ add_library(WoWControlSDK SHARED
     core/api/internal/UnitResolver.cpp
     core/api/internal/NameResolver.cpp
 
+    core/api/unit/Player.cpp
+
     core/map/MapInfo.cpp
     core/map/MapReader.cpp
 
