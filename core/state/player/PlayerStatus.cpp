@@ -1,7 +1,8 @@
 #include "PlayerStatus.h"
 #include "memory/MemReader.h"
-#include "../../../offsets_world.h"
-#include "../../../GameClient.h"
+#include "OffsetsUnit.h"
+#include "OffsetsMap.h"
+#include "OffsetsPlayer.h"
 #include <Windows.h>
 
 static bool hasAuraById(uintptr_t base, int spellId)
@@ -11,21 +12,21 @@ static bool hasAuraById(uintptr_t base, int spellId)
     int       auraCount = 0;
     uintptr_t auraTable = 0;
 
-    int count1 = Memory::safeRead<int>(base + AURA_COUNT1_OFFSET);
+    int count1 = Memory::safeRead<int>(base + Offsets::Unit::AURA_COUNT1);
 
     if (count1 == -1)
     {
-        int count2 = Memory::safeRead<int>(base + AURA_COUNT2_OFFSET);
+        int count2 = Memory::safeRead<int>(base + Offsets::Unit::AURA_COUNT2);
         if (count2 <= 0 || count2 > 40) return false;
 
-        auraTable = Memory::safeRead<uintptr_t>(base + AURA_TABLE2_OFFSET);
+        auraTable = Memory::safeRead<uintptr_t>(base + Offsets::Unit::AURA_TABLE2);
         auraCount = count2;
     }
     else
     {
         if (count1 <= 0 || count1 > 40) return false;
 
-        auraTable = base + AURA_TABLE1_OFFSET;
+        auraTable = base + Offsets::Unit::AURA_TABLE1;
         auraCount = count1;
     }
 
@@ -33,7 +34,7 @@ static bool hasAuraById(uintptr_t base, int spellId)
 
     for (int i = 0; i < auraCount; ++i)
     {
-        uintptr_t entry = auraTable + (uintptr_t)(i * AURA_ENTRY_SIZE);
+        uintptr_t entry = auraTable + (uintptr_t)(i * Offsets::Unit::AURA_ENTRY_SIZE);
         if (Memory::safeRead<int>(entry + 8) == spellId) return true;
     }
 
@@ -46,39 +47,39 @@ Info read(uintptr_t objectBase, uintptr_t unitDesc)
 {
     Info info = {};
 
-    info.isIngame  = Memory::safeRead<uint8_t>(ADDR_IS_INGAME) != 0;
-    info.isWorld   = Memory::safeRead<uint8_t>(ADDR_IS_WORLD)  != 0;
+    info.isIngame  = Memory::safeRead<uint8_t>(Offsets::Map::IS_INGAME) != 0;
+    info.isWorld   = Memory::safeRead<uint8_t>(Offsets::Map::IS_WORLD)  != 0;
     info.isLoading = !info.isWorld;
     info.isReady   = info.isWorld && info.isIngame;
 
     if (!objectBase || !unitDesc)
         return info;
 
-    uint32_t unitFlags  = Memory::safeRead<uint32_t>(unitDesc + UDESC_FLAGS);
-    uint32_t unitFlags2 = Memory::safeRead<uint32_t>(unitDesc + UDESC_FLAGS2);
-    uint32_t dynFlags   = Memory::safeRead<uint32_t>(unitDesc + UDESC_DYNAMIC_FLAGS);
-    int      health     = Memory::safeRead<int>(unitDesc + UDESC_HEALTH);
+    uint32_t unitFlags  = Memory::safeRead<uint32_t>(unitDesc + Offsets::Unit::Desc::FLAGS);
+    uint32_t unitFlags2 = Memory::safeRead<uint32_t>(unitDesc + Offsets::Unit::Desc::FLAGS2);
+    uint32_t dynFlags   = Memory::safeRead<uint32_t>(unitDesc + Offsets::Unit::Desc::DYNAMIC_FLAGS);
+    int      health     = Memory::safeRead<int>(unitDesc + Offsets::Unit::Desc::HEALTH);
 
-    info.isGhost = hasAuraById(objectBase, GHOST_SPELL_ID);
+    info.isGhost = hasAuraById(objectBase, Offsets::Player::GHOST_SPELL_ID);
 
-    bool feignDeath  = (unitFlags2 & UNIT_FLAG2_FEIGN_DEATH) != 0;
-    bool deadByFlags = (dynFlags   & DYNFLAG_DEAD)           != 0;
+    bool feignDeath  = (unitFlags2 & Offsets::Unit::Flags::FLAGS2_FEIGN_DEATH) != 0;
+    bool deadByFlags = (dynFlags   & Offsets::Unit::Flags::DYNFLAG_DEAD)       != 0;
 
     info.isDead     = (health == 0 || deadByFlags || info.isGhost) && !feignDeath;
-    info.isMounted  = (unitFlags & UNIT_FLAG_MOUNTED) != 0;
-    info.isInCombat = (unitFlags & UNIT_FLAG_COMBAT)  != 0;
+    info.isMounted  = (unitFlags & Offsets::Unit::Flags::MOUNTED)  != 0;
+    info.isInCombat = (unitFlags & Offsets::Unit::Flags::COMBAT)   != 0;
 
-    uintptr_t flyFlagsPtr = Memory::safeRead<uintptr_t>(objectBase + FLY_FLAGS_POINTER_OFFSET);
+    uintptr_t flyFlagsPtr = Memory::safeRead<uintptr_t>(objectBase + Offsets::Unit::FLY_FLAGS_POINTER);
     if (flyFlagsPtr)
     {
-        uint32_t flyFlags = Memory::safeRead<uint32_t>(flyFlagsPtr + FLY_FLAGS_OFFSET);
-        info.isFlying = (flyFlags & MOVE_FLAG_FLYING) != 0;
+        uint32_t flyFlags = Memory::safeRead<uint32_t>(flyFlagsPtr + Offsets::Unit::FLY_FLAGS);
+        info.isFlying = (flyFlags & Offsets::Unit::Flags::MOVE_FLYING) != 0;
     }
 
-    uint32_t moveFlags = Memory::safeRead<uint32_t>(objectBase + MOVE_FLAGS_OFFSET);
-    info.isSwimming   = (moveFlags & MOVE_FLAG_SWIMMING) != 0;
+    uint32_t moveFlags = Memory::safeRead<uint32_t>(objectBase + Offsets::Unit::MOVE_FLAGS);
+    info.isSwimming   = (moveFlags & Offsets::Unit::Flags::MOVE_SWIMMING) != 0;
 
-    info.isUnderwater = Memory::safeRead<int>(ADDR_BREATH_TIMER) > 0;
+    info.isUnderwater = Memory::safeRead<int>(Offsets::Player::BREATH_TIMER) > 0;
 
     uintptr_t presencePtr = Memory::safeRead<uintptr_t>(objectBase + 0x1008);
     if (presencePtr)
