@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstdint>
+#include <cstdio>
+#include <string>
 
 struct WoWGUID
 {
@@ -30,6 +32,13 @@ struct WoWGUID
     bool operator!=(const WoWGUID& rhs) const
     {
         return !(*this == rhs);
+    }
+
+    inline std::string toString() const
+    {
+        char buf[32];
+        std::snprintf(buf, sizeof(buf), "0x%08X%08X", high, low);
+        return std::string(buf);
     }
 };
 
