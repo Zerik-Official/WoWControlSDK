@@ -7,20 +7,20 @@
 #include "internal/NameResolver.h"
 
 Unit::Unit(uintptr_t base)
-    : m_base(base)
+    : WoWObject(base)
 {
-    if (base)
-        m_descBase = Memory::safeRead<uintptr_t>(base + Offsets::Unit::DESCRIPTOR_BASE);
+    if (m_objectData)
+        m_unitData = m_objectData + Offsets::Object::UNIT_DATA_OFFSET;
 }
 
-uintptr_t Unit::unitDesc() const
+bool Unit::isValid() const
 {
-    return m_descBase + Offsets::ObjectMgr::OBJ_DESC_END;
+    return m_base != 0 && m_objectData != 0 && m_unitData != 0;
 }
 
 uint32_t Unit::readRCGP() const
 {
-    return Memory::safeRead<uint32_t>(unitDesc() + Offsets::Unit::Desc::RACE_CLASS_GENDER_POWERTYPE);
+    return Memory::safeRead<uint32_t>(m_unitData + Offsets::Unit::Desc::RACE_CLASS_GENDER_POWERTYPE);
 }
 
 Unit Unit::fromToken(const char* token)
@@ -33,19 +33,9 @@ Unit Unit::fromToken(const char* token)
     return Unit(WoW::GetObjectByGUID(guid));
 }
 
-bool Unit::isValid() const
-{
-    return m_base != 0 && m_descBase != 0;
-}
-
 bool Unit::exists() const
 {
-    return isValid() && getGUID().isValid();
-}
-
-uintptr_t Unit::getBase() const
-{
-    return m_base;
+    return isValid() && getGUID().isValid() && isUnit();
 }
 
 std::string Unit::getName() const
@@ -63,53 +53,41 @@ std::string Unit::getName() const
 
 int Unit::getHealth() const
 {
-    return Memory::safeRead<int>(unitDesc() + Offsets::Unit::Desc::HEALTH);
+    return Memory::safeRead<int>(m_unitData + Offsets::Unit::Desc::HEALTH);
 }
 
 int Unit::getMaxHealth() const
 {
-    return Memory::safeRead<int>(unitDesc() + Offsets::Unit::Desc::MAX_HEALTH);
-}
-
-int Unit::getMana() const
-{
-    return Memory::safeRead<int>(m_base + Offsets::Unit::MANA);
-}
-
-int Unit::getMaxMana() const
-{
-    return Memory::safeRead<int>(m_base + Offsets::Unit::MANA_MAX);
+    return Memory::safeRead<int>(m_unitData + Offsets::Unit::Desc::MAX_HEALTH);
 }
 
 int Unit::getPower() const
 {
-    uint8_t pt = getPowerType();
-    switch (pt)
+    switch (getPowerType())
     {
-    case 0: return Memory::safeRead<int>(unitDesc() + Offsets::Unit::Desc::POWER1);
-    case 1: return Memory::safeRead<int>(unitDesc() + Offsets::Unit::Desc::POWER2) / 10;
-    case 3: return Memory::safeRead<int>(unitDesc() + Offsets::Unit::Desc::POWER4);
-    case 6: return Memory::safeRead<int>(unitDesc() + Offsets::Unit::Desc::POWER7) / 10;
-    default: return 0;
+    case WoW::PowerType::Mana:       return Memory::safeRead<int>(m_unitData + Offsets::Unit::Desc::POWER1);
+    case WoW::PowerType::Rage:       return Memory::safeRead<int>(m_unitData + Offsets::Unit::Desc::POWER2) / 10;
+    case WoW::PowerType::Energy:     return Memory::safeRead<int>(m_unitData + Offsets::Unit::Desc::POWER4);
+    case WoW::PowerType::RunicPower: return Memory::safeRead<int>(m_unitData + Offsets::Unit::Desc::POWER7) / 10;
+    default:                         return 0;
     }
 }
 
 int Unit::getMaxPower() const
 {
-    uint8_t pt = getPowerType();
-    switch (pt)
+    switch (getPowerType())
     {
-    case 0: return Memory::safeRead<int>(unitDesc() + Offsets::Unit::Desc::MAX_POWER1);
-    case 1: return Memory::safeRead<int>(unitDesc() + Offsets::Unit::Desc::MAX_POWER2) / 10;
-    case 3: return Memory::safeRead<int>(unitDesc() + Offsets::Unit::Desc::MAX_POWER4);
-    case 6: return Memory::safeRead<int>(unitDesc() + Offsets::Unit::Desc::MAX_POWER7) / 10;
-    default: return 0;
+    case WoW::PowerType::Mana:       return Memory::safeRead<int>(m_unitData + Offsets::Unit::Desc::MAX_POWER1);
+    case WoW::PowerType::Rage:       return Memory::safeRead<int>(m_unitData + Offsets::Unit::Desc::MAX_POWER2) / 10;
+    case WoW::PowerType::Energy:     return Memory::safeRead<int>(m_unitData + Offsets::Unit::Desc::MAX_POWER4);
+    case WoW::PowerType::RunicPower: return Memory::safeRead<int>(m_unitData + Offsets::Unit::Desc::MAX_POWER7) / 10;
+    default:                         return 0;
     }
 }
 
 int Unit::getLevel() const
 {
-    return Memory::safeRead<int>(unitDesc() + Offsets::Unit::Desc::LEVEL_DESC);
+    return Memory::safeRead<int>(m_unitData + Offsets::Unit::Desc::LEVEL_DESC);
 }
 
 int Unit::getRace() const
@@ -127,9 +105,21 @@ int Unit::getGender() const
     return (readRCGP() >> 16) & 0xFF;
 }
 
-uint8_t Unit::getPowerType() const
+WoW::PowerType Unit::getPowerType() const
 {
-    return (readRCGP() >> 24) & 0xFF;
+    uint8_t raw = (readRCGP() >> 24) & 0xFF;
+
+    switch (raw)
+    {
+    case 0: return WoW::PowerType::Mana;
+    case 1: return WoW::PowerType::Rage;
+    case 2: return WoW::PowerType::Focus;
+    case 3: return WoW::PowerType::Energy;
+    case 4: return WoW::PowerType::Happiness;
+    case 5: return WoW::PowerType::Rune;
+    case 6: return WoW::PowerType::RunicPower;
+    default: return WoW::PowerType::Unknown;
+    }
 }
 
 float Unit::getX() const
@@ -147,26 +137,44 @@ float Unit::getZ() const
     return Memory::safeRead<float>(m_base + Offsets::ObjectMgr::OBJECT_POS_Z);
 }
 
-WoWGUID Unit::getGUID() const
-{
-    return Memory::safeRead<WoWGUID>(m_descBase);
-}
-
 WoWGUID Unit::getTargetGUID() const
 {
-    return Memory::safeRead<WoWGUID>(m_descBase + Offsets::Unit::Desc::TARGET_GUID);
+    return Memory::safeRead<WoWGUID>(m_unitData + Offsets::Unit::Desc::TARGET_GUID);
+}
+
+Unit Unit::getTarget() const
+{
+    WoWGUID targetGuid = getTargetGUID();
+    if (!targetGuid.isValid())
+        return Unit(0);
+
+    return Unit(WoW::GetObjectByGUID(targetGuid));
+}
+
+bool Unit::hasTarget() const
+{
+    return getTargetGUID().isValid();
+}
+
+bool Unit::isSameUnit(const Unit& other) const
+{
+    if (!exists() || !other.exists())
+        return false;
+
+    return getGUID() == other.getGUID();
 }
 
 bool Unit::isInCombat() const
 {
-    uint32_t flags = Memory::safeRead<uint32_t>(unitDesc() + Offsets::Unit::Desc::FLAGS);
+    uint32_t flags = Memory::safeRead<uint32_t>(m_unitData + Offsets::Unit::Desc::FLAGS);
     return (flags & Offsets::Unit::Flags::COMBAT) != 0;
 }
 
 bool Unit::isDead() const
 {
-    uint32_t dynFlags = Memory::safeRead<uint32_t>(unitDesc() + Offsets::Unit::Desc::DYNAMIC_FLAGS);
-    return getHealth() == 0 || (dynFlags & Offsets::Unit::Flags::DYNFLAG_DEAD) != 0;
+    if (getHealth() <= 0) return true;
+    uint32_t dynFlags = Memory::safeRead<uint32_t>(m_unitData + Offsets::Unit::Desc::DYNAMIC_FLAGS);
+    return (dynFlags >> 5) & 1;
 }
 
 bool Unit::isCasting() const
@@ -182,6 +190,30 @@ bool Unit::isChanneling() const
 bool Unit::isAutoAttacking() const
 {
     return Memory::safeRead<int>(m_base + Offsets::Unit::IS_AUTO_ATTACKING) != 0;
+}
+
+bool Unit::isMoving() const
+{
+    uint32_t flags = Memory::safeRead<uint32_t>(m_base + Offsets::Unit::MOVE_FLAGS);
+    return (flags & 0x1FF) != 0;
+}
+
+bool Unit::isSwimming() const
+{
+    uint32_t flags = Memory::safeRead<uint32_t>(m_base + Offsets::Unit::MOVE_FLAGS);
+    return (flags & Offsets::Unit::Flags::MOVE_SWIMMING) != 0;
+}
+
+bool Unit::isFlying() const
+{
+    uint32_t flags = Memory::safeRead<uint32_t>(m_base + Offsets::Unit::MOVE_FLAGS);
+    return (flags & Offsets::Unit::Flags::MOVE_FLYING) != 0;
+}
+
+bool Unit::isMounted() const
+{
+    uint32_t flags = Memory::safeRead<uint32_t>(m_unitData + Offsets::Unit::Desc::FLAGS);
+    return (flags & Offsets::Unit::Flags::MOUNTED) != 0;
 }
 
 int Unit::getCastingSpellId() const
