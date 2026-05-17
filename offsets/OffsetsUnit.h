@@ -60,4 +60,14 @@ namespace Offsets
             constexpr uint32_t MOVE_FLYING               = 0x02000000;
         }
     }
+
+    namespace Object
+    {
+        constexpr uintptr_t OBJECT_DATA_PTR    = 0x8;
+        constexpr uintptr_t OBJECT_DATA_MASK   = 0x8;
+        constexpr uintptr_t UNIT_DATA_OFFSET   = 0x18;
+
+        constexpr uintptr_t GUID_LOW           = 0x30;
+        constexpr uintptr_t GUID_HIGH          = 0x34;
+    }
 }
