@@ -27,13 +27,9 @@ namespace WoW
         if (!guid.isValid())
             return 0;
 
-        uintptr_t objMgr = GetObjectManager();
-        if (!objMgr)
-            return 0;
-
-        using FindObjFn = uintptr_t(__thiscall*)(uintptr_t, const WoWGUID*);
+        using FindObjFn = uintptr_t(__cdecl*)(uint32_t, uint32_t, uint32_t);
         auto findObj = reinterpret_cast<FindObjFn>(Offsets::ObjectMgr::FIND_OBJ_BY_GUID);
 
-        return findObj(objMgr, &guid);
+        return findObj(guid.low, guid.high, Offsets::ObjectMgr::OBJ_TYPE_MASK_UNIT);
     }
 }
