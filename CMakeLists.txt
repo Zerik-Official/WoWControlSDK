@@ -31,6 +31,10 @@ add_library(WoWControlSDK SHARED
     core/api/internal/UnitResolver.cpp
     core/api/internal/NameResolver.cpp
 
+    core/api/object/WoWObject.cpp
+
+    core/api/lua/LuaUnit.cpp
+
     core/api/unit/Player.cpp
 
     core/map/MapInfo.cpp
@@ -43,6 +47,7 @@ add_library(WoWControlSDK SHARED
     ipc/PipeServer.cpp
 
     commands/CommandHandler.cpp
+    commands/DebugCommands.cpp
 
     utils/JsonUtils.cpp
 )
