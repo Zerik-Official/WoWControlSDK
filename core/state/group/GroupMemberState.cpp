@@ -32,7 +32,7 @@ Info read(uint64_t guid)
     info.race      = unit.getRace();
     info.class_    = unit.getClass();
     info.gender    = unit.getGender();
-    info.powerType = unit.getPowerType();
+    info.powerType = static_cast<int>(unit.getPowerType());
     info.health    = unit.getHealth();
     info.healthMax = unit.getMaxHealth();
     info.power     = unit.getPower();
