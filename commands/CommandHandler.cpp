@@ -6,6 +6,8 @@
 #include "hooks/EndSceneHook.h"
 #include "utils/JsonUtils.h"
 
+#include "core/state/group/GroupStateJson.h"
+
 static const char* ERR_UNKNOWN_CMD   = "{\"ok\":false,\"error\":\"unknown command\"}";
 static const char* ERR_MISSING_PARAM = "{\"ok\":false,\"error\":\"missing parameter\"}";
 static const char* RESP_OK           = "{\"ok\":true}";
@@ -86,6 +88,16 @@ std::string handle(const std::string& raw)
 
         std::string resp = EndSceneHook::dispatch([code]() -> std::string {
             return LuaEngine::execute(code);
+        });
+        return resp;
+    }
+
+    if (cmd == "getGroupState") {
+        std::string resp = EndSceneHook::dispatch([]() -> std::string {
+            char* json = GroupStateJson::toJson();
+            std::string result(json);
+            delete[] json;
+            return result;
         });
         return resp;
     }
