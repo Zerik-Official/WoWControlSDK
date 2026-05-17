@@ -1,7 +1,8 @@
 #include "MapReader.h"
 #include "MapInfo.h"
 #include "memory/MemReader.h"
-#include "../../offsets_world.h"
+#include "OffsetsMap.h"
+#include "OffsetsPlayer.h"
 #include <cstring>
 #include <Windows.h>
 
@@ -11,14 +12,14 @@ Info read(uintptr_t objectBase)
 {
     Info info = {};
 
-    info.mapId       = Memory::safeRead<int>(ADDR_MAP_ID);
-    info.zoneId      = Memory::safeRead<int>(ADDR_ZONE_ID);
+    info.mapId       = Memory::safeRead<int>(Offsets::Map::MAP_ID);
+    info.zoneId      = Memory::safeRead<int>(Offsets::Map::ZONE_ID);
     info.continentId = MapInfo::getContinent();
     info.luaMapId    = MapInfo::getLuaAreaId();
     info.luaZoneId   = MapInfo::getZone();
 
-    uintptr_t zoneTextPtr = Memory::safeRead<uintptr_t>(ADDR_ZONE_TEXT);
-    uintptr_t subZonePtr  = Memory::safeRead<uintptr_t>(ADDR_SUBZONE_TEXT);
+    uintptr_t zoneTextPtr = Memory::safeRead<uintptr_t>(Offsets::Map::ZONE_TEXT);
+    uintptr_t subZonePtr  = Memory::safeRead<uintptr_t>(Offsets::Map::SUBZONE_TEXT);
 
     if (zoneTextPtr)
         strncpy_s(info.zoneName, reinterpret_cast<const char*>(zoneTextPtr), sizeof(info.zoneName) - 1);
@@ -33,10 +34,10 @@ Info read(uintptr_t objectBase)
     if (!objectBase)
         return info;
 
-    info.x        = Memory::safeRead<float>(objectBase + POS_OFFSET);
-    info.y        = Memory::safeRead<float>(objectBase + POS_OFFSET + 0x4);
-    info.z        = Memory::safeRead<float>(objectBase + POS_OFFSET + 0x8);
-    info.rotation = Memory::safeRead<float>(objectBase + ROT_OFFSET);
+    info.x        = Memory::safeRead<float>(objectBase + Offsets::Player::POS_OFFSET);
+    info.y        = Memory::safeRead<float>(objectBase + Offsets::Player::POS_OFFSET + 0x4);
+    info.z        = Memory::safeRead<float>(objectBase + Offsets::Player::POS_OFFSET + 0x8);
+    info.rotation = Memory::safeRead<float>(objectBase + Offsets::Player::ROT_OFFSET);
 
     return info;
 }
