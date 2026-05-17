@@ -108,3 +108,6 @@ static constexpr uintptr_t ADDR_PARTY_LEADER         = 0xBD1968;
 static constexpr uintptr_t ADDR_PARTY_PLAYER_GUIDS   = 0xBD1948;
 static constexpr uintptr_t ADDR_RAID_LEADER          = 0xBD1990;
 static constexpr uintptr_t ADDR_RAID_GROUP_START     = 0xBEB568;
+
+static constexpr int PARTY_MAX_MEMBERS = 4;
+static constexpr int RAID_MAX_MEMBERS  = 40;
