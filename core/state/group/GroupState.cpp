@@ -1,8 +1,7 @@
 #include "GroupState.h"
 #include "memory/MemReader.h"
 #include "OffsetsGroup.h"
-#include "OffsetsObjectMgr.h"
-#include <cstring>
+#include "core/api/object/ObjectManager.h"
 #include <algorithm>
 
 namespace GroupState {
@@ -54,13 +53,10 @@ Info read()
     info.leaderGuid = raidLeader ? raidLeader : partyLeader;
     if (!info.leaderGuid) return info;
 
-    uintptr_t cc = Memory::safeRead<uintptr_t>(Offsets::ObjectMgr::STATIC_CLIENT_CONNECTION);
-    if (!cc) return info;
+    WoWGUID localWoWGuid = WoW::GetLocalGUID();
+    if (!localWoWGuid.isValid()) return info;
 
-    uintptr_t om = Memory::safeRead<uintptr_t>(cc + Offsets::ObjectMgr::OBJECT_MANAGER_OFFSET);
-    if (!om) return info;
-
-    uint64_t localGuid = Memory::safeRead<uint64_t>(om + Offsets::ObjectMgr::LOCAL_GUID_OFFSET);
+    uint64_t localGuid = localWoWGuid.raw();
 
     std::vector<uint64_t> guids;
 
