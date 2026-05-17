@@ -18,6 +18,9 @@ namespace Offsets
         constexpr uintptr_t IS_AUTO_ATTACKING            = 0xA20;
 
         constexpr uintptr_t MOVE_FLAGS                   = 0xA30;
+        constexpr uintptr_t MOVE_DATA_PTR                = 0xD8;
+        constexpr uintptr_t MOVE_DATA_FLAGS              = 0x44;
+        constexpr uint32_t  MOVEFLAG_FLYING              = 0x02000000;
         constexpr uintptr_t FLY_FLAGS_POINTER            = 0xD8;
         constexpr uintptr_t FLY_FLAGS                    = 0x44;
 
