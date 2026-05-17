@@ -79,7 +79,7 @@ Info read(uint64_t guid)
 
     info.isCasting       = Memory::safeRead<int>(info.objectBase + Offsets::Unit::CASTING_SPELL_ID)      != 0;
     info.isChanneling    = Memory::safeRead<int>(info.objectBase + Offsets::Unit::CHANNELING_SPELL_ID)   != 0;
-    info.isAutoAttacking = Memory::safeRead<uint8_t>(info.objectBase + Offsets::Unit::IS_AUTO_ATTACKING) != 0;
+    info.isAutoAttacking = Memory::safeRead<int>(info.objectBase + Offsets::Unit::IS_AUTO_ATTACKING) != 0;
 
     info.valid = true;
     return info;
