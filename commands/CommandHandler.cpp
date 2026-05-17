@@ -5,6 +5,7 @@
 #include "core/PlayerState.h"
 #include "hooks/EndSceneHook.h"
 #include "utils/JsonUtils.h"
+#include "DebugCommands.h"
 
 #include "core/state/group/GroupStateJson.h"
 
@@ -100,6 +101,17 @@ std::string handle(const std::string& raw)
             return result;
         });
         return resp;
+    }
+
+    if (cmd == "debug")
+    {
+        std::string sub =
+            JsonUtils::getString(json, "name");
+
+        if (sub.empty())
+            return ERR_MISSING_PARAM;
+
+        return DebugCommands::handle(sub);
     }
 
     return ERR_UNKNOWN_CMD;
