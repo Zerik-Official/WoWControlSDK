@@ -24,6 +24,7 @@ add_library(WoWControlSDK SHARED
     core/state/group/GroupMemberState.cpp
     core/state/group/GroupState.cpp
     core/state/group/GroupCombatState.cpp
+    core/state/group/GroupStateJson.cpp
 
     core/map/MapInfo.cpp
     core/map/MapReader.cpp
