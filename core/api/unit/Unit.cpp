@@ -206,8 +206,10 @@ bool Unit::isSwimming() const
 
 bool Unit::isFlying() const
 {
-    uint32_t flags = Memory::safeRead<uint32_t>(m_base + Offsets::Unit::MOVE_FLAGS);
-    return (flags & Offsets::Unit::Flags::MOVE_FLYING) != 0;
+    uintptr_t movePtr = Memory::safeRead<uintptr_t>(m_base + Offsets::Unit::MOVE_DATA_PTR);
+    if (!movePtr) return false;
+    uint32_t flags = Memory::safeRead<uint32_t>(movePtr + Offsets::Unit::MOVE_DATA_FLAGS);
+    return (flags & Offsets::Unit::MOVEFLAG_FLYING) != 0;
 }
 
 bool Unit::isMounted() const
