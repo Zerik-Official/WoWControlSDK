@@ -26,6 +26,11 @@ add_library(WoWControlSDK SHARED
     core/state/group/GroupCombatState.cpp
     core/state/group/GroupStateJson.cpp
 
+    core/api/object/ObjectManager.cpp
+    core/api/unit/Unit.cpp
+    core/api/internal/UnitResolver.cpp
+    core/api/internal/NameResolver.cpp
+
     core/map/MapInfo.cpp
     core/map/MapReader.cpp
 
@@ -44,6 +49,8 @@ target_include_directories(WoWControlSDK PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/core
     ${CMAKE_CURRENT_SOURCE_DIR}/core/state
+    ${CMAKE_CURRENT_SOURCE_DIR}/offsets
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/api
 )
 
 target_link_libraries(WoWControlSDK PRIVATE
