@@ -1,29 +1,29 @@
 #include "CommandHandler.h"
-#include "utils/JsonUtils.h"
+#include "utils/json/JsonIPC.h"
 #include "DebugCommands.h"
-
-static const char* ERR_UNKNOWN_CMD   = "{\"ok\":false,\"error\":\"unknown command\"}";
-static const char* ERR_MISSING_PARAM = "{\"ok\":false,\"error\":\"missing parameter\"}";
 
 namespace CommandHandler {
 
 std::string handle(const std::string& raw)
 {
-    const char* json = raw.c_str();
-    std::string cmd  = JsonUtils::getString(json, "cmd");
+    SDK::Json j = SDK::JsonIPC::parseCommand(raw);
+    if (j.is_discarded()) {
+        return SDK::JsonIPC::serializeCommandError("invalid json");
+    }
+
+    std::string cmd = j.value("cmd", "");
 
     if (cmd == "debug")
     {
-        std::string sub =
-            JsonUtils::getString(json, "name");
+        std::string sub = j.value("name", "");
 
         if (sub.empty())
-            return ERR_MISSING_PARAM;
+            return SDK::JsonIPC::serializeCommandError("missing parameter");
 
         return DebugCommands::handle(sub);
     }
 
-    return ERR_UNKNOWN_CMD;
+    return SDK::JsonIPC::serializeCommandError("unknown command");
 }
 
 }
