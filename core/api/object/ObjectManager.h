@@ -7,5 +7,6 @@ namespace WoW
 {
     uintptr_t GetObjectManager();
     WoWGUID   GetLocalGUID();
+    WoWGUID   GetMouseoverGUID();
     uintptr_t GetObjectByGUID(const WoWGUID& guid);
 }

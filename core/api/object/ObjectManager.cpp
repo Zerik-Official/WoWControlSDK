@@ -22,6 +22,11 @@ namespace WoW
         return Memory::safeRead<WoWGUID>(objMgr + Offsets::ObjectMgr::LOCAL_GUID_OFFSET);
     }
 
+    WoWGUID GetMouseoverGUID()
+    {
+        return Memory::safeRead<WoWGUID>(0x00BD07A0);
+    }
+
     uintptr_t GetObjectByGUID(const WoWGUID& guid)
     {
         if (!guid.isValid())
