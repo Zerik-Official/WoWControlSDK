@@ -1,42 +1,91 @@
 #include "NameResolver.h"
 #include "memory/MemReader.h"
-#include "OffsetsPlayer.h"
+#include "object/ObjectManager.h"
 #include <Windows.h>
+#include <cstring>
 
 namespace NameResolver
 {
+
+static bool readNameInternal(uintptr_t objBase, char* out, size_t outSize)
+{
+    if (!objBase || !out || outSize == 0) return false;
+    out[0] = '\0';
+
+    using GetUnitNameFn = const char*(__thiscall*)(uintptr_t, char*, int);
+    auto fn = reinterpret_cast<GetUnitNameFn>(0x0072a000);
+
+    char buf[128] = {};
+    const char* result = fn(objBase, buf, sizeof(buf) - 1);
+
+    const char* name = result ? result : buf;
+    if (name && name[0])
+    {
+        strncpy_s(out, outSize, name, outSize - 1);
+        return true;
+    }
+    return false;
+}
+
+static bool readPVPNameInternal(uintptr_t objBase, char* out, size_t outSize)
+{
+    if (!objBase || !out || outSize == 0) return false;
+    out[0] = '\0';
+
+    using PVPNameFn = const char*(__thiscall*)(uintptr_t, char*, size_t, int, int*);
+    auto fn = reinterpret_cast<PVPNameFn>(0x0072a290);
+
+    char buf[1024] = {};
+    int flag = 0;
+    const char* result = fn(objBase, buf, sizeof(buf) - 1, 1, &flag);
+
+    const char* name = result ? result : buf;
+    if (name && name[0])
+    {
+        strncpy_s(out, outSize, name, outSize - 1);
+        return true;
+    }
+    return false;
+}
 
 bool readName(uint64_t guid, char* out, size_t outSize)
 {
     if (!guid || !out) return false;
 
-    uint32_t nameMask = Memory::safeRead<uint32_t>(Offsets::Player::Name::STORE + Offsets::Player::Name::MASK);
-    uint32_t nameBase = Memory::safeRead<uint32_t>(Offsets::Player::Name::STORE + Offsets::Player::Name::BASE);
+    WoWGUID wguid;
+    wguid.low = (uint32_t)(guid & 0xFFFFFFFF);
+    wguid.high = (uint32_t)(guid >> 32);
 
-    if (!nameMask || !nameBase) return false;
+    uintptr_t objBase = WoW::GetObjectByGUID(wguid);
+    if (!objBase) return false;
 
-    uint32_t shortGuid = (uint32_t)(guid & 0x0FFFFFFF);
-    uint32_t offset    = 12 * (nameMask & shortGuid);
+    return readNameInternal(objBase, out, outSize);
+}
 
-    uint32_t current = Memory::safeRead<uint32_t>(nameBase + offset + 8);
-    uint32_t nextOff = Memory::safeRead<uint32_t>(nameBase + offset);
+bool readPVPName(uint64_t guid, char* out, size_t outSize)
+{
+    if (!guid || !out) return false;
 
-    if (!current || (current & 1)) return false;
+    WoWGUID wguid;
+    wguid.low = (uint32_t)(guid & 0xFFFFFFFF);
+    wguid.high = (uint32_t)(guid >> 32);
 
-    uint32_t testGuid = Memory::safeRead<uint32_t>(current);
+    uintptr_t objBase = WoW::GetObjectByGUID(wguid);
+    if (!objBase) return false;
 
-    while (testGuid != shortGuid)
-    {
-        current = Memory::safeRead<uint32_t>(current + nextOff + 4);
-        if (!current || (current & 1)) return false;
-        testGuid = Memory::safeRead<uint32_t>(current);
-    }
+    return readPVPNameInternal(objBase, out, outSize);
+}
 
-    const char* str = reinterpret_cast<const char*>(current + Offsets::Player::Name::STRING);
-    if (IsBadReadPtr((void*)str, 16)) return false;
+bool readNameFromObject(uintptr_t objBase, char* out, size_t outSize)
+{
+    if (!objBase || !out) return false;
+    return readNameInternal(objBase, out, outSize);
+}
 
-    strncpy_s(out, outSize, str, 16);
-    return true;
+bool readPVPNameFromObject(uintptr_t objBase, char* out, size_t outSize)
+{
+    if (!objBase || !out) return false;
+    return readPVPNameInternal(objBase, out, outSize);
 }
 
 }
