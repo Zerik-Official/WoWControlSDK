@@ -26,14 +26,14 @@ public:
     int            getGender()    const;
     WoW::PowerType getPowerType() const;
 
-    float getX() const;
-    float getY() const;
-    float getZ() const;
-
     WoWGUID     getTargetGUID() const;
     Unit        getTarget()     const;
     bool        hasTarget()     const;
     bool        isSameUnit(const Unit& other) const;
+
+    bool        getWorldPosition(float* outX, float* outY) const;
+    bool        getWorldPosition(float* outX, float* outY, float* outZ) const;
+    bool        getMapPosition(float* outX, float* outY) const;
 
     std::string getName() const;
 

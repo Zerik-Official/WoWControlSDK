@@ -1,7 +1,8 @@
 #include "Unit.h"
 #include "memory/MemReader.h"
 #include "OffsetsUnit.h"
-#include "OffsetsObjectMgr.h"
+#include "OffsetsPlayer.h"
+#include "OffsetsGroup.h"
 #include "internal/UnitResolver.h"
 #include "object/ObjectManager.h"
 #include "internal/NameResolver.h"
@@ -122,21 +123,6 @@ WoW::PowerType Unit::getPowerType() const
     }
 }
 
-float Unit::getX() const
-{
-    return Memory::safeRead<float>(m_base + Offsets::ObjectMgr::OBJECT_POS_X);
-}
-
-float Unit::getY() const
-{
-    return Memory::safeRead<float>(m_base + Offsets::ObjectMgr::OBJECT_POS_Y);
-}
-
-float Unit::getZ() const
-{
-    return Memory::safeRead<float>(m_base + Offsets::ObjectMgr::OBJECT_POS_Z);
-}
-
 WoWGUID Unit::getTargetGUID() const
 {
     return Memory::safeRead<WoWGUID>(m_unitData + Offsets::Unit::Desc::TARGET_GUID);
@@ -226,4 +212,61 @@ int Unit::getCastingSpellId() const
 int Unit::getChannelingSpellId() const
 {
     return Memory::safeRead<int>(m_base + Offsets::Unit::CHANNELING_SPELL_ID);
+}
+
+bool Unit::getMapPosition(float* outX, float* outY) const
+{
+    if (!outX || !outY) return false;
+    *outX = 0.0f;
+    *outY = 0.0f;
+
+    WoWGUID guid = getGUID();
+    if (!guid.isValid()) return false;
+
+    WoWGUID localGuid = WoW::GetLocalGUID();
+    if (guid == localGuid)
+        goto call_game_func;
+
+    for (int i = 0; i < Offsets::Group::PARTY_MAX_MEMBERS; i++)
+    {
+        WoWGUID pg = Memory::safeRead<WoWGUID>(
+            Offsets::Group::PARTY_PLAYER_GUIDS + (i * sizeof(WoWGUID)));
+        if (pg == guid)
+            goto call_game_func;
+    }
+
+    for (int i = 0; i < Offsets::Group::RAID_MAX_MEMBERS; i++)
+    {
+        uintptr_t ptr = Memory::safeRead<uintptr_t>(
+            Offsets::Group::RAID_GROUP_START + (i * sizeof(uintptr_t)));
+        if (!ptr) continue;
+        WoWGUID rg = Memory::safeRead<WoWGUID>(ptr);
+        if (rg == guid)
+            goto call_game_func;
+    }
+
+    return false;
+
+call_game_func:
+    using MapPosFn = void(__cdecl*)(uint32_t, uint32_t, float*, float*);
+    auto fn = reinterpret_cast<MapPosFn>(0x005444f0);
+    fn(guid.low, guid.high, outX, outY);
+    return (*outX != 0.0f || *outY != 0.0f);
+}
+
+bool Unit::getWorldPosition(float* outX, float* outY) const
+{
+    if (!outX || !outY || !m_base) return false;
+    *outX = Memory::safeRead<float>(m_base + Offsets::Player::POS_OFFSET);
+    *outY = Memory::safeRead<float>(m_base + Offsets::Player::POS_OFFSET + 0x4);
+    return true;
+}
+
+bool Unit::getWorldPosition(float* outX, float* outY, float* outZ) const
+{
+    if (!outX || !outY || !outZ || !m_base) return false;
+    *outX = Memory::safeRead<float>(m_base + Offsets::Player::POS_OFFSET);
+    *outY = Memory::safeRead<float>(m_base + Offsets::Player::POS_OFFSET + 0x4);
+    *outZ = Memory::safeRead<float>(m_base + Offsets::Player::POS_OFFSET + 0x8);
+    return true;
 }
