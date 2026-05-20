@@ -1,5 +1,5 @@
 #include "LuaEngine.h"
-#include "../offsets_world.h"
+#include "OffsetsLua.h"
 #include <Windows.h>
 #include <string>
 #include <cstdio>
@@ -35,7 +35,7 @@ static lua_type_t       s_type          = nullptr;
 
 static lua_State* getLuaState()
 {
-    uintptr_t* ptr = reinterpret_cast<uintptr_t*>(LUA_STATE_PTR_ADDR);
+    uintptr_t* ptr = reinterpret_cast<uintptr_t*>(Offsets::Lua::LUA_STATE_PTR);
     if (!ptr || !*ptr) return nullptr;
     return reinterpret_cast<lua_State*>(*ptr);
 }
@@ -44,16 +44,16 @@ namespace LuaEngine {
 
 bool initialize()
 {
-    s_execute    = reinterpret_cast<lua_Execute_t>   (WOW_LUA_EXECUTE);
-    s_pcall      = reinterpret_cast<lua_pcall_t>     (LUA_PCALL_ADDR);
-    s_loadbuffer = reinterpret_cast<lua_loadbuffer_t>(LUA_LOADBUFFER_ADDR);
-    s_gettop     = reinterpret_cast<lua_gettop_t>    (LUA_GETTOP_ADDR);
-    s_settop     = reinterpret_cast<lua_settop_t>    (LUA_SETTOP_ADDR);
-    s_tolstring  = reinterpret_cast<lua_tolstring_t> (LUA_TOLSTRING_ADDR);
-    s_tonumber   = reinterpret_cast<lua_tonumber_t>  (LUA_TONUMBER_ADDR);
-    s_toboolean  = reinterpret_cast<lua_toboolean_t> (LUA_TOBOOLEAN_ADDR);
-    s_isnumber   = reinterpret_cast<lua_isnumber_t>  (LUA_ISNUMBER_ADDR);
-    s_type       = reinterpret_cast<lua_type_t>      (LUA_TYPE_ADDR);
+    s_execute    = reinterpret_cast<lua_Execute_t>   (Offsets::Lua::WOW_LUA_EXECUTE);
+    s_pcall      = reinterpret_cast<lua_pcall_t>     (Offsets::Lua::LUA_PCALL);
+    s_loadbuffer = reinterpret_cast<lua_loadbuffer_t>(Offsets::Lua::LUA_LOADBUFFER);
+    s_gettop     = reinterpret_cast<lua_gettop_t>    (Offsets::Lua::LUA_GETTOP);
+    s_settop     = reinterpret_cast<lua_settop_t>    (Offsets::Lua::LUA_SETTOP);
+    s_tolstring  = reinterpret_cast<lua_tolstring_t> (Offsets::Lua::LUA_TOLSTRING);
+    s_tonumber   = reinterpret_cast<lua_tonumber_t>  (Offsets::Lua::LUA_TONUMBER);
+    s_toboolean  = reinterpret_cast<lua_toboolean_t> (Offsets::Lua::LUA_TOBOOLEAN);
+    s_isnumber   = reinterpret_cast<lua_isnumber_t>  (Offsets::Lua::LUA_ISNUMBER);
+    s_type       = reinterpret_cast<lua_type_t>      (Offsets::Lua::LUA_TYPE);
 
     if (!s_execute || !s_pcall || !s_loadbuffer || !s_gettop || !s_settop || !s_tolstring)
         return false;

@@ -4,7 +4,7 @@
 #include "ipc/PipeServer.h"
 #include "ipc/CommandPipe.h"
 #include "hooks/Hooks.h"
-#include "utils/JsonUtils.h"
+#include "utils/json/JsonIPC.h"
 
 #include <Windows.h>
 #include <cstdio>
@@ -80,12 +80,9 @@ char* getStateJson()
     Screen screen  = resolveScreen();
     bool   inWorld = (screen == Screen::WORLD);
 
-    const char* realmListVal  = getRealmList();
-    std::string realmListJson = realmListVal
-        ? "\"" + JsonUtils::escape(realmListVal) + "\""
-        : "null";
+    const char* realmListVal = getRealmList();
 
-    std::string charsJson = "[]";
+    std::vector<SDK::JsonIPC::CharacterInfo> chars;
 
     const std::vector<CachedChar>* source = nullptr;
     std::vector<CachedChar>        liveChars;
@@ -94,54 +91,38 @@ char* getStateJson()
     if (!cached.empty()) {
         source = &cached;
     } else if (!s_loginLatch) {
-        LoginUI::CharVector* chars = LoginUI::GetChars();
-        if (chars && chars->size > 0) {
+        LoginUI::CharVector* charsPtr = LoginUI::GetChars();
+        if (charsPtr && charsPtr->size > 0) {
             CharCache::refresh();
             source = &CharCache::get();
         }
     }
 
     if (source && !source->empty()) {
-        charsJson = "[";
-        for (int i = 0; i < (int)source->size(); i++) {
-            const CachedChar& cc = (*source)[i];
-            char entry[512];
-            snprintf(entry, sizeof(entry),
-                "%s{"
-                "\"name\":\"%s\","
-                "\"level\":%d,"
-                "\"class\":%d,"
-                "\"race\":%d,"
-                "\"gender\":%d,"
-                "\"map\":%d,"
-                "\"zone\":%d"
-                "}",
-                (i > 0 ? "," : ""),
-                JsonUtils::escape(cc.name).c_str(),
-                cc.level, cc.class_, cc.race, cc.gender, cc.map, cc.zone
-            );
-            charsJson += entry;
+        for (const auto& cc : *source) {
+            SDK::JsonIPC::CharacterInfo info;
+            info.name = cc.name;
+            info.level = cc.level;
+            info.class_ = cc.class_;
+            info.race = cc.race;
+            info.gender = cc.gender;
+            info.map = cc.map;
+            info.zone = cc.zone;
+            chars.push_back(info);
         }
-        charsJson += "]";
     }
 
-    char tmp[8192];
-    snprintf(tmp, sizeof(tmp),
-        "{"
-        "\"screen\":\"%s\","
-        "\"inWorld\":%s,"
-        "\"realmList\":%s,"
-        "\"characters\":%s"
-        "}",
+    std::string result = SDK::JsonIPC::serializeGameState(
         screenName(screen),
-        inWorld ? "true" : "false",
-        realmListJson.c_str(),
-        charsJson.c_str()
+        inWorld,
+        realmListVal,
+        chars.empty() ? nullptr : chars.data(),
+        (int)chars.size()
     );
 
-    size_t len = strlen(tmp) + 1;
+    size_t len = result.size() + 1;
     char*  buf = new char[len];
-    memcpy(buf, tmp, len);
+    memcpy(buf, result.c_str(), len);
     return buf;
 }
 

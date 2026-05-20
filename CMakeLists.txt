@@ -15,19 +15,26 @@ add_library(WoWControlSDK SHARED
 
     core/GameState.cpp
     core/CharCache.cpp
+
     core/engine/LuaEngine.cpp
-    core/PlayerState.cpp
-    core/state/player/PlayerBase.cpp
-    core/state/player/PlayerPower.cpp
-    core/state/player/PlayerStatus.cpp
 
-    core/state/group/GroupMemberState.cpp
-    core/state/group/GroupState.cpp
-    core/state/group/GroupCombatState.cpp
-    core/state/group/GroupStateJson.cpp
+    core/api/internal/NameResolver.cpp
+    core/api/internal/UnitResolver.cpp
 
-    core/map/MapInfo.cpp
-    core/map/MapReader.cpp
+    core/api/object/ObjectManager.cpp
+    core/api/object/WoWObject.cpp
+
+    core/api/unit/Unit.cpp
+    core/api/unit/Player.cpp
+
+    core/api/world/WorldInfo.cpp
+    core/api/world/WorldReader.cpp
+
+    core/api/game/Unit/UnitAPI.cpp
+    core/api/game/Player/PlayerAPI.cpp
+    core/api/game/World/WorldAPI.cpp
+    core/api/game/Group/GroupAPI.cpp
+    core/api/game/Object/ObjectAPI.cpp
 
     hooks/Hooks.cpp
     hooks/EndSceneHook.cpp
@@ -36,14 +43,18 @@ add_library(WoWControlSDK SHARED
     ipc/PipeServer.cpp
 
     commands/CommandHandler.cpp
+    commands/DebugCommands.cpp
 
-    utils/JsonUtils.cpp
+    utils/legacy/JsonUtils.cpp
+    utils/json/JsonIPC.cpp
 )
 
 target_include_directories(WoWControlSDK PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/core
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/state
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/api
+    ${CMAKE_CURRENT_SOURCE_DIR}/offsets
+    ${CMAKE_CURRENT_SOURCE_DIR}/deps
 )
 
 target_link_libraries(WoWControlSDK PRIVATE

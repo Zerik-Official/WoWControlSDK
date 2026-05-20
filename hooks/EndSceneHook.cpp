@@ -1,5 +1,4 @@
 #include "EndSceneHook.h"
-#include "../offsets_world.h"
 #include <deps/Detours/detours.h>
 #include <d3d9.h>
 #include <mutex>
