@@ -54,6 +54,12 @@ namespace WoW
             return allowNull || outGuid->isValid();
         }
 
+        if (std::strcmp(token, "mouseover") == 0)
+        {
+            *outGuid = GetMouseoverGUID();
+            return allowNull || outGuid->isValid();
+        }
+
         if (std::strncmp(token, "party", 5) == 0 && token[5] != '\0')
         {
             int index = token[5] - '0';
