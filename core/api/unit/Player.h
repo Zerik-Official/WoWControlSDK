@@ -11,5 +11,8 @@ public:
 
     int   getXP()        const;
     int   getMaxXP()     const;
+    float getX()         const;
+    float getY()         const;
+    float getZ()         const;
     float getRotation()  const;
 };

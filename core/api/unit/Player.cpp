@@ -2,7 +2,6 @@
 #include "memory/MemReader.h"
 #include "object/ObjectManager.h"
 #include "OffsetsPlayer.h"
-#include "OffsetsObjectMgr.h"
 
 Player Player::local()
 {
@@ -19,7 +18,11 @@ int Player::getXP() const
     if (!isValid())
         return 0;
 
-    return Memory::safeRead<int>(m_unitData + Offsets::ObjectMgr::OBJ_DESC_END + Offsets::Player::Desc::XP);
+    uintptr_t ptr = Memory::safeRead<uintptr_t>(m_base + 0x1008);
+    if (!ptr)
+        return 0;
+
+    return Memory::safeRead<int>(ptr + 0x798);
 }
 
 int Player::getMaxXP() const
@@ -27,7 +30,11 @@ int Player::getMaxXP() const
     if (!isValid())
         return 0;
 
-    return Memory::safeRead<int>(m_unitData + Offsets::ObjectMgr::OBJ_DESC_END + Offsets::Player::Desc::NEXT_LEVEL_XP);
+    uintptr_t ptr = Memory::safeRead<uintptr_t>(m_base + 0x1008);
+    if (!ptr)
+        return 0;
+
+    return Memory::safeRead<int>(ptr + 0x79C);
 }
 
 float Player::getRotation() const
@@ -36,4 +43,28 @@ float Player::getRotation() const
         return 0.0f;
 
     return Memory::safeRead<float>(m_base + Offsets::Player::ROT_OFFSET);
+}
+
+float Player::getX() const
+{
+    if (!isValid())
+        return 0.0f;
+
+    return Memory::safeRead<float>(m_base + Offsets::Player::POS_OFFSET);
+}
+
+float Player::getY() const
+{
+    if (!isValid())
+        return 0.0f;
+
+    return Memory::safeRead<float>(m_base + Offsets::Player::POS_OFFSET + 0x4);
+}
+
+float Player::getZ() const
+{
+    if (!isValid())
+        return 0.0f;
+
+    return Memory::safeRead<float>(m_base + Offsets::Player::POS_OFFSET + 0x8);
 }
