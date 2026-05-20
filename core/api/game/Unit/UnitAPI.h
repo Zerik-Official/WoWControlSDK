@@ -78,5 +78,8 @@ namespace GameAPI
         WoWGUID     GetTargetGUID(UnitHandle handle);
 
         std::string GetName(UnitHandle handle);
+
+        Position    GetUnitMapPosition(UnitHandle handle);
+        Position    GetUnitWorldPosition(UnitHandle handle);
     }
 }

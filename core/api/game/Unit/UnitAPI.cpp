@@ -1,5 +1,6 @@
 #include "UnitAPI.h"
 #include "core/api/unit/Unit.h"
+#include "core/api/unit/Player.h"
 #include "core/api/internal/UnitResolver.h"
 #include "core/api/object/ObjectManager.h"
 
@@ -166,8 +167,10 @@ namespace GameAPI
         Position GetPosition(UnitHandle handle)
         {
             if (handle.isNull()) return { 0.f, 0.f, 0.f };
-            auto u = resolve(handle);
-            return { u.getX(), u.getY(), u.getZ() };
+            ::Player local = ::Player::local();
+            if (local.exists() && local.getBase() == handle.base)
+                return { local.getX(), local.getY(), local.getZ() };
+            return { 0.f, 0.f, 0.f };
         }
 
         WoWGUID GetGUID(UnitHandle handle)
@@ -186,6 +189,22 @@ namespace GameAPI
         {
             if (handle.isNull()) return {};
             return resolve(handle).getName();
+        }
+
+        Position GetUnitMapPosition(UnitHandle handle)
+        {
+            if (handle.isNull()) return { 0.f, 0.f, 0.f };
+            float x = 0.f, y = 0.f;
+            resolve(handle).getMapPosition(&x, &y);
+            return { x, y, 0.f };
+        }
+
+        Position GetUnitWorldPosition(UnitHandle handle)
+        {
+            if (handle.isNull()) return { 0.f, 0.f, 0.f };
+            float x = 0.f, y = 0.f, z = 0.f;
+            resolve(handle).getWorldPosition(&x, &y, &z);
+            return { x, y, z };
         }
     }
 }
