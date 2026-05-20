@@ -45,7 +45,8 @@ add_library(WoWControlSDK SHARED
     commands/CommandHandler.cpp
     commands/DebugCommands.cpp
 
-    utils/JsonUtils.cpp
+    utils/legacy/JsonUtils.cpp
+    utils/json/JsonIPC.cpp
 )
 
 target_include_directories(WoWControlSDK PRIVATE
@@ -53,6 +54,7 @@ target_include_directories(WoWControlSDK PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/core
     ${CMAKE_CURRENT_SOURCE_DIR}/core/api
     ${CMAKE_CURRENT_SOURCE_DIR}/offsets
+    ${CMAKE_CURRENT_SOURCE_DIR}/deps
 )
 
 target_link_libraries(WoWControlSDK PRIVATE
