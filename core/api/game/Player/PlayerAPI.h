@@ -19,6 +19,8 @@ namespace GameAPI
         bool  isAfk()         const;
         bool  isDnd()         const;
 
+        Position    getPosition()   const;
+
         UnitRef getTarget()   const;
     };
 

@@ -111,6 +111,13 @@ namespace GameAPI
     bool PlayerRef::isAfk()        const { return getHandle().isNull() ? false : readIsAfk(getHandle().base); }
     bool PlayerRef::isDnd()        const { return getHandle().isNull() ? false : readIsDnd(getHandle().base); }
 
+    Position PlayerRef::getPosition() const
+    {
+        if (getHandle().isNull()) return { 0.f, 0.f, 0.f };
+        ::Player p(getHandle().base);
+        return { p.getX(), p.getY(), p.getZ() };
+    }
+
     UnitRef PlayerRef::getTarget()  const { return Player::GetTarget(); }
 
     namespace Player
@@ -153,7 +160,12 @@ namespace GameAPI
         int  GetRace()                      { return Unit::GetRace(localHandle()); }
         int  GetClass()                     { return Unit::GetClass(localHandle()); }
 
-        Position    GetPosition()           { return Unit::GetPosition(localHandle()); }
+        Position    GetPosition()
+        {
+            ::Player p = ::Player::local();
+            if (!p.exists()) return { 0.f, 0.f, 0.f };
+            return { p.getX(), p.getY(), p.getZ() };
+        }
         WoWGUID     GetGUID()               { return Unit::GetGUID(localHandle()); }
         WoWGUID     GetTargetGUID()         { return Unit::GetTargetGUID(localHandle()); }
         std::string GetName()               { return Unit::GetName(localHandle()); }
