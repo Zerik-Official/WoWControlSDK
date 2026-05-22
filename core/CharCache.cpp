@@ -1,5 +1,5 @@
 #include "CharCache.h"
-#include "../GameClient.h"
+#include "client/GameClient.h"
 
 static size_t s_detectedStride = 0;
 static std::vector<CachedChar> s_cache;

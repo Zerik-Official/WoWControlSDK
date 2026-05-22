@@ -1,6 +1,6 @@
 #include "GameState.h"
 #include "CharCache.h"
-#include "../GameClient.h"
+#include "client/GameClient.h"
 #include "ipc/PipeServer.h"
 #include "ipc/CommandPipe.h"
 #include "hooks/Hooks.h"
