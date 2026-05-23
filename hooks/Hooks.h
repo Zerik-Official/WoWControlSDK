@@ -1,5 +1,5 @@
 #pragma once
-#include "../GameClient.h"
+#include "client/GameClient.h"
 
 namespace Hooks {
 

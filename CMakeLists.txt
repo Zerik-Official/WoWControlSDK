@@ -38,6 +38,7 @@ add_library(WoWControlSDK SHARED
 
     hooks/Hooks.cpp
     hooks/EndSceneHook.cpp
+    hooks/ConsoleHooks.cpp
 
     ipc/CommandPipe.cpp
     ipc/PipeServer.cpp
@@ -47,6 +48,14 @@ add_library(WoWControlSDK SHARED
 
     utils/legacy/JsonUtils.cpp
     utils/json/JsonIPC.cpp
+
+    client/globals/ClientGlobals.cpp
+    client/strings/RCString.cpp
+    client/login/LoginAPI.cpp
+    client/console/ConsoleAPI.cpp
+    client/lua/LuaAPI.cpp
+    client/game/ErrorAPI.cpp
+    client/utils/CString.cpp
 )
 
 target_include_directories(WoWControlSDK PRIVATE
