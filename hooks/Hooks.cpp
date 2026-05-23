@@ -1,4 +1,5 @@
 #include "Hooks.h"
+#include "ConsoleHooks.h"
 #include <Windows.h>
 #include <deps/Detours/detours.h>
 #include <string>
@@ -6,16 +7,16 @@
 #include <unordered_map>
 
 struct CVarArgs {
-    Console::CVar**          dst;
-    const char*              name;
-    const char*              desc;
-    Console::CVarFlags       flags;
-    const char*              initialValue;
-    Console::CVar::Handler_t func;
+    WoW::Console::CVar** dst;
+    const char* name;
+    const char* desc;
+    WoW::Console::CVarFlags flags;
+    const char* initialValue;
+    WoW::Console::CVar::Handler_t func;
 };
 
 static std::vector<CVarArgs> s_customCVars;
-void Hooks::FrameXML::registerCVar(Console::CVar** dst, const char* str, const char* desc, Console::CVarFlags flags, const char* initialValue, Console::CVar::Handler_t func)
+void Hooks::FrameXML::registerCVar(WoW::Console::CVar** dst, const char* str, const char* desc, WoW::Console::CVarFlags flags, const char* initialValue, WoW::Console::CVar::Handler_t func)
 {
     s_customCVars.push_back({ dst, str, desc, flags, initialValue, func });
 }
@@ -25,7 +26,7 @@ static void CVars_Initialize_hk()
 {
     CVars_Initialize_orig();
     for (const auto& [dst, name, desc, flags, initialValue, func] : s_customCVars) {
-        Console::CVar* cvar = Console::RegisterCVar(name, desc, flags, initialValue, func, 0, 0, 0, 0);
+        WoW::Console::CVar* cvar = WoW::Console::RegisterCVar(name, desc, flags, initialValue, func, 0, 0, 0, 0);
         if (dst) *dst = cvar;
     }
 }
@@ -207,14 +208,31 @@ static void __declspec(naked) LoadCharacters_hk()
     }
 }
 
+static bool s_consoleAllocated = false;
+
 void Hooks::initialize()
 {
-    DetourAttach(&(LPVOID&)CVars_Initialize_orig,          CVars_Initialize_hk);
-    DetourAttach(&(LPVOID&)FrameScript_FireOnUpdate_orig,  FrameScript_FireOnUpdate_hk);
-    DetourAttach(&(LPVOID&)FrameScript_FillEvents_orig,    FrameScript_FillEvents_hk);
-    DetourAttach(&(LPVOID&)Lua_OpenFrameXMLApi_orig,       Lua_OpenFrameXMLApi_hk);
-    DetourAttach(&(LPVOID&)GetGuidByKeyword_orig,          GetGuidByKeyword_hk);
-    DetourAttach(&(LPVOID&)GetKeywordsByGuid_orig,         GetKeywordsByGuid_hk);
-    DetourAttach(&(LPVOID&)LoadGlueXML_orig,               LoadGlueXML_hk);
-    DetourAttach(&(LPVOID&)LoadCharacters_orig,            LoadCharacters_hk);
+    if (!s_consoleAllocated) {
+        AllocConsole();
+        freopen("CONOUT$", "w", stdout);
+        freopen("CONOUT$", "w", stderr);
+        s_consoleAllocated = true;
+    }
+
+    Hooks::Console::Initialize();
+
+    Hooks::Console::SetCallback([](const char* text, int style) {
+        if (!text) return;
+        printf("[Console:%d] %s\n", style, text);
+        fflush(stdout);
+    });
+
+    DetourAttach(&(LPVOID&)CVars_Initialize_orig, CVars_Initialize_hk);
+    DetourAttach(&(LPVOID&)FrameScript_FireOnUpdate_orig, FrameScript_FireOnUpdate_hk);
+    DetourAttach(&(LPVOID&)FrameScript_FillEvents_orig, FrameScript_FillEvents_hk);
+    DetourAttach(&(LPVOID&)Lua_OpenFrameXMLApi_orig, Lua_OpenFrameXMLApi_hk);
+    DetourAttach(&(LPVOID&)GetGuidByKeyword_orig, GetGuidByKeyword_hk);
+    DetourAttach(&(LPVOID&)GetKeywordsByGuid_orig, GetKeywordsByGuid_hk);
+    DetourAttach(&(LPVOID&)LoadGlueXML_orig, LoadGlueXML_hk);
+    DetourAttach(&(LPVOID&)LoadCharacters_orig, LoadCharacters_hk);
 }

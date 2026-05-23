@@ -38,6 +38,7 @@ add_library(WoWControlSDK SHARED
 
     hooks/Hooks.cpp
     hooks/EndSceneHook.cpp
+    hooks/ConsoleHooks.cpp
 
     ipc/CommandPipe.cpp
     ipc/PipeServer.cpp
