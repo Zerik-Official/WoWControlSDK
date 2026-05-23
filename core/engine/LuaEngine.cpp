@@ -1,5 +1,6 @@
 #include "LuaEngine.h"
 #include "OffsetsLua.h"
+#include "utils/json/Json.h"
 #include <Windows.h>
 #include <string>
 #include <cstdio>
@@ -78,86 +79,86 @@ void shutdown()
 std::string execute(const std::string& code)
 {
     lua_State* L = getLuaState();
-    if (!L || !s_pcall || !s_loadbuffer || !s_gettop || !s_settop || !s_tolstring)
-        return "{\"ok\":false,\"error\":\"lua not initialized\"}";
+    if (!L || !s_pcall || !s_loadbuffer || !s_gettop || !s_settop || !s_tolstring) {
+        SDK::Json err;
+        err["ok"] = false;
+        err["error"] = "lua not initialized";
+        return err.dump();
+    }
 
     int topBefore = s_gettop(L);
 
     int loadStatus = s_loadbuffer(L, code.c_str(), code.size(), "=StateLib");
     if (loadStatus != 0) {
         size_t len = 0;
-        const char* err = s_tolstring(L, -1, &len);
-        std::string msg = err ? err : "load error";
+        const char* errStr = s_tolstring(L, -1, &len);
+        std::string msg = errStr ? errStr : "load error";
         s_settop(L, topBefore);
-        return "{\"ok\":false,\"error\":\"" + msg + "\"}";
+        SDK::Json err;
+        err["ok"] = false;
+        err["error"] = msg;
+        return err.dump();
     }
 
     int callStatus = s_pcall(L, 0, LUA_MULTRET, 0);
     if (callStatus != 0) {
         size_t len = 0;
-        const char* err = s_tolstring(L, -1, &len);
-        std::string msg = err ? err : "pcall error";
+        const char* errStr = s_tolstring(L, -1, &len);
+        std::string msg = errStr ? errStr : "pcall error";
         s_settop(L, topBefore);
-        return "{\"ok\":false,\"error\":\"" + msg + "\"}";
+        SDK::Json err;
+        err["ok"] = false;
+        err["error"] = msg;
+        return err.dump();
     }
 
     int nresults = s_gettop(L) - topBefore;
 
-    std::string result = "{\"ok\":true,\"result\":";
+    SDK::Json j;
+    j["ok"] = true;
 
     if (nresults <= 0) {
-        result += "null";
+        j["result"] = nullptr;
     } else if (nresults == 1) {
         int idx = topBefore + 1;
         int t = s_type(L, idx);
         if (t == LUA_TBOOLEAN) {
-            result += s_toboolean(L, idx) ? "true" : "false";
+            j["result"] = s_toboolean(L, idx) != 0;
         } else if (t == LUA_TNUMBER && s_isnumber(L, idx)) {
-            char num[64];
-            snprintf(num, sizeof(num), "%g", s_tonumber(L, idx));
-            result += num;
+            j["result"] = s_tonumber(L, idx);
         } else {
             size_t len = 0;
             const char* val = s_tolstring(L, idx, &len);
             if (val) {
-                result += "\"";
-                result += std::string(val, len);
-                result += "\"";
+                j["result"] = std::string(val, len);
             } else {
-                result += "null";
+                j["result"] = nullptr;
             }
         }
     } else {
-        result += "[";
+        SDK::Json arr = SDK::Json::array();
         for (int i = 1; i <= nresults; ++i) {
-            if (i > 1) result += ",";
             int idx = topBefore + i;
             int t = s_type(L, idx);
             if (t == LUA_TBOOLEAN) {
-                result += s_toboolean(L, idx) ? "true" : "false";
+                arr.push_back(s_toboolean(L, idx) != 0);
             } else if (t == LUA_TNUMBER && s_isnumber(L, idx)) {
-                char num[64];
-                snprintf(num, sizeof(num), "%g", s_tonumber(L, idx));
-                result += num;
+                arr.push_back(s_tonumber(L, idx));
             } else {
                 size_t len = 0;
                 const char* val = s_tolstring(L, idx, &len);
                 if (val) {
-                    result += "\"";
-                    result += std::string(val, len);
-                    result += "\"";
+                    arr.push_back(std::string(val, len));
                 } else {
-                    result += "null";
+                    arr.push_back(nullptr);
                 }
             }
         }
-        result += "]";
+        j["result"] = arr;
     }
 
-    result += "}";
-
     s_settop(L, topBefore);
-    return result;
+    return j.dump();
 }
 
 void executeSimple(const std::string& code)

@@ -1,9 +1,11 @@
 #include "FrameHooks.h"
+#include "utils/json/JsonIPC.h"
 #include <deps/Detours/detours.h>
 #include <cstdio>
 #include <queue>
 #include <mutex>
 #include <future>
+#include <chrono>
 
 namespace Hooks::Frame
 {
@@ -74,7 +76,7 @@ std::string Execute(Task task, DWORD timeoutMs)
     }
 
     if (future.wait_for(std::chrono::milliseconds(timeoutMs)) == std::future_status::timeout)
-        return "{\"ok\":false,\"error\":\"timeout\"}";
+        return SDK::JsonIPC::serializeCommandError("timeout");
 
     return future.get();
 }
