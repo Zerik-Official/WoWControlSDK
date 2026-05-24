@@ -1,5 +1,6 @@
 #include "CommandPipe.h"
 #include "commands/CommandHandler.h"
+#include "utils/json/JsonIPC.h"
 #include <string>
 
 namespace CommandPipe {
@@ -34,7 +35,7 @@ DWORD WINAPI threadProc(LPVOID)
                 buf[bytesRead] = '\0';
                 response = CommandHandler::handle(std::string(buf, bytesRead));
             } else {
-                response = "{\"ok\":false,\"error\":\"read error\"}";
+                response = SDK::JsonIPC::serializeCommandError("read error");
             }
 
             DWORD written = 0;

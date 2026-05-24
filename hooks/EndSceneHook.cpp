@@ -1,4 +1,5 @@
 #include "EndSceneHook.h"
+#include "utils/json/JsonIPC.h"
 #include <deps/Detours/detours.h>
 #include <d3d9.h>
 #include <mutex>
@@ -79,7 +80,7 @@ std::string dispatch(Task task, DWORD timeoutMs)
     CloseHandle(ev);
 
     if (result.empty())
-        return "{\"ok\":false,\"error\":\"timeout\"}";
+        return SDK::JsonIPC::serializeCommandError("timeout");
 
     return result;
 }
