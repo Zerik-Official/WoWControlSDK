@@ -2,7 +2,7 @@
 #include "utils/json/Json.h"
 #include "utils/json/JsonIPC.h"
 
-#include "hooks/EndSceneHook.h"
+#include "hooks/FrameHooks.h"
 
 #include "core/api/game/Unit/UnitAPI.h"
 #include "core/api/game/Player/PlayerAPI.h"
@@ -21,7 +21,7 @@ namespace
 
 std::string testUnitGet()
 {
-    return EndSceneHook::dispatch([]() -> std::string {
+    return Hooks::Frame::Execute([]() -> std::string {
         GameAPI::UnitRef player = GameAPI::Unit::Get("player");
         GameAPI::UnitRef target = GameAPI::Unit::Get("target");
         GameAPI::UnitRef mouse  = GameAPI::Unit::Get("mouseover");
@@ -37,7 +37,7 @@ std::string testUnitGet()
 
 std::string testUnitState()
 {
-    return EndSceneHook::dispatch([]() -> std::string {
+    return Hooks::Frame::Execute([]() -> std::string {
         GameAPI::UnitRef player = GameAPI::Unit::Get("player");
 
         SDK::Json j;
@@ -58,7 +58,7 @@ std::string testUnitState()
 
 std::string testUnitStats()
 {
-    return EndSceneHook::dispatch([]() -> std::string {
+    return Hooks::Frame::Execute([]() -> std::string {
         GameAPI::UnitRef player = GameAPI::Unit::Get("player");
         GameAPI::Position world = GameAPI::Unit::GetUnitWorldPosition(player.getHandle());
 
@@ -80,7 +80,7 @@ std::string testUnitStats()
 
 std::string testUnitTarget()
 {
-    return EndSceneHook::dispatch([]() -> std::string {
+    return Hooks::Frame::Execute([]() -> std::string {
         GameAPI::UnitRef player = GameAPI::Unit::Get("player");
 
         WoWGUID targetGuid = player.getTargetGUID();
@@ -103,7 +103,7 @@ std::string testUnitTarget()
 
 std::string testMouseover()
 {
-    return EndSceneHook::dispatch([]() -> std::string {
+    return Hooks::Frame::Execute([]() -> std::string {
         WoWGUID moGuid = WoW::GetMouseoverGUID();
         bool hasMouseover = moGuid.isValid();
 
@@ -126,7 +126,7 @@ std::string testMouseover()
 
 std::string testUnitMapPosition()
 {
-    return EndSceneHook::dispatch([]() -> std::string {
+    return Hooks::Frame::Execute([]() -> std::string {
         GameAPI::UnitRef player = GameAPI::Unit::Get("player");
         GameAPI::Position pos = GameAPI::Unit::GetUnitMapPosition(player.getHandle());
 
@@ -140,7 +140,7 @@ std::string testUnitMapPosition()
 
 std::string testPlayerState()
 {
-    return EndSceneHook::dispatch([]() -> std::string {
+    return Hooks::Frame::Execute([]() -> std::string {
         GameAPI::PlayerRef p = GameAPI::Player::GetLocalPlayer();
 
         WoWGUID targetGuid = p.getTargetGUID();
@@ -173,7 +173,7 @@ std::string testPlayerState()
 
 std::string testPlayerGet()
 {
-    return EndSceneHook::dispatch([]() -> std::string {
+    return Hooks::Frame::Execute([]() -> std::string {
         GameAPI::PlayerRef local = GameAPI::Player::GetLocalPlayer();
         GameAPI::UnitRef   target = GameAPI::Player::GetTarget();
 
@@ -192,7 +192,7 @@ std::string testPlayerGet()
 
 std::string testWorld()
 {
-    return EndSceneHook::dispatch([]() -> std::string {
+    return Hooks::Frame::Execute([]() -> std::string {
         SDK::Json j;
         j["ok"] = true;
         j["isInWorld"] = GameAPI::World::IsInWorld();
@@ -211,7 +211,7 @@ std::string testWorld()
 
 std::string testObject()
 {
-    return EndSceneHook::dispatch([]() -> std::string {
+    return Hooks::Frame::Execute([]() -> std::string {
         GameAPI::UnitRef player = GameAPI::Unit::Get("player");
 
         bool exists   = GameAPI::Object::Exists(player.getHandle());
@@ -238,7 +238,7 @@ std::string testObject()
 
 std::string testGroup()
 {
-    return EndSceneHook::dispatch([]() -> std::string {
+    return Hooks::Frame::Execute([]() -> std::string {
         GameAPI::GroupInfo group = GameAPI::Group::GetGroup();
 
         const char* groupType = "None";

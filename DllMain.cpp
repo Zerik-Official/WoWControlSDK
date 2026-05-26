@@ -1,7 +1,7 @@
 #include "core/GameState.h"
 #include "core/engine/LuaEngine.h"
 #include "hooks/Hooks.h"
-#include "hooks/EndSceneHook.h"
+#include "hooks/FrameHooks.h"
 
 #include <Windows.h>
 #include <cstdio>
@@ -38,11 +38,11 @@ static void OnAttach()
 
     printf("hooks initialized\n");
 
+    Hooks::Frame::Initialize();
+    printf("frame hooks initialized\n");
+
     LuaEngine::initialize();
     printf("lua initialized\n");
-
-    EndSceneHook::initialize();
-    printf("endscene initialized\n");
 
     GameState::initialize();
     printf("gamestate initialized\n");
@@ -52,7 +52,7 @@ static void OnDetach()
 {
     printf("detaching...\n");
 
-    EndSceneHook::shutdown();
+    Hooks::Frame::Shutdown();
     LuaEngine::shutdown();
 
     FreeConsole();
