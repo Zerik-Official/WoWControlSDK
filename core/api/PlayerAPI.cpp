@@ -1,6 +1,6 @@
-#include "PlayerAPI.h"
-#include "core/api/unit/Player.h"
-#include "core/api/object/ObjectManager.h"
+#include "core/api/PlayerAPI.h"
+#include "core/native/Player.h"
+#include "core/native/ObjectManager.h"
 #include "memory/MemReader.h"
 #include "offsets/OffsetsUnit.h"
 #include "offsets/OffsetsMap.h"
@@ -13,11 +13,11 @@ namespace
         return ::Player::local();
     }
 
-    GameAPI::UnitHandle localHandle()
+    CoreAPI::UnitHandle localHandle()
     {
         ::Player p = resolveLocal();
-        if (!p.exists()) return GameAPI::NullHandle();
-        return GameAPI::UnitHandle{ p.getBase(), p.getGUID() };
+        if (!p.exists()) return CoreAPI::NullHandle();
+        return CoreAPI::UnitHandle{ p.getBase(), p.getGUID() };
     }
 
     bool hasAuraById(uintptr_t base, int spellId)
@@ -81,7 +81,7 @@ namespace
     }
 }
 
-namespace GameAPI
+namespace CoreAPI
 {
     PlayerRef::PlayerRef(UnitHandle handle)
         : UnitRef(handle)

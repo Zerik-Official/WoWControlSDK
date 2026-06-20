@@ -1,7 +1,7 @@
 #pragma once
 
-#include "object/WoWObject.h"
-#include "types/PowerType.h"
+#include "core/native/WoWObject.h"
+#include "core/types/PowerType.h"
 #include <cstdint>
 #include <string>
 

@@ -1,9 +1,9 @@
-#include "WorldAPI.h"
-#include "core/api/world/WorldReader.h"
+#include "core/api/WorldAPI.h"
+#include "core/native/WorldReader.h"
 #include "memory/MemReader.h"
 #include "offsets/OffsetsMap.h"
 
-namespace GameAPI
+namespace CoreAPI
 {
     namespace World
     {

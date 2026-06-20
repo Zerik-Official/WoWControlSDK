@@ -1,4 +1,4 @@
-#include "WoWObject.h"
+#include "core/native/WoWObject.h"
 #include "memory/MemReader.h"
 #include "OffsetsUnit.h"
 

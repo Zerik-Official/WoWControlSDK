@@ -1,9 +1,9 @@
 #pragma once
 
-#include "core/api/types/GUID.h"
+#include "core/types/GUID.h"
 #include <cstdint>
 
-namespace GameAPI
+namespace CoreAPI
 {
     struct UnitHandle
     {

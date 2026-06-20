@@ -1,9 +1,9 @@
 #pragma once
 
-#include "core/api/game/UnitHandle.h"
-#include "core/api/game/Unit/UnitAPI.h"
+#include "core/api/UnitHandle.h"
+#include "core/api/UnitAPI.h"
 
-namespace GameAPI
+namespace CoreAPI
 {
     class PlayerRef : public UnitRef
     {

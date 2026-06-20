@@ -18,23 +18,21 @@ add_library(WoWControlSDK SHARED
 
     core/engine/LuaEngine.cpp
 
-    core/api/internal/NameResolver.cpp
-    core/api/internal/UnitResolver.cpp
+    core/native/ObjectManager.cpp
+    core/native/WoWObject.cpp
+    core/native/Unit.cpp
+    core/native/Player.cpp
+    core/native/WorldInfo.cpp
+    core/native/WorldReader.cpp
 
-    core/api/object/ObjectManager.cpp
-    core/api/object/WoWObject.cpp
+    core/api/UnitAPI.cpp
+    core/api/PlayerAPI.cpp
+    core/api/WorldAPI.cpp
+    core/api/GroupAPI.cpp
+    core/api/ObjectAPI.cpp
 
-    core/api/unit/Unit.cpp
-    core/api/unit/Player.cpp
-
-    core/api/world/WorldInfo.cpp
-    core/api/world/WorldReader.cpp
-
-    core/api/game/Unit/UnitAPI.cpp
-    core/api/game/Player/PlayerAPI.cpp
-    core/api/game/World/WorldAPI.cpp
-    core/api/game/Group/GroupAPI.cpp
-    core/api/game/Object/ObjectAPI.cpp
+    runtime/resolvers/NameResolver.cpp
+    runtime/resolvers/UnitResolver.cpp
 
     hooks/Hooks.cpp
     hooks/EndSceneHook.cpp
@@ -63,6 +61,9 @@ target_include_directories(WoWControlSDK PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/core
     ${CMAKE_CURRENT_SOURCE_DIR}/core/api
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/native
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/types
+    ${CMAKE_CURRENT_SOURCE_DIR}/runtime/resolvers
     ${CMAKE_CURRENT_SOURCE_DIR}/offsets
     ${CMAKE_CURRENT_SOURCE_DIR}/deps
 )

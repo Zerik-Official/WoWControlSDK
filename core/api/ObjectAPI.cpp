@@ -1,15 +1,15 @@
-#include "ObjectAPI.h"
-#include "core/api/object/WoWObject.h"
+#include "core/api/ObjectAPI.h"
+#include "core/native/WoWObject.h"
 
 namespace
 {
-    WoWObject resolve(GameAPI::UnitHandle handle)
+    WoWObject resolve(CoreAPI::UnitHandle handle)
     {
         return WoWObject(handle.base);
     }
 }
 
-namespace GameAPI
+namespace CoreAPI
 {
     namespace Object
     {

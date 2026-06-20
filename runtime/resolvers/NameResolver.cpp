@@ -1,6 +1,6 @@
-#include "NameResolver.h"
+#include "runtime/resolvers/NameResolver.h"
 #include "memory/MemReader.h"
-#include "object/ObjectManager.h"
+#include "core/native/ObjectManager.h"
 #include <Windows.h>
 #include <cstring>
 

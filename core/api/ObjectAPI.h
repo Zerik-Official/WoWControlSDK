@@ -1,9 +1,9 @@
 #pragma once
 
-#include "core/api/game/UnitHandle.h"
-#include "core/api/object/ObjectType.h"
+#include "core/api/UnitHandle.h"
+#include "core/native/ObjectType.h"
 
-namespace GameAPI
+namespace CoreAPI
 {
     namespace Object
     {

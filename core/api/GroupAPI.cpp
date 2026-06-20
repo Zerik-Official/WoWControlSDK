@@ -1,6 +1,6 @@
-#include "GroupAPI.h"
-#include "core/api/unit/Unit.h"
-#include "core/api/object/ObjectManager.h"
+#include "core/api/GroupAPI.h"
+#include "core/native/Unit.h"
+#include "core/native/ObjectManager.h"
 #include "memory/MemReader.h"
 #include "offsets/OffsetsGroup.h"
 #include <algorithm>
@@ -43,9 +43,9 @@ namespace
         return guids;
     }
 
-    GameAPI::GroupMember buildMember(const WoWGUID& guid)
+    CoreAPI::GroupMember buildMember(const WoWGUID& guid)
     {
-        GameAPI::GroupMember m = {};
+        CoreAPI::GroupMember m = {};
 
         uintptr_t base = WoW::GetObjectByGUID(guid);
         if (!base) return m;
@@ -53,7 +53,7 @@ namespace
         ::Unit unit(base);
         if (!unit.exists()) return m;
 
-        m.handle         = GameAPI::UnitHandle{ base, guid };
+        m.handle         = CoreAPI::UnitHandle{ base, guid };
         m.name           = unit.getName();
         m.level          = unit.getLevel();
         m.race           = unit.getRace();
@@ -72,11 +72,11 @@ namespace
         return m;
     }
 
-    GameAPI::GroupInfo buildGroup()
+    CoreAPI::GroupInfo buildGroup()
     {
-        GameAPI::GroupInfo info = {};
+        CoreAPI::GroupInfo info = {};
         info.valid = false;
-        info.type  = GameAPI::GroupType::None;
+        info.type  = CoreAPI::GroupType::None;
 
         WoWGUID raidLeader  = Memory::safeRead<WoWGUID>(Offsets::Group::RAID_LEADER);
         WoWGUID partyLeader = Memory::safeRead<WoWGUID>(Offsets::Group::PARTY_LEADER);
@@ -91,14 +91,14 @@ namespace
 
         if (partyLeader.isValid())
         {
-            info.type = GameAPI::GroupType::Party;
+            info.type = CoreAPI::GroupType::Party;
             auto pg = readPartyGuids();
             guids.insert(guids.end(), pg.begin(), pg.end());
         }
 
         if (raidLeader.isValid())
         {
-            info.type = GameAPI::GroupType::Raid;
+            info.type = CoreAPI::GroupType::Raid;
             auto rg = readRaidGuids(localGuid);
             guids.insert(guids.end(), rg.begin(), rg.end());
         }
@@ -117,7 +117,7 @@ namespace
         info.members.reserve(guids.size());
         for (const WoWGUID& guid : guids)
         {
-            GameAPI::GroupMember member = buildMember(guid);
+            CoreAPI::GroupMember member = buildMember(guid);
             if (!member.handle.isNull())
                 info.members.push_back(member);
         }
@@ -127,7 +127,7 @@ namespace
     }
 }
 
-namespace GameAPI
+namespace CoreAPI
 {
     namespace Group
     {

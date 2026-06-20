@@ -1,4 +1,4 @@
-#include "ObjectManager.h"
+#include "core/native/ObjectManager.h"
 #include "memory/MemReader.h"
 #include "OffsetsObjectMgr.h"
 

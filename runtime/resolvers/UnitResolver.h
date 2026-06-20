@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types/GUID.h"
+#include "core/types/GUID.h"
 
 namespace WoW
 {

@@ -1,11 +1,11 @@
 #pragma once
 
-#include "core/api/game/UnitHandle.h"
-#include "core/api/game/Unit/UnitAPI.h"
+#include "core/api/UnitHandle.h"
+#include "core/api/UnitAPI.h"
 #include <vector>
 #include <cstdint>
 
-namespace GameAPI
+namespace CoreAPI
 {
     enum class GroupType
     {

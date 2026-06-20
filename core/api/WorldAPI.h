@@ -3,7 +3,7 @@
 #include <string>
 #include <cstdint>
 
-namespace GameAPI
+namespace CoreAPI
 {
     namespace World
     {

@@ -1,4 +1,4 @@
-#include "WorldInfo.h"
+#include "core/native/WorldInfo.h"
 #include "memory/MemReader.h"
 
 namespace WorldInfo

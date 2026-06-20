@@ -4,14 +4,14 @@
 
 #include "hooks/FrameHooks.h"
 
-#include "core/api/game/Unit/UnitAPI.h"
-#include "core/api/game/Player/PlayerAPI.h"
-#include "core/api/game/World/WorldAPI.h"
-#include "core/api/game/Group/GroupAPI.h"
-#include "core/api/game/Object/ObjectAPI.h"
-#include "core/api/game/UnitHandle.h"
-#include "core/api/internal/NameResolver.h"
-#include "core/api/object/ObjectManager.h"
+#include "core/api/UnitAPI.h"
+#include "core/api/PlayerAPI.h"
+#include "core/api/WorldAPI.h"
+#include "core/api/GroupAPI.h"
+#include "core/api/ObjectAPI.h"
+#include "core/api/UnitHandle.h"
+#include "runtime/resolvers/NameResolver.h"
+#include "core/native/ObjectManager.h"
 
 #include <string>
 #include <vector>
@@ -22,9 +22,9 @@ namespace
 std::string testUnitGet()
 {
     return Hooks::Frame::Execute([]() -> std::string {
-        GameAPI::UnitRef player = GameAPI::Unit::Get("player");
-        GameAPI::UnitRef target = GameAPI::Unit::Get("target");
-        GameAPI::UnitRef mouse  = GameAPI::Unit::Get("mouseover");
+        CoreAPI::UnitRef player = CoreAPI::Unit::Get("player");
+        CoreAPI::UnitRef target = CoreAPI::Unit::Get("target");
+        CoreAPI::UnitRef mouse  = CoreAPI::Unit::Get("mouseover");
 
         SDK::Json j;
         j["ok"] = true;
@@ -38,7 +38,7 @@ std::string testUnitGet()
 std::string testUnitState()
 {
     return Hooks::Frame::Execute([]() -> std::string {
-        GameAPI::UnitRef player = GameAPI::Unit::Get("player");
+        CoreAPI::UnitRef player = CoreAPI::Unit::Get("player");
 
         SDK::Json j;
         j["ok"] = true;
@@ -59,8 +59,8 @@ std::string testUnitState()
 std::string testUnitStats()
 {
     return Hooks::Frame::Execute([]() -> std::string {
-        GameAPI::UnitRef player = GameAPI::Unit::Get("player");
-        GameAPI::Position world = GameAPI::Unit::GetUnitWorldPosition(player.getHandle());
+        CoreAPI::UnitRef player = CoreAPI::Unit::Get("player");
+        CoreAPI::Position world = CoreAPI::Unit::GetUnitWorldPosition(player.getHandle());
 
         SDK::Json j;
         j["ok"] = true;
@@ -81,7 +81,7 @@ std::string testUnitStats()
 std::string testUnitTarget()
 {
     return Hooks::Frame::Execute([]() -> std::string {
-        GameAPI::UnitRef player = GameAPI::Unit::Get("player");
+        CoreAPI::UnitRef player = CoreAPI::Unit::Get("player");
 
         WoWGUID targetGuid = player.getTargetGUID();
         bool hasTarget = targetGuid.isValid();
@@ -127,8 +127,8 @@ std::string testMouseover()
 std::string testUnitMapPosition()
 {
     return Hooks::Frame::Execute([]() -> std::string {
-        GameAPI::UnitRef player = GameAPI::Unit::Get("player");
-        GameAPI::Position pos = GameAPI::Unit::GetUnitMapPosition(player.getHandle());
+        CoreAPI::UnitRef player = CoreAPI::Unit::Get("player");
+        CoreAPI::Position pos = CoreAPI::Unit::GetUnitMapPosition(player.getHandle());
 
         SDK::Json j;
         j["ok"] = true;
@@ -141,7 +141,7 @@ std::string testUnitMapPosition()
 std::string testPlayerState()
 {
     return Hooks::Frame::Execute([]() -> std::string {
-        GameAPI::PlayerRef p = GameAPI::Player::GetLocalPlayer();
+        CoreAPI::PlayerRef p = CoreAPI::Player::GetLocalPlayer();
 
         WoWGUID targetGuid = p.getTargetGUID();
         bool hasTarget = targetGuid.isValid();
@@ -174,8 +174,8 @@ std::string testPlayerState()
 std::string testPlayerGet()
 {
     return Hooks::Frame::Execute([]() -> std::string {
-        GameAPI::PlayerRef local = GameAPI::Player::GetLocalPlayer();
-        GameAPI::UnitRef   target = GameAPI::Player::GetTarget();
+        CoreAPI::PlayerRef local = CoreAPI::Player::GetLocalPlayer();
+        CoreAPI::UnitRef   target = CoreAPI::Player::GetTarget();
 
         SDK::Json j;
         j["ok"] = true;
@@ -195,16 +195,16 @@ std::string testWorld()
     return Hooks::Frame::Execute([]() -> std::string {
         SDK::Json j;
         j["ok"] = true;
-        j["isInWorld"] = GameAPI::World::IsInWorld();
-        j["isLoading"] = GameAPI::World::IsOnLoadingScreen();
-        j["mapId"] = GameAPI::World::GetMapId();
-        j["zoneId"] = GameAPI::World::GetZoneId();
-        j["continentId"] = GameAPI::World::GetContinentId();
-        j["luaMapId"] = GameAPI::World::GetLuaMapId();
-        j["luaZoneId"] = GameAPI::World::GetLuaZoneId();
-        j["zoneName"] = GameAPI::World::GetZoneName();
-        j["subZoneName"] = GameAPI::World::GetSubZoneName();
-        j["tick"] = GameAPI::World::GetGameTick();
+        j["isInWorld"] = CoreAPI::World::IsInWorld();
+        j["isLoading"] = CoreAPI::World::IsOnLoadingScreen();
+        j["mapId"] = CoreAPI::World::GetMapId();
+        j["zoneId"] = CoreAPI::World::GetZoneId();
+        j["continentId"] = CoreAPI::World::GetContinentId();
+        j["luaMapId"] = CoreAPI::World::GetLuaMapId();
+        j["luaZoneId"] = CoreAPI::World::GetLuaZoneId();
+        j["zoneName"] = CoreAPI::World::GetZoneName();
+        j["subZoneName"] = CoreAPI::World::GetSubZoneName();
+        j["tick"] = CoreAPI::World::GetGameTick();
         return j.dump();
     });
 }
@@ -212,13 +212,13 @@ std::string testWorld()
 std::string testObject()
 {
     return Hooks::Frame::Execute([]() -> std::string {
-        GameAPI::UnitRef player = GameAPI::Unit::Get("player");
+        CoreAPI::UnitRef player = CoreAPI::Unit::Get("player");
 
-        bool exists   = GameAPI::Object::Exists(player.getHandle());
-        bool isUnit   = GameAPI::Object::IsUnit(player.getHandle());
-        bool isPlayer = GameAPI::Object::IsPlayer(player.getHandle());
-        auto type     = GameAPI::Object::GetType(player.getHandle());
-        auto guid     = GameAPI::Object::GetGUID(player.getHandle());
+        bool exists   = CoreAPI::Object::Exists(player.getHandle());
+        bool isUnit   = CoreAPI::Object::IsUnit(player.getHandle());
+        bool isPlayer = CoreAPI::Object::IsPlayer(player.getHandle());
+        auto type     = CoreAPI::Object::GetType(player.getHandle());
+        auto guid     = CoreAPI::Object::GetGUID(player.getHandle());
 
         const char* typeStr = "Object";
         if (type == WoW::ObjectType::Player)      typeStr = "Player";
@@ -239,11 +239,11 @@ std::string testObject()
 std::string testGroup()
 {
     return Hooks::Frame::Execute([]() -> std::string {
-        GameAPI::GroupInfo group = GameAPI::Group::GetGroup();
+        CoreAPI::GroupInfo group = CoreAPI::Group::GetGroup();
 
         const char* groupType = "None";
-        if (group.type == GameAPI::GroupType::Party) groupType = "Party";
-        else if (group.type == GameAPI::GroupType::Raid) groupType = "Raid";
+        if (group.type == CoreAPI::GroupType::Party) groupType = "Party";
+        else if (group.type == CoreAPI::GroupType::Raid) groupType = "Raid";
 
         SDK::Json members = SDK::Json::array();
         for (const auto& m : group.members)
@@ -259,10 +259,10 @@ std::string testGroup()
 
         SDK::Json j;
         j["ok"] = true;
-        j["inGroup"] = GameAPI::Group::IsInGroup();
-        j["inRaid"] = GameAPI::Group::IsInRaid();
+        j["inGroup"] = CoreAPI::Group::IsInGroup();
+        j["inRaid"] = CoreAPI::Group::IsInRaid();
         j["type"] = groupType;
-        j["memberCount"] = GameAPI::Group::GetMemberCount();
+        j["memberCount"] = CoreAPI::Group::GetMemberCount();
         j["leaderGuid"] = SDK::Json::array({group.leaderGuid.high, group.leaderGuid.low});
         j["members"] = members;
         return j.dump();

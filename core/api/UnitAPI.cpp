@@ -1,18 +1,18 @@
-#include "UnitAPI.h"
-#include "core/api/unit/Unit.h"
-#include "core/api/unit/Player.h"
-#include "core/api/internal/UnitResolver.h"
-#include "core/api/object/ObjectManager.h"
+#include "core/api/UnitAPI.h"
+#include "core/native/Unit.h"
+#include "core/native/Player.h"
+#include "runtime/resolvers/UnitResolver.h"
+#include "core/native/ObjectManager.h"
 
 namespace
 {
-    ::Unit resolve(GameAPI::UnitHandle handle)
+    ::Unit resolve(CoreAPI::UnitHandle handle)
     {
         return ::Unit(handle.base);
     }
 }
 
-namespace GameAPI
+namespace CoreAPI
 {
     UnitRef::UnitRef(UnitHandle handle)
         : m_handle(handle)

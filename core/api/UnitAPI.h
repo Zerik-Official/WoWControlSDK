@@ -1,9 +1,9 @@
 #pragma once
 
-#include "core/api/game/UnitHandle.h"
+#include "core/api/UnitHandle.h"
 #include <string>
 
-namespace GameAPI
+namespace CoreAPI
 {
     struct Position
     {

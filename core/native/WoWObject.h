@@ -1,6 +1,6 @@
 #pragma once
-#include "ObjectType.h"
-#include "types/GUID.h"
+#include "core/native/ObjectType.h"
+#include "core/types/GUID.h"
 #include <cstdint>
 
 class WoWObject

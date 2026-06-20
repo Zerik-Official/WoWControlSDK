@@ -1,11 +1,11 @@
-#include "Unit.h"
+#include "core/native/Unit.h"
 #include "memory/MemReader.h"
 #include "OffsetsUnit.h"
 #include "OffsetsPlayer.h"
 #include "OffsetsGroup.h"
-#include "internal/UnitResolver.h"
-#include "object/ObjectManager.h"
-#include "internal/NameResolver.h"
+#include "runtime/resolvers/UnitResolver.h"
+#include "core/native/ObjectManager.h"
+#include "runtime/resolvers/NameResolver.h"
 
 Unit::Unit(uintptr_t base)
     : WoWObject(base)

@@ -1,6 +1,6 @@
-#include "Player.h"
+#include "core/native/Player.h"
 #include "memory/MemReader.h"
-#include "object/ObjectManager.h"
+#include "core/native/ObjectManager.h"
 #include "OffsetsPlayer.h"
 
 Player Player::local()

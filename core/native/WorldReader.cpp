@@ -1,5 +1,5 @@
-#include "WorldReader.h"
-#include "WorldInfo.h"
+#include "core/native/WorldReader.h"
+#include "core/native/WorldInfo.h"
 #include "memory/MemReader.h"
 #include "offsets/OffsetsMap.h"
 #include <cstring>
