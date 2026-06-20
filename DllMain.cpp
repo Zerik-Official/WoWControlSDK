@@ -50,6 +50,9 @@ static void OnAttach()
 
     Runtime::initialize();
     printf("runtime initialized\n");
+
+    Hooks::Frame::SetOnFrame(Runtime::onFrame);
+    printf("frame callback registered\n");
 }
 
 static void OnDetach()

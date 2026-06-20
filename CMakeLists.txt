@@ -42,6 +42,7 @@ add_library(WoWControlSDK SHARED
     runtime/MethodRegistry.cpp
     runtime/EventBus.cpp
     runtime/GlueState.cpp
+    runtime/StateCache.cpp
     runtime/Runtime.cpp
 
     hooks/Hooks.cpp
