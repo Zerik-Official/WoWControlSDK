@@ -2,6 +2,7 @@
 #include "core/engine/LuaEngine.h"
 #include "hooks/Hooks.h"
 #include "hooks/FrameHooks.h"
+#include "runtime/Runtime.h"
 
 #include <Windows.h>
 #include <cstdio>
@@ -46,6 +47,9 @@ static void OnAttach()
 
     GameState::initialize();
     printf("gamestate initialized\n");
+
+    Runtime::initialize();
+    printf("runtime initialized\n");
 }
 
 static void OnDetach()
@@ -54,6 +58,7 @@ static void OnDetach()
 
     Hooks::Frame::Shutdown();
     LuaEngine::shutdown();
+    Runtime::shutdown();
 
     FreeConsole();
 }

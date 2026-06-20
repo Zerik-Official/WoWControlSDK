@@ -34,6 +34,16 @@ add_library(WoWControlSDK SHARED
     runtime/resolvers/NameResolver.cpp
     runtime/resolvers/UnitResolver.cpp
 
+    rpc/protocol/Request.cpp
+    rpc/protocol/Response.cpp
+    rpc/Dispatcher.cpp
+    rpc/handlers/ClientRpc.cpp
+
+    runtime/MethodRegistry.cpp
+    runtime/EventBus.cpp
+    runtime/GlueState.cpp
+    runtime/Runtime.cpp
+
     hooks/Hooks.cpp
     hooks/EndSceneHook.cpp
     hooks/ConsoleHooks.cpp
@@ -64,6 +74,8 @@ target_include_directories(WoWControlSDK PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/core/native
     ${CMAKE_CURRENT_SOURCE_DIR}/core/types
     ${CMAKE_CURRENT_SOURCE_DIR}/runtime/resolvers
+    ${CMAKE_CURRENT_SOURCE_DIR}/rpc
+    ${CMAKE_CURRENT_SOURCE_DIR}/runtime
     ${CMAKE_CURRENT_SOURCE_DIR}/offsets
     ${CMAKE_CURRENT_SOURCE_DIR}/deps
 )
