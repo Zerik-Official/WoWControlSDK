@@ -1,5 +1,5 @@
 #include "Runtime.h"
-#include "rpc/handlers/ClientRpc.h"
+#include "rpc/handlers/Handlers.h"
 
 namespace Runtime
 {
@@ -14,7 +14,7 @@ namespace Runtime
 
         Glue::initialize();
         s_cache.setEventBus(&s_eventBus);
-        Rpc::registerClientMethods(s_registry);
+        Rpc::registerAllMethods(s_registry);
 
         s_initialized = true;
     }

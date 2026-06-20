@@ -38,6 +38,9 @@ add_library(WoWControlSDK SHARED
     rpc/protocol/Response.cpp
     rpc/Dispatcher.cpp
     rpc/handlers/ClientRpc.cpp
+    rpc/handlers/PlayerRpc.cpp
+    rpc/handlers/WorldRpc.cpp
+    rpc/handlers/Handlers.cpp
 
     runtime/MethodRegistry.cpp
     runtime/EventBus.cpp
