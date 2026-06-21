@@ -4,6 +4,11 @@
 namespace WoW::Login
 {
 
+static void* GetLuaState()
+{
+    return *(void**)0x00D3F78C;
+}
+
 CharVector* GetChars()
 {
     return (CharVector*)0x00B6B238;
@@ -30,22 +35,27 @@ int FindCharacterIndex(const char* name)
     return -1;
 }
 
-using FrameScriptExecFn = void(__cdecl*)(const char* code, const char* name, void* errorHandler);
-static FrameScriptExecFn s_frameScriptExec = (FrameScriptExecFn)0x00819210;
+using LuaFn = int(__cdecl*)(void* luaState);
+static LuaFn s_logout = (LuaFn)0x00510430;
 
 void LogoutToCharSelect()
 {
-    s_frameScriptExec("ForceLogout()", "ForceLogout()", nullptr);
+    void* L = GetLuaState();
+    if (L) s_logout(L);
 }
 
 void LogoutToLoginScreen()
 {
-    s_frameScriptExec("ForceLogout()", "ForceLogout()", nullptr);
+    void* L = GetLuaState();
+    if (L) s_logout(L);
 }
+
+static LuaFn s_forceQuit = (LuaFn)0x00510A00;
 
 void QuitGame()
 {
-    s_frameScriptExec("ForceQuit()", "ForceQuit()", nullptr);
+    void* L = GetLuaState();
+    if (L) s_forceQuit(L);
 }
 
 using SendCharEnumFn = void(__fastcall*)(void* netClient);
