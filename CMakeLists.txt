@@ -41,6 +41,7 @@ add_library(WoWControlSDK SHARED
     rpc/handlers/PlayerRpc.cpp
     rpc/handlers/WorldRpc.cpp
     rpc/handlers/AuthRpc.cpp
+    rpc/handlers/CharRpc.cpp
     rpc/handlers/Handlers.cpp
 
     runtime/MethodRegistry.cpp
