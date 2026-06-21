@@ -21,6 +21,7 @@ namespace CoreAPI
 
         bool        exists()        const;
         bool        isDead()        const;
+        bool        isGhost()       const;
         bool        isInCombat()    const;
         bool        isMoving()      const;
         bool        isMounted()     const;
@@ -55,6 +56,7 @@ namespace CoreAPI
 
         bool        Exists(UnitHandle handle);
         bool        IsDead(UnitHandle handle);
+        bool        IsGhost(UnitHandle handle);
         bool        IsInCombat(UnitHandle handle);
         bool        IsMoving(UnitHandle handle);
         bool        IsMounted(UnitHandle handle);

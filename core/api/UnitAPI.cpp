@@ -23,6 +23,7 @@ namespace CoreAPI
 
     bool        UnitRef::exists()          const { return Unit::Exists(m_handle); }
     bool        UnitRef::isDead()          const { return Unit::IsDead(m_handle); }
+    bool        UnitRef::isGhost()         const { return Unit::IsGhost(m_handle); }
     bool        UnitRef::isInCombat()      const { return Unit::IsInCombat(m_handle); }
     bool        UnitRef::isMoving()        const { return Unit::IsMoving(m_handle); }
     bool        UnitRef::isMounted()       const { return Unit::IsMounted(m_handle); }
@@ -72,6 +73,12 @@ namespace CoreAPI
         {
             if (handle.isNull()) return true;
             return resolve(handle).isDead();
+        }
+
+        bool IsGhost(UnitHandle handle)
+        {
+            if (handle.isNull()) return false;
+            return resolve(handle).isGhost();
         }
 
         bool IsInCombat(UnitHandle handle)
