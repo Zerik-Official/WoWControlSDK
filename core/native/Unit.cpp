@@ -163,6 +163,34 @@ bool Unit::isDead() const
     return (dynFlags >> 5) & 1;
 }
 
+bool Unit::isGhost() const
+{
+    if (!isValid()) return false;
+    int count1 = Memory::safeRead<int>(m_base + Offsets::Unit::AURA_COUNT1);
+    uintptr_t auraTable = 0;
+    int auraCount = 0;
+    if (count1 == -1)
+    {
+        int count2 = Memory::safeRead<int>(m_base + Offsets::Unit::AURA_COUNT2);
+        if (count2 <= 0 || count2 > 40) return false;
+        auraTable = Memory::safeRead<uintptr_t>(m_base + Offsets::Unit::AURA_TABLE2);
+        auraCount = count2;
+    }
+    else
+    {
+        if (count1 <= 0 || count1 > 40) return false;
+        auraTable = m_base + Offsets::Unit::AURA_TABLE1;
+        auraCount = count1;
+    }
+    if (!auraTable) return false;
+    for (int i = 0; i < auraCount; ++i)
+    {
+        uintptr_t entry = auraTable + (uintptr_t)(i * Offsets::Unit::AURA_ENTRY_SIZE);
+        if (Memory::safeRead<int>(entry + 8) == 8326) return true;
+    }
+    return false;
+}
+
 bool Unit::isCasting() const
 {
     return getCastingSpellId() != 0 || getChannelingSpellId() != 0;

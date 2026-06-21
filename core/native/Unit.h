@@ -39,6 +39,7 @@ public:
 
     bool isInCombat()      const;
     bool isDead()          const;
+    bool isGhost()         const;
     bool isCasting()       const;
     bool isChanneling()    const;
     bool isAutoAttacking() const;
