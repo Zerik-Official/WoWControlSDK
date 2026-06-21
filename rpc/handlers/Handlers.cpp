@@ -7,6 +7,7 @@
 #include "UnitRpc.h"
 #include "GroupRpc.h"
 #include "ObjectRpc.h"
+#include "ControlRpc.h"
 
 namespace Rpc
 {
@@ -20,5 +21,6 @@ namespace Rpc
         registerUnitMethods(registry);
         registerGroupMethods(registry);
         registerObjectMethods(registry);
+        registerControlMethods(registry);
     }
 }
