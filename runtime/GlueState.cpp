@@ -1,5 +1,8 @@
 #include "GlueState.h"
+#include "hooks/GlueHooks.h"
+#include <Windows.h>
 #include <cstring>
+#include <chrono>
 
 namespace Runtime
 {
@@ -38,6 +41,61 @@ namespace Runtime
         bool isGameplayReady() { return getScreen() == Screen::WORLD; }
         bool isLoginLatched() { return s_loginLatch; }
         void setLoginLatch(bool v) { s_loginLatch = v; }
+
+        static LoginResult mapAuthCode(int code)
+        {
+            if (code == 0 || code == 14) return LoginResult::OK;
+            switch (code)
+            {
+            case 3:  return LoginResult::BANNED;
+            case 4:  return LoginResult::UNKNOWN_ACCOUNT;
+            case 5:  return LoginResult::INCORRECT_PASSWORD;
+            case 6:  return LoginResult::ALREADYONLINE;
+            case 7:  return LoginResult::NO_TIME;
+            case 8:  return LoginResult::DB_BUSY;
+            case 9:  return LoginResult::BADVERSION;
+            case 10: return LoginResult::FAILED;
+            case 12: return LoginResult::SUSPENDED;
+            case 15: return LoginResult::PARENTALCONTROL;
+            case 16: return LoginResult::LOCKED;
+            case 17: return LoginResult::TRIAL_EXPIRED;
+            case 18: return LoginResult::ACCOUNT_CONVERTED;
+            case 22: return LoginResult::CHARGEDBACK;
+            case 24: return LoginResult::GAME_ACCOUNT_LOCKED;
+            case 25: return LoginResult::UNLOCKABLE_LOCK;
+            case 32: return LoginResult::CONVERSION_REQUIRED;
+            case 255:return LoginResult::DISCONNECTED;
+            default: return LoginResult::FAILED;
+            }
+        }
+
+        LoginResult waitForLoginResult(int timeoutMs)
+        {
+            auto start = std::chrono::steady_clock::now();
+
+            while (true)
+            {
+                if (std::chrono::duration_cast<std::chrono::milliseconds>(
+                        std::chrono::steady_clock::now() - start).count() >= timeoutMs)
+                    return LoginResult::TIMEOUT;
+
+                int code = -1;
+                if (Hooks::Glue::tryGetCapturedAuthCode(code))
+                {
+                    if (code == 0)
+                        return LoginResult::OK;
+                    return mapAuthCode(code);
+                }
+
+                const char* screen = readScreenName();
+                if (screen && strcmp(screen, "charselect") == 0)
+                {
+                    return LoginResult::OK;
+                }
+
+                Sleep(15);
+            }
+        }
 
         void initialize()
         {
