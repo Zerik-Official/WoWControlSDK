@@ -41,6 +41,7 @@ Makefile
 __pycache__/
 *.pyc
 *.pyo
+.pytest_cache/
 
 # =========================
 # Dependencies build artifacts (Detours, etc.)
