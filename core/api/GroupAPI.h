@@ -28,6 +28,7 @@ namespace CoreAPI
         WoWGUID     targetGuid;
         bool        isInCombat;
         bool        isDead;
+        bool        isGhost;
         bool        isCasting;
         bool        isChanneling;
         bool        isAutoAttacking;

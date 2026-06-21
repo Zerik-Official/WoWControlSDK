@@ -65,6 +65,7 @@ namespace
         m.targetGuid     = unit.getTargetGUID();
         m.isInCombat     = unit.isInCombat();
         m.isDead         = unit.isDead();
+        m.isGhost        = unit.isGhost();
         m.isCasting      = unit.isCasting();
         m.isChanneling   = unit.isChanneling();
         m.isAutoAttacking= unit.isAutoAttacking();
