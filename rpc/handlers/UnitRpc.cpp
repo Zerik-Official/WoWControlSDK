@@ -26,6 +26,7 @@ namespace Rpc
             j["power"] = unit.getPower();
             j["maxPower"] = unit.getMaxPower();
             j["dead"] = unit.isDead();
+            j["ghost"] = unit.isGhost();
             j["inCombat"] = unit.isInCombat();
             j["moving"] = unit.isMoving();
             j["mounted"] = unit.isMounted();
@@ -60,6 +61,7 @@ namespace Rpc
             if (!unit.exists()) return j.dump();
 
             j["dead"] = unit.isDead();
+            j["ghost"] = unit.isGhost();
             j["inCombat"] = unit.isInCombat();
             j["moving"] = unit.isMoving();
             j["mounted"] = unit.isMounted();
