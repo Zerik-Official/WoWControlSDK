@@ -2,33 +2,20 @@
 #include "hooks/Hooks.h"
 #include "hooks/FrameHooks.h"
 #include "hooks/GlueHooks.h"
+#include "hooks/ConsoleHooks.h"
 #include "runtime/Runtime.h"
+#include "runtime/ConsoleManager.h"
+#include "runtime/LogCapture.h"
 
 #include <Windows.h>
-#include <cstdio>
 
 #include <deps/Detours/detours.h>
 
-static void InitConsole()
-{
-    AllocConsole();
-
-    FILE* f;
-
-    freopen_s(&f, "CONOUT$", "w", stdout);
-    freopen_s(&f, "CONOUT$", "w", stderr);
-    freopen_s(&f, "CONIN$",  "r", stdin);
-
-    SetConsoleTitleA("WowControlSDK Debug");
-
-    printf("console initialized\n");
-}
-
 static void OnAttach()
 {
-    InitConsole();
-
-    printf("starting attach...\n");
+    Runtime::LogCapture::Initialize();
+    Runtime::LogCapture::SetConfig(256, false);
+    Hooks::Console::SetCallback(Runtime::LogCapture::OnConsoleMessage);
 
     *(DWORD*)0x00B6AF54 = 1;
     *(DWORD*)0x00B6AF5C = 1;
@@ -37,34 +24,27 @@ static void OnAttach()
     Hooks::initialize();
     DetourTransactionCommit();
 
-    printf("hooks initialized\n");
-
     Hooks::Frame::Initialize();
-    printf("frame hooks initialized\n");
-
     Hooks::Glue::Initialize();
-    printf("glue hooks initialized\n");
 
     LuaEngine::initialize();
-    printf("lua initialized\n");
 
     Runtime::initialize();
-    printf("runtime initialized\n");
 
     Hooks::Frame::SetOnFrame(Runtime::onFrame);
-    printf("frame callback registered\n");
 }
 
 static void OnDetach()
 {
-    printf("detaching...\n");
+    Hooks::Console::SetCallback(nullptr);
+    Runtime::LogCapture::Shutdown();
 
     Hooks::Frame::Shutdown();
     Hooks::Glue::Shutdown();
     LuaEngine::shutdown();
     Runtime::shutdown();
 
-    FreeConsole();
+    Runtime::ConsoleManager::Shutdown();
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID)
