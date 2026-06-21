@@ -5,6 +5,8 @@
 #include "AuthRpc.h"
 #include "CharRpc.h"
 #include "UnitRpc.h"
+#include "GroupRpc.h"
+#include "ObjectRpc.h"
 
 namespace Rpc
 {
@@ -16,5 +18,7 @@ namespace Rpc
         registerAuthMethods(registry);
         registerCharMethods(registry);
         registerUnitMethods(registry);
+        registerGroupMethods(registry);
+        registerObjectMethods(registry);
     }
 }

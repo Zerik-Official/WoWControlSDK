@@ -42,6 +42,8 @@ add_library(WoWControlSDK SHARED
     rpc/handlers/CharRpc.cpp
     rpc/handlers/Handlers.cpp
     rpc/handlers/UnitRpc.cpp
+    rpc/handlers/GroupRpc.cpp
+    rpc/handlers/ObjectRpc.cpp
 
     runtime/MethodRegistry.cpp
     runtime/EventBus.cpp
