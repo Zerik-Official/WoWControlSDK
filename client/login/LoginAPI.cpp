@@ -30,25 +30,32 @@ int FindCharacterIndex(const char* name)
     return -1;
 }
 
-// GlueScreen_LogoutAndReset(goToCharSelect, loadGlueXml, setSurvey)
-// 0x00406510 - parameter 1: 0=login screen, 1=charselect
-using GlueScreenLogoutFn = void(__cdecl*)(int, int, int);
-static GlueScreenLogoutFn s_glueScreenLogout = (GlueScreenLogoutFn)0x00406510;
+using FrameScriptExecFn = void(__cdecl*)(const char* code, const char* name, void* errorHandler);
+static FrameScriptExecFn s_frameScriptExec = (FrameScriptExecFn)0x00819210;
 
 void LogoutToCharSelect()
 {
-    s_glueScreenLogout(1, 1, 0);
+    s_frameScriptExec("ForceLogout()", "ForceLogout()", nullptr);
 }
 
 void LogoutToLoginScreen()
 {
-    s_glueScreenLogout(0, 1, 0);
+    s_frameScriptExec("ForceLogout()", "ForceLogout()", nullptr);
 }
 
 void QuitGame()
 {
-    // Script_Quit Lua binding at 0x00510450 - PostQuitMessage or similar
-    ((void(*)())0x00510450)();
+    s_frameScriptExec("ForceQuit()", "ForceQuit()", nullptr);
+}
+
+using SendCharEnumFn = void(__fastcall*)(void* netClient);
+static SendCharEnumFn s_sendCharEnum = (SendCharEnumFn)0x006B14C0;
+
+void RequestCharacterList()
+{
+    void** netClientPtr = (void**)0x00c79cf4;
+    if (netClientPtr && *netClientPtr)
+        s_sendCharEnum(*netClientPtr);
 }
 
 }

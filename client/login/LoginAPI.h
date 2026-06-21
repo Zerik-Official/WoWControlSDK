@@ -57,10 +57,11 @@ void EnterWorld(int idx);
 
 int FindCharacterIndex(const char* name);
 
-// Glue screen management - must be called from game thread
 void LogoutToCharSelect();
 void LogoutToLoginScreen();
 void QuitGame();
+
+void RequestCharacterList();
 
 }
 
