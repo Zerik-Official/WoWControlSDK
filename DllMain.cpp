@@ -1,4 +1,3 @@
-#include "core/GameState.h"
 #include "core/engine/LuaEngine.h"
 #include "hooks/Hooks.h"
 #include "hooks/FrameHooks.h"
@@ -48,9 +47,6 @@ static void OnAttach()
 
     LuaEngine::initialize();
     printf("lua initialized\n");
-
-    GameState::initialize();
-    printf("gamestate initialized\n");
 
     Runtime::initialize();
     printf("runtime initialized\n");

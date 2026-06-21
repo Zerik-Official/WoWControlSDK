@@ -13,9 +13,6 @@ add_subdirectory(deps/Detours)
 add_library(WoWControlSDK SHARED
     DllMain.cpp
 
-    core/GameState.cpp
-    core/CharCache.cpp
-
     core/engine/LuaEngine.cpp
 
     core/native/ObjectManager.cpp
@@ -57,7 +54,6 @@ add_library(WoWControlSDK SHARED
     hooks/GlueHooks.cpp
 
     ipc/CommandPipe.cpp
-    ipc/PipeServer.cpp
 
     commands/CommandHandler.cpp
     commands/DebugCommands.cpp

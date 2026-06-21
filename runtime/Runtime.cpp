@@ -1,5 +1,7 @@
 #include "Runtime.h"
 #include "rpc/handlers/Handlers.h"
+#include "ipc/CommandPipe.h"
+#include <Windows.h>
 
 namespace Runtime
 {
@@ -7,6 +9,7 @@ namespace Runtime
     static EventBus s_eventBus;
     static StateCache s_cache;
     static bool s_initialized = false;
+    static HANDLE s_cmdThread = nullptr;
 
     void initialize()
     {
@@ -15,6 +18,8 @@ namespace Runtime
         Glue::initialize();
         s_cache.setEventBus(&s_eventBus);
         Rpc::registerAllMethods(s_registry);
+
+        s_cmdThread = CreateThread(nullptr, 0, CommandPipe::threadProc, nullptr, 0, nullptr);
 
         s_initialized = true;
     }
