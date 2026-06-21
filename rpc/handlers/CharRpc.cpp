@@ -1,5 +1,6 @@
 #include "CharRpc.h"
 #include "client/login/LoginAPI.h"
+#include "hooks/GlueHooks.h"
 
 namespace Rpc
 {
@@ -16,7 +17,6 @@ namespace Rpc
         if (!chars || chars->size <= 0)
             return result;
 
-        // stride is 0x198 bytes per entry (CharData is 0x188, plus 0x10 padding)
         const char* base = reinterpret_cast<const char*>(chars->buf);
         for (int i = 0; i < chars->size; i++)
         {
@@ -36,8 +36,19 @@ namespace Rpc
         return result;
     }
 
+    static Json handleRefreshCharacters(const Json&)
+    {
+        Hooks::Glue::Post([]() {
+            WoW::Login::RequestCharacterList();
+        });
+        Json ok;
+        ok["ok"] = true;
+        return ok;
+    }
+
     void registerCharMethods(Runtime::MethodRegistry& registry)
     {
         registry.registerMethod("client.getCharacters", handleGetCharacters);
+        registry.registerMethod("client.refreshCharacters", handleRefreshCharacters);
     }
 }
