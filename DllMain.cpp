@@ -2,6 +2,7 @@
 #include "core/engine/LuaEngine.h"
 #include "hooks/Hooks.h"
 #include "hooks/FrameHooks.h"
+#include "hooks/GlueHooks.h"
 #include "runtime/Runtime.h"
 
 #include <Windows.h>
@@ -42,6 +43,9 @@ static void OnAttach()
     Hooks::Frame::Initialize();
     printf("frame hooks initialized\n");
 
+    Hooks::Glue::Initialize();
+    printf("glue hooks initialized\n");
+
     LuaEngine::initialize();
     printf("lua initialized\n");
 
@@ -60,6 +64,7 @@ static void OnDetach()
     printf("detaching...\n");
 
     Hooks::Frame::Shutdown();
+    Hooks::Glue::Shutdown();
     LuaEngine::shutdown();
     Runtime::shutdown();
 

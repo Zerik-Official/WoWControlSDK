@@ -2,6 +2,7 @@
 #include "ClientRpc.h"
 #include "PlayerRpc.h"
 #include "WorldRpc.h"
+#include "AuthRpc.h"
 
 namespace Rpc
 {
@@ -10,5 +11,6 @@ namespace Rpc
         registerClientMethods(registry);
         registerPlayerMethods(registry);
         registerWorldMethods(registry);
+        registerAuthMethods(registry);
     }
 }
