@@ -3,6 +3,8 @@
 #include "hooks/FrameHooks.h"
 #include "hooks/GlueHooks.h"
 #include "runtime/GlueState.h"
+#include <Windows.h>
+#include <chrono>
 
 namespace Rpc
 {
@@ -111,11 +113,73 @@ namespace Rpc
             return err;
         }
 
-        int idx = params.value("index", 0);
+        int idx = -1;
+
+        if (params.contains("name") && params["name"].is_string())
+        {
+            std::string name = params["name"].get<std::string>();
+            idx = WoW::Login::FindCharacterIndex(name.c_str());
+            if (idx < 0)
+            {
+                Json err;
+                err["error"] = "character not found";
+                return err;
+            }
+        }
+        else
+        {
+            idx = params.value("index", 0);
+            WoW::Login::CharVector* chars = WoW::Login::GetChars();
+            if (!chars || idx < 0 || idx >= chars->size)
+            {
+                Json err;
+                err["error"] = "index out of range";
+                return err;
+            }
+        }
 
         Hooks::Glue::Post([idx]() {
-            *(int*)0x00AC436C = idx;
-            ((void(*)())0x004D9BD0)();
+            WoW::Login::EnterWorld(idx);
+        });
+
+        bool waitForWorld = params.value("wait", true);
+        if (waitForWorld)
+        {
+            auto start = std::chrono::steady_clock::now();
+            constexpr int timeoutMs = 30000;
+            while (!Runtime::Glue::isGameplayReady())
+            {
+                if (std::chrono::duration_cast<std::chrono::milliseconds>(
+                        std::chrono::steady_clock::now() - start).count() >= timeoutMs)
+                {
+                    Json err;
+                    err["error"] = "enter world timeout";
+                    return err;
+                }
+                Sleep(50);
+            }
+        }
+
+        Json ok;
+        ok["ok"] = true;
+        return ok;
+    }
+
+    static Json handleLogout(const Json&)
+    {
+        Hooks::Glue::Post([]() {
+            WoW::Login::LogoutToCharSelect();
+        });
+
+        Json ok;
+        ok["ok"] = true;
+        return ok;
+    }
+
+    static Json handleQuit(const Json&)
+    {
+        Hooks::Glue::Post([]() {
+            WoW::Login::QuitGame();
         });
 
         Json ok;
@@ -159,6 +223,8 @@ namespace Rpc
     {
         registry.registerMethod("client.login", handleLogin);
         registry.registerMethod("client.enterWorld", handleEnterWorld);
+        registry.registerMethod("client.logout", handleLogout);
+        registry.registerMethod("client.quit", handleQuit);
         registry.registerMethod("client.getScreen", handleGetScreen);
         registry.registerMethod("client.getDebugState", handleGetDebugState);
     }

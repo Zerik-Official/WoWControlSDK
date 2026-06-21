@@ -39,7 +39,9 @@ static_assert(sizeof(CharData) == 0x188, "struct CharData corrupted");
 struct CharVectorEntry
 {
     CharData data;
+    char     padding[0x10];
 };
+static_assert(sizeof(CharVectorEntry) == 0x198, "stride must be 0x198");
 
 struct CharVector
 {
@@ -54,6 +56,11 @@ CharVector* GetChars();
 void EnterWorld(int idx);
 
 int FindCharacterIndex(const char* name);
+
+// Glue screen management - must be called from game thread
+void LogoutToCharSelect();
+void LogoutToLoginScreen();
+void QuitGame();
 
 }
 
