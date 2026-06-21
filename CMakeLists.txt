@@ -50,6 +50,8 @@ add_library(WoWControlSDK SHARED
     runtime/GlueState.cpp
     runtime/StateCache.cpp
     runtime/Runtime.cpp
+    runtime/ConsoleManager.cpp
+    runtime/LogCapture.cpp
 
     hooks/Hooks.cpp
     hooks/EndSceneHook.cpp
@@ -59,8 +61,7 @@ add_library(WoWControlSDK SHARED
 
     ipc/CommandPipe.cpp
 
-    commands/CommandHandler.cpp
-    commands/DebugCommands.cpp
+    rpc/handlers/ControlRpc.cpp
 
     utils/legacy/JsonUtils.cpp
     utils/json/JsonIPC.cpp
@@ -94,6 +95,7 @@ target_link_libraries(WoWControlSDK PRIVATE
 target_compile_options(WoWControlSDK PRIVATE
     /arch:IA32
     /GS-
+    /utf-8
 )
 
 set_target_properties(WoWControlSDK PROPERTIES
