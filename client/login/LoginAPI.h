@@ -31,15 +31,14 @@ struct CharData
     char    facialColor;
     char    level;
     char    firstLogin;
-    char    gap[6];
+    char    gap[22];
 };
 #pragma pack(pop)
-static_assert(sizeof(CharData) == 0x188, "struct CharData corrupted");
+static_assert(sizeof(CharData) == 0x198, "struct CharData corrupted");
 
 struct CharVectorEntry
 {
     CharData data;
-    char     padding[0x10];
 };
 static_assert(sizeof(CharVectorEntry) == 0x198, "stride must be 0x198");
 

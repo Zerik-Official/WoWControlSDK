@@ -1,4 +1,5 @@
 #include "LoginAPI.h"
+#include <cstdio>
 #include <cstring>
 
 namespace WoW::Login
@@ -14,10 +15,14 @@ CharVector* GetChars()
     return (CharVector*)0x00B6B238;
 }
 
+using FrameScriptExecFn = void(__cdecl*)(const char* code, const char* name, int context);
+static FrameScriptExecFn s_frameScriptExec = (FrameScriptExecFn)0x00819210;
+
 void EnterWorld(int idx)
 {
-    *(int*)0x00AC436C = idx;
-    ((void(*)())0x004D9BD0)();
+    char lua[64];
+    snprintf(lua, sizeof(lua), "SelectCharacter(%d); EnterWorld();", idx + 1);
+    s_frameScriptExec(lua, lua, 0);
 }
 
 int FindCharacterIndex(const char* name)
