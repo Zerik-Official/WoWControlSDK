@@ -40,6 +40,7 @@ add_library(WoWControlSDK SHARED
     rpc/handlers/ClientRpc.cpp
     rpc/handlers/PlayerRpc.cpp
     rpc/handlers/WorldRpc.cpp
+    rpc/handlers/AuthRpc.cpp
     rpc/handlers/Handlers.cpp
 
     runtime/MethodRegistry.cpp
@@ -52,6 +53,7 @@ add_library(WoWControlSDK SHARED
     hooks/EndSceneHook.cpp
     hooks/ConsoleHooks.cpp
     hooks/FrameHooks.cpp
+    hooks/GlueHooks.cpp
 
     ipc/CommandPipe.cpp
     ipc/PipeServer.cpp
