@@ -9,6 +9,7 @@ add_compile_definitions(
 )
 
 add_subdirectory(deps/Detours)
+add_subdirectory(injector)
 
 add_library(WoWControlSDK SHARED
     DllMain.cpp
