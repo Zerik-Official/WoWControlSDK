@@ -208,24 +208,9 @@ static void __declspec(naked) LoadCharacters_hk()
     }
 }
 
-static bool s_consoleAllocated = false;
-
 void Hooks::initialize()
 {
-    if (!s_consoleAllocated) {
-        AllocConsole();
-        freopen("CONOUT$", "w", stdout);
-        freopen("CONOUT$", "w", stderr);
-        s_consoleAllocated = true;
-    }
-
     Hooks::Console::Initialize();
-
-    Hooks::Console::SetCallback([](const char* text, int style) {
-        if (!text) return;
-        printf("[Console:%d] %s\n", style, text);
-        fflush(stdout);
-    });
 
     DetourAttach(&(LPVOID&)CVars_Initialize_orig, CVars_Initialize_hk);
     DetourAttach(&(LPVOID&)FrameScript_FireOnUpdate_orig, FrameScript_FireOnUpdate_hk);
