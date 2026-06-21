@@ -69,10 +69,14 @@ class TestProtocol:
         assert resp.get("result", {}).get("status") == "ok"
 
     def test_parse_error(self):
-        h = win32file.CreateFile(
-            PIPE_NAME, win32file.GENERIC_READ | win32file.GENERIC_WRITE,
-            0, None, win32file.OPEN_EXISTING, 0, None,
-        )
+        try:
+            h = win32file.CreateFile(
+                PIPE_NAME, win32file.GENERIC_READ | win32file.GENERIC_WRITE,
+                0, None, win32file.OPEN_EXISTING, 0, None,
+            )
+        except pywintypes.error:
+            pytest.skip("Cannot connect to pipe")
+            return
         win32file.WriteFile(h, b"not json")
         _, data = win32file.ReadFile(h, 4096)
         win32file.CloseHandle(h)
@@ -138,6 +142,18 @@ class TestWorld:
         assert "zoneName" in r
         assert isinstance(r["mapId"], int)
         assert isinstance(r["zoneName"], str)
+
+
+class TestAuth:
+    def test_login_rejects_empty(self):
+        resp = send({"jsonrpc": "2.0", "method": "client.login", "params": {}, "id": 1})
+        r = assert_result(resp)
+        assert r.get("error") == "username and password required"
+
+    def test_enter_world_rejects_empty(self):
+        resp = send({"jsonrpc": "2.0", "method": "client.enterWorld", "params": {}, "id": 1})
+        r = assert_result(resp)
+        assert "error" in r
 
 
 if __name__ == "__main__":
