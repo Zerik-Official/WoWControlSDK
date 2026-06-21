@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/types/GUID.h"
+#include "runtime/GlueState.h"
 #include <string>
 #include <mutex>
 
@@ -61,6 +62,7 @@ namespace Runtime
     private:
         PlayerCacheEntry m_player;
         WorldCacheEntry  m_world;
+        Screen           m_lastScreen = Screen::UNKNOWN;
         mutable std::mutex m_mutex;
         EventBus* m_eventBus = nullptr;
 

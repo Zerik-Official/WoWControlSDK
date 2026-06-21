@@ -1,6 +1,7 @@
 #include "runtime/StateCache.h"
 #include "runtime/EventBus.h"
 #include "runtime/EventTypes.h"
+#include "runtime/GlueState.h"
 #include "core/api/PlayerAPI.h"
 #include "core/api/WorldAPI.h"
 
@@ -123,6 +124,16 @@ namespace Runtime
                 data["newZoneId"] = freshWorld.zoneId;
                 m_eventBus->emit(EVENT_WORLD_ZONE, data);
             }
+        }
+
+        Screen currentScreen = Glue::getScreen();
+        if (currentScreen != m_lastScreen)
+        {
+            Json data;
+            data["old"] = static_cast<int>(m_lastScreen);
+            data["new"] = static_cast<int>(currentScreen);
+            m_eventBus->emit(EVENT_SCREEN_CHANGED, data);
+            m_lastScreen = currentScreen;
         }
     }
 
