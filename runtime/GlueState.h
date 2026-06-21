@@ -13,7 +13,7 @@ namespace Runtime
     namespace Glue
     {
         Screen  getScreen();
-        void    setScreen(Screen s);
+        const char* getScreenName();
         bool    isGameplayReady();
         bool    isLoginLatched();
         void    setLoginLatch(bool value);
