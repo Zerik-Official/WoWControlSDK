@@ -4,6 +4,7 @@
 #include "WorldRpc.h"
 #include "AuthRpc.h"
 #include "CharRpc.h"
+#include "UnitRpc.h"
 
 namespace Rpc
 {
@@ -14,5 +15,6 @@ namespace Rpc
         registerWorldMethods(registry);
         registerAuthMethods(registry);
         registerCharMethods(registry);
+        registerUnitMethods(registry);
     }
 }
