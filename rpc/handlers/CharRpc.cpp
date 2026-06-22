@@ -1,6 +1,8 @@
 #include "CharRpc.h"
-#include "client/login/LoginAPI.h"
+#include "core/native/CharacterReader.h"
 #include "hooks/GlueHooks.h"
+#include "client/login/LoginAPI.h"
+#include "utils/json/Json.h"
 
 namespace Rpc
 {
@@ -8,30 +10,24 @@ namespace Rpc
 
     static Json handleGetCharacters(const Json&)
     {
-        WoW::Login::CharVector* chars = WoW::Login::GetChars();
+        auto chars = WoW::Characters::GetList();
 
         Json result;
-        result["count"] = chars ? chars->size : 0;
+        result["count"] = (int)chars.size();
         result["characters"] = Json::array();
 
-        if (!chars || chars->size <= 0)
-            return result;
-
-        const char* base = reinterpret_cast<const char*>(chars->buf);
-        for (int i = 0; i < chars->size; i++)
+        for (const auto& c : chars)
         {
-            const WoW::Login::CharData* d = reinterpret_cast<const WoW::Login::CharData*>(
-                base + i * 0x198);
-            Json c;
-            c["index"]  = i;
-            c["name"]   = d->name;
-            c["level"]  = (int)(unsigned char)d->level;
-            c["race"]   = (int)(unsigned char)d->race;
-            c["class"]  = (int)(unsigned char)d->class_;
-            c["gender"] = (int)(unsigned char)d->gender;
-            c["map"]    = d->map;
-            c["zone"]   = d->zone;
-            result["characters"].push_back(c);
+            Json jc;
+            jc["index"]  = c.index;
+            jc["name"]   = c.name;
+            jc["level"]  = c.level;
+            jc["race"]   = c.race;
+            jc["class"]  = c.class_;
+            jc["gender"] = c.gender;
+            jc["map"]    = c.map;
+            jc["zone"]   = c.zone;
+            result["characters"].push_back(jc);
         }
         return result;
     }
@@ -41,9 +37,7 @@ namespace Rpc
         Hooks::Glue::Post([]() {
             WoW::Login::RequestCharacterList();
         });
-        Json ok;
-        ok["ok"] = true;
-        return ok;
+        return SDK::okJson();
     }
 
     void registerCharMethods(Runtime::MethodRegistry& registry)

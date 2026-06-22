@@ -2,6 +2,8 @@
 #include "hooks/Hooks.h"
 #include "hooks/FrameHooks.h"
 #include "hooks/GlueHooks.h"
+#include "core/native/GlueAPI.h"
+#include "core/native/GlueAPI.h"
 #include "hooks/ConsoleHooks.h"
 #include "runtime/Runtime.h"
 #include "runtime/console/ConsoleManager.h"
@@ -19,9 +21,6 @@ static void OnAttach()
     Hooks::Console::SetCallback(Runtime::LogCapture::OnConsoleMessage);
     Runtime::EventPipe::Initialize();
 
-    *(DWORD*)0x00B6AF54 = 1;
-    *(DWORD*)0x00B6AF5C = 1;
-
     DetourTransactionBegin();
     Hooks::initialize();
     DetourTransactionCommit();
@@ -38,7 +37,6 @@ static void OnAttach()
 
 static void OnDetach()
 {
-    Hooks::Console::SetCallback(nullptr);
     Runtime::LogCapture::Shutdown();
     Runtime::EventPipe::Shutdown();
 
