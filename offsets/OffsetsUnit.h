@@ -55,6 +55,10 @@ namespace Offsets
             constexpr uint32_t MOVE_SWIMMING             = 0x00200000;
             constexpr uint32_t MOVE_FLYING               = 0x02000000;
         }
+
+        constexpr uintptr_t GET_UNIT_NAME       = 0x0072a000;
+        constexpr uintptr_t GET_PVP_NAME        = 0x0072a290;
+        constexpr uintptr_t GET_MAP_POSITION    = 0x005444f0;
     }
 
     namespace Object

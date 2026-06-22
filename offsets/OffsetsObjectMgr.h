@@ -14,5 +14,7 @@ namespace Offsets
         constexpr uint32_t OBJ_TYPE_MASK_UNIT        = 0x8 | 0x10;
 
         constexpr uintptr_t OBJ_DESC_END             = 24;
+
+        constexpr uintptr_t MOUSEOVER_GUID          = 0x00BD07A0;
     }
 }

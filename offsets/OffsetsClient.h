@@ -9,6 +9,9 @@ namespace Offsets
         constexpr uintptr_t SCREEN_NAME_PTR    = 0x00B6A9E0;
         constexpr uintptr_t IN_WORLD_FLAG      = 0x00BD0792;
         constexpr uintptr_t LOGIN_STATE        = 0x00B6AA38;
+        constexpr uintptr_t RCSTRING_HASH       = 0x0076F640;
+        constexpr uintptr_t SET_LAST_ERROR     = 0x00771870;
+        constexpr uintptr_t GC_ATOI            = 0x0076F190;
     }
 
     namespace NetClient
