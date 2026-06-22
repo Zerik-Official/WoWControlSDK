@@ -49,12 +49,6 @@ void LogoutToCharSelect()
     if (L) s_logout(L);
 }
 
-void LogoutToLoginScreen()
-{
-    void* L = GetLuaState();
-    if (L) s_logout(L);
-}
-
 static LuaFn s_forceQuit = (LuaFn)0x00510A00;
 
 void QuitGame()

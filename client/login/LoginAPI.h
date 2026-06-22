@@ -57,7 +57,6 @@ void EnterWorld(int idx);
 int FindCharacterIndex(const char* name);
 
 void LogoutToCharSelect();
-void LogoutToLoginScreen();
 void QuitGame();
 
 void RequestCharacterList();
