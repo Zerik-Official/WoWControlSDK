@@ -35,6 +35,8 @@ namespace Runtime
 
         const char* getScreenName()
         {
+            if (*(bool*)0x00BD0792)
+                return "world";
             return readScreenName();
         }
 
