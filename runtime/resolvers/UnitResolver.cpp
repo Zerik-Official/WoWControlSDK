@@ -1,8 +1,8 @@
 #include "runtime/resolvers/UnitResolver.h"
 #include "core/native/ObjectManager.h"
 #include "memory/MemReader.h"
-#include "OffsetsGroup.h"
-#include "OffsetsUnit.h"
+#include "offsets/OffsetsGroup.h"
+#include "offsets/OffsetsUnit.h"
 
 #include <cstring>
 #include <cstdlib>

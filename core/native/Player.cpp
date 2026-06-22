@@ -1,7 +1,7 @@
 #include "core/native/Player.h"
 #include "memory/MemReader.h"
 #include "core/native/ObjectManager.h"
-#include "OffsetsPlayer.h"
+#include "offsets/OffsetsPlayer.h"
 
 Player Player::local()
 {

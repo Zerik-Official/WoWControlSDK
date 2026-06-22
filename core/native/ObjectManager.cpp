@@ -1,6 +1,6 @@
 #include "core/native/ObjectManager.h"
 #include "memory/MemReader.h"
-#include "OffsetsObjectMgr.h"
+#include "offsets/OffsetsObjectMgr.h"
 
 namespace WoW
 {

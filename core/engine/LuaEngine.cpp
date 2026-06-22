@@ -1,5 +1,5 @@
 #include "LuaEngine.h"
-#include "OffsetsLua.h"
+#include "offsets/OffsetsLua.h"
 #include "utils/json/Json.h"
 #include <Windows.h>
 #include <string>
