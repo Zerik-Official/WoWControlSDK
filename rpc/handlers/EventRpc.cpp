@@ -1,6 +1,6 @@
 #include "EventRpc.h"
 #include "hooks/EventHooks.h"
-#include "runtime/EventPipe.h"
+#include "runtime/events/EventPipe.h"
 #include "utils/json/Json.h"
 #include <unordered_set>
 

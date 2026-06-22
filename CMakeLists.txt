@@ -48,15 +48,15 @@ add_library(WoWControlSDK SHARED
     rpc/handlers/GroupRpc.cpp
     rpc/handlers/ObjectRpc.cpp
 
-    runtime/MethodRegistry.cpp
-    runtime/EventBus.cpp
-    runtime/GlueState.cpp
-    runtime/StateCache.cpp
+    rpc/MethodRegistry.cpp
+    runtime/events/EventBus.cpp
+    runtime/state/GlueState.cpp
+    runtime/state/StateCache.cpp
     runtime/Runtime.cpp
-    runtime/ConsoleManager.cpp
-    runtime/LogCapture.cpp
-    runtime/RealmList.cpp
-    runtime/EventPipe.cpp
+    runtime/console/ConsoleManager.cpp
+    runtime/console/LogCapture.cpp
+    runtime/realm/RealmList.cpp
+    runtime/events/EventPipe.cpp
 
     hooks/Hooks.cpp
     hooks/EndSceneHook.cpp

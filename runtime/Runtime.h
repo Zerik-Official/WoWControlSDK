@@ -1,9 +1,9 @@
 #pragma once
 
-#include "MethodRegistry.h"
-#include "EventBus.h"
-#include "GlueState.h"
-#include "StateCache.h"
+#include "rpc/MethodRegistry.h"
+#include "runtime/events/EventBus.h"
+#include "runtime/state/GlueState.h"
+#include "runtime/state/StateCache.h"
 
 namespace Runtime
 {

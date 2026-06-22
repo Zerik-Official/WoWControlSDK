@@ -1,6 +1,6 @@
 #include "ControlRpc.h"
-#include "runtime/ConsoleManager.h"
-#include "runtime/LogCapture.h"
+#include "runtime/console/ConsoleManager.h"
+#include "runtime/console/LogCapture.h"
 #include "utils/json/Json.h"
 
 namespace Rpc

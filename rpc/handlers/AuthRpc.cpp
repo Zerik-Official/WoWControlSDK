@@ -5,8 +5,8 @@
 #include "core/native/NetClient.h"
 #include "hooks/FrameHooks.h"
 #include "hooks/GlueHooks.h"
-#include "runtime/GlueState.h"
-#include "runtime/RealmList.h"
+#include "runtime/state/GlueState.h"
+#include "runtime/realm/RealmList.h"
 #include <Windows.h>
 #include <chrono>
 

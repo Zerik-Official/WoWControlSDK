@@ -1,7 +1,7 @@
-#include "runtime/StateCache.h"
-#include "runtime/EventBus.h"
-#include "runtime/EventTypes.h"
-#include "runtime/GlueState.h"
+#include "runtime/state/StateCache.h"
+#include "runtime/events/EventBus.h"
+#include "runtime/events/EventTypes.h"
+#include "runtime/state/GlueState.h"
 #include "core/api/PlayerAPI.h"
 #include "core/api/WorldAPI.h"
 

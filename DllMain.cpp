@@ -4,9 +4,9 @@
 #include "hooks/GlueHooks.h"
 #include "hooks/ConsoleHooks.h"
 #include "runtime/Runtime.h"
-#include "runtime/ConsoleManager.h"
-#include "runtime/LogCapture.h"
-#include "runtime/EventPipe.h"
+#include "runtime/console/ConsoleManager.h"
+#include "runtime/console/LogCapture.h"
+#include "runtime/events/EventPipe.h"
 
 #include <Windows.h>
 

@@ -1,7 +1,7 @@
 #include <Windows.h>
 #include <deps/Detours/detours.h>
 #include "EventHooks.h"
-#include "runtime/EventPipe.h"
+#include "runtime/events/EventPipe.h"
 #include "utils/json/Json.h"
 #include <string>
 #include <vector>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "runtime/MethodRegistry.h"
+#include "rpc/MethodRegistry.h"
 
 namespace Rpc
 {
