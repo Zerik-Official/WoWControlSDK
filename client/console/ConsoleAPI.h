@@ -30,7 +30,7 @@ struct CVar
     Handler_t   handler;
     void*       userData;
 };
-static_assert(sizeof(CVar) == 0x70);
+
 
 CVar* RegisterCVar(const char* name, const char* desc, unsigned flags, const char* defaultVal,
                    CVar::Handler_t callback, int a6, int a7, int a8, int a9);

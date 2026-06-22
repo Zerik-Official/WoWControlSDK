@@ -18,7 +18,7 @@ void registerOnUpdate(DummyCallback_t func);
 
 namespace FrameXML {
 void registerEvent(const char* str);
-void registerCVar(Console::CVar** dst, const char* str, const char* desc, Console::CVarFlags flags, const char* initialValue, Console::CVar::Handler_t func);
+void registerCVar(WoW::Console::CVar** dst, const char* str, const char* desc, WoW::Console::CVarFlags flags, const char* initialValue, WoW::Console::CVar::Handler_t func);
 void registerLuaLib(lua_CFunction func);
 }
 
