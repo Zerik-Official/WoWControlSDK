@@ -6,6 +6,7 @@
 #include "runtime/Runtime.h"
 #include "runtime/ConsoleManager.h"
 #include "runtime/LogCapture.h"
+#include "runtime/EventPipe.h"
 
 #include <Windows.h>
 
@@ -16,6 +17,7 @@ static void OnAttach()
     Runtime::LogCapture::Initialize();
     Runtime::LogCapture::SetConfig(256, false);
     Hooks::Console::SetCallback(Runtime::LogCapture::OnConsoleMessage);
+    Runtime::EventPipe::Initialize();
 
     *(DWORD*)0x00B6AF54 = 1;
     *(DWORD*)0x00B6AF5C = 1;
@@ -38,7 +40,9 @@ static void OnDetach()
 {
     Hooks::Console::SetCallback(nullptr);
     Runtime::LogCapture::Shutdown();
+    Runtime::EventPipe::Shutdown();
 
+    Hooks::Events::Shutdown();
     Hooks::Frame::Shutdown();
     Hooks::Glue::Shutdown();
     LuaEngine::shutdown();
