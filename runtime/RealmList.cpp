@@ -1,35 +1,17 @@
 #include "RealmList.h"
+#include "core/native/RealmListReader.h"
 #include <cstring>
-#include <Windows.h>
 
 namespace Runtime::RealmList
 {
-    static int* getServicePtr()
-    {
-        return *(int**)0x00c79ce4;
-    }
-
-    static char* getEntry(int index)
-    {
-        int* svc = getServicePtr();
-        if (!svc) return nullptr;
-        char** entries = (char**)(svc + 3);
-        if (!*entries) return nullptr;
-        return *entries + index * 0x148;
-    }
-
     int GetCount()
     {
-        int* svc = getServicePtr();
-        if (!svc) return 0;
-        return *(int*)(svc + 2);
+        return WoW::Realm::GetCount();
     }
 
     const char* GetName(int index)
     {
-        char* entry = getEntry(index);
-        if (!entry) return nullptr;
-        return entry + 6;
+        return WoW::Realm::GetName(index);
     }
 
     int FindByName(const char* name)
@@ -47,12 +29,7 @@ namespace Runtime::RealmList
 
     bool Select(int index)
     {
-        char* entry = getEntry(index);
-        if (!entry) return false;
-
-        CopyMemory((void*)0x00c79b98, entry, 0x148);
-        *(bool*)0x00c79ce9 = true;
-        return true;
+        return WoW::Realm::Select(index);
     }
 
     bool IsReady()
