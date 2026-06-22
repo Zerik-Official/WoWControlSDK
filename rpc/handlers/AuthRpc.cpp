@@ -4,6 +4,7 @@
 #include "hooks/FrameHooks.h"
 #include "hooks/GlueHooks.h"
 #include "runtime/GlueState.h"
+#include "runtime/RealmList.h"
 #include <Windows.h>
 #include <chrono>
 
@@ -30,7 +31,20 @@ namespace Rpc
             return err;
         }
 
-        Hooks::Glue::Post([username, password]() {
+        std::string realmList = params.value("realmList", "");
+        std::string realmName = params.value("realmName", "");
+
+        Hooks::Glue::Post([username, password, realmList, realmName]() {
+            if (!realmList.empty())
+            {
+                if (auto* cvar = WoW::Console::FindCVar("realmList"))
+                    WoW::Console::SetCVarValue(cvar, realmList.c_str(), 1, 0, 0, 1);
+            }
+            if (!realmName.empty())
+            {
+                if (auto* cvar = WoW::Console::FindCVar("realmName"))
+                    WoW::Console::SetCVarValue(cvar, realmName.c_str(), 1, 0, 0, 1);
+            }
             WoW::NetClient::Login(username.c_str(), password.c_str());
         });
 
@@ -43,6 +57,43 @@ namespace Rpc
         {
         case Runtime::LoginResult::OK:
             result["ok"] = true;
+            if (!realmName.empty())
+            {
+                auto start = std::chrono::steady_clock::now();
+                while (!Runtime::RealmList::IsReady())
+                {
+                    if (std::chrono::duration_cast<std::chrono::milliseconds>(
+                            std::chrono::steady_clock::now() - start).count() >= 5000)
+                    {
+                        result["error"] = "realm list timeout";
+                        result["ok"] = false;
+                        break;
+                    }
+                    Sleep(50);
+                }
+
+                if (!result.contains("error"))
+                {
+                    Hooks::Glue::Post([realmName]() {
+                        int idx = Runtime::RealmList::FindByName(realmName.c_str());
+                        if (idx < 0) idx = 0;
+                        Runtime::RealmList::Select(idx);
+                    });
+
+                    start = std::chrono::steady_clock::now();
+                    while (Runtime::Glue::getScreen() != Runtime::Screen::CHARSELECT)
+                    {
+                        if (std::chrono::duration_cast<std::chrono::milliseconds>(
+                                std::chrono::steady_clock::now() - start).count() >= 15000)
+                        {
+                            result["error"] = "realm select timeout";
+                            result["ok"] = false;
+                            break;
+                        }
+                        Sleep(50);
+                    }
+                }
+            }
             break;
         case Runtime::LoginResult::FAILED:
             result["error"] = "login failed";
