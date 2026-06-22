@@ -15,21 +15,13 @@ namespace Rpc
     static Json handleLogin(const Json& params)
     {
         if (Runtime::Glue::getScreen() != Runtime::Screen::LOGIN)
-        {
-            Json err;
-            err["error"] = "not on login screen";
-            return err;
-        }
+            return SDK::makeErrorJson("not on login screen");
 
         std::string username = params.value("username", "");
         std::string password = params.value("password", "");
 
         if (username.empty() || password.empty())
-        {
-            Json err;
-            err["error"] = "username and password required";
-            return err;
-        }
+            return SDK::makeErrorJson("username and password required");
 
         std::string realmList = params.value("realmList", "");
         std::string realmName = params.value("realmName", "");
@@ -104,11 +96,7 @@ namespace Rpc
     static Json handleEnterWorld(const Json& params)
     {
         if (Runtime::Glue::getScreen() != Runtime::Screen::CHARSELECT)
-        {
-            Json err;
-            err["error"] = "not on character select screen";
-            return err;
-        }
+            return SDK::makeErrorJson("not on character select screen");
 
         int idx = -1;
 
@@ -117,22 +105,14 @@ namespace Rpc
             std::string name = params["name"].get<std::string>();
             idx = WoW::Login::FindCharacterIndex(name.c_str());
             if (idx < 0)
-            {
-                Json err;
-                err["error"] = "character not found";
-                return err;
-            }
+                return SDK::makeErrorJson("character not found");
         }
         else
         {
             idx = params.value("index", 0);
             WoW::Login::CharVector* chars = WoW::Login::GetChars();
             if (!chars || idx < 0 || idx >= chars->size)
-            {
-                Json err;
-                err["error"] = "index out of range";
-                return err;
-            }
+                return SDK::makeErrorJson("index out of range");
         }
 
         Hooks::Glue::Post([idx]() {
@@ -148,11 +128,7 @@ namespace Rpc
             {
                 if (std::chrono::duration_cast<std::chrono::milliseconds>(
                         std::chrono::steady_clock::now() - start).count() >= timeoutMs)
-                {
-                    Json err;
-                    err["error"] = "enter world timeout";
-                    return err;
-                }
+                    return SDK::makeErrorJson("enter world timeout");
                 Sleep(50);
             }
         }

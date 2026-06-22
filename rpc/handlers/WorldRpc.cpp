@@ -10,11 +10,7 @@ namespace Rpc
     {
         Runtime::WorldCacheEntry w;
         if (!Runtime::cache().getWorld(w))
-        {
-            Json err;
-            err["error"] = "world not available";
-            return err;
-        }
+            return SDK::makeErrorJson("world not available");
         Json result;
         result["mapId"] = w.mapId;
         result["zoneId"] = w.zoneId;

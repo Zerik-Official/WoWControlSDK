@@ -11,12 +11,7 @@ namespace Rpc
     static Json handleSubscribe(const Json& params)
     {
         if (!params.contains("events") || !params["events"].is_array())
-        {
-            Json err;
-            err["ok"] = false;
-            err["error"] = "events must be an array";
-            return err;
-        }
+            return SDK::makeErrorJson("events must be an array");
 
         int count = 0;
         for (const auto& e : params["events"])
@@ -35,12 +30,7 @@ namespace Rpc
     static Json handleUnsubscribe(const Json& params)
     {
         if (!params.contains("events") || !params["events"].is_array())
-        {
-            Json err;
-            err["ok"] = false;
-            err["error"] = "events must be an array";
-            return err;
-        }
+            return SDK::makeErrorJson("events must be an array");
 
         int count = 0;
         for (const auto& e : params["events"])
@@ -71,9 +61,7 @@ namespace Rpc
     static Json handleClear(const Json&)
     {
         Hooks::Events::ClearSubscriptions();
-        Json j;
-        j["ok"] = true;
-        return j;
+        return SDK::okJson();
     }
 
     static Json handleGetHistory(const Json& params)
@@ -103,9 +91,7 @@ namespace Rpc
     static Json handleClearHistory(const Json&)
     {
         Runtime::EventPipe::ClearHistory();
-        Json j;
-        j["ok"] = true;
-        return j;
+        return SDK::okJson();
     }
 
     static Json handleSetMaxBuffer(const Json& params)
