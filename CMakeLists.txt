@@ -67,7 +67,6 @@ add_library(WoWControlSDK SHARED
     rpc/handlers/ControlRpc.cpp
     rpc/handlers/EventRpc.cpp
 
-    utils/legacy/JsonUtils.cpp
     utils/json/JsonIPC.cpp
 
     client/globals/ClientGlobals.cpp
