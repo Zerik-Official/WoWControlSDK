@@ -62,16 +62,31 @@ int main(int argc, char* argv[])
         waitForPipe(args.pipeName, 15000);
     else
     {
-        fprintf(stdout, "[injector] waiting %lums before defrosting\n", args.waitMs);
+        fprintf(stdout, "[injector] waiting %lums before unfreezing\n", args.waitMs);
         Sleep(args.waitMs);
     }
 
-    fprintf(stdout, "[injector] defrosting\n");
+    fprintf(stdout, "[injector] unfreezing\n");
     ResumeThread(pi.hThread);
+
+    if (!args.pipeCommands.empty())
+    {
+        Sleep(300);
+
+        for (const std::string& cmd : args.pipeCommands)
+        {
+            fprintf(stdout, "[injector] pipe-cmd: %s\n", cmd.c_str());
+            std::string response;
+            if (sendPipeCommand(args.pipeName, cmd, response))
+                fprintf(stdout, "[injector] response: %s\n", response.c_str());
+            else
+                fprintf(stderr, "[injector] pipe-cmd failed\n");
+        }
+    }
 
     CloseHandle(pi.hThread);
     CloseHandle(pi.hProcess);
 
-    fprintf(stdout, "[injector] ready\n");
+    fprintf(stdout, "[injector] done\n");
     return 0;
 }
