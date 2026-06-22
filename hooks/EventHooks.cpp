@@ -7,7 +7,6 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
-#include <cstdio>
 
 namespace Hooks::Events
 {
@@ -161,15 +160,6 @@ bool IsReady()
     bool ready = s_eventTableReady;
     ReleaseSRWLockShared(&s_lock);
     return ready;
-}
-
-bool IsSubscribed(const char* eventName)
-{
-    if (!eventName) return false;
-    AcquireSRWLockShared(&s_lock);
-    bool found = s_subscriptions.count(eventName) > 0;
-    ReleaseSRWLockShared(&s_lock);
-    return found;
 }
 
 void Subscribe(const char* eventName)

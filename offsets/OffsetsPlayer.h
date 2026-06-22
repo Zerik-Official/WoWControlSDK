@@ -19,12 +19,5 @@ namespace Offsets
             constexpr uintptr_t NEXT_LEVEL_XP = 0x79C;
         }
 
-        namespace Name
-        {
-            constexpr uintptr_t STORE         = 0x00C5D940;
-            constexpr uintptr_t BASE          = 0x1C;
-            constexpr uintptr_t MASK          = 0x24;
-            constexpr uintptr_t STRING        = 0x20;
-        }
     }
 }
