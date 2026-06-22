@@ -1,4 +1,5 @@
 #include "GlueHooks.h"
+#include "core/native/ClientState.h"
 #include "utils/json/Json.h"
 #include "utils/TaskQueue.h"
 #include <deps/Detours/detours.h>
@@ -98,7 +99,7 @@ static void GlueMgr_PostUpdate()
 {
     if (!s_loginPending) return;
 
-    const char* screen = (const char*)0x00B6A9E0;
+    const char* screen = WoW::GetScreenName();
     if (!screen) return;
 
     if (strcmp(screen, "charselect") == 0)

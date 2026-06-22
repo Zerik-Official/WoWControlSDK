@@ -1,4 +1,5 @@
 #include "GlueState.h"
+#include "core/native/ClientState.h"
 #include "hooks/GlueHooks.h"
 #include <Windows.h>
 #include <cstring>
@@ -10,17 +11,12 @@ namespace Runtime
     {
         static bool s_loginLatch = false;
 
-        static const char* readScreenName()
-        {
-            return (const char*)0x00B6A9E0;
-        }
-
         Screen getScreen()
         {
-            if (*(bool*)0x00BD0792)
+            if (WoW::IsInWorld())
                 return Screen::WORLD;
 
-            const char* name = readScreenName();
+            const char* name = WoW::GetScreenName();
             if (!name || name[0] == '\0')
                 return Screen::UNKNOWN;
 
@@ -35,9 +31,9 @@ namespace Runtime
 
         const char* getScreenName()
         {
-            if (*(bool*)0x00BD0792)
+            if (WoW::IsInWorld())
                 return "world";
-            return readScreenName();
+            return WoW::GetScreenName();
         }
 
         bool isGameplayReady() { return getScreen() == Screen::WORLD; }
@@ -89,7 +85,7 @@ namespace Runtime
                     return mapAuthCode(code);
                 }
 
-                const char* screen = readScreenName();
+                const char* screen = WoW::GetScreenName();
                 if (screen && strcmp(screen, "charselect") == 0)
                 {
                     return LoginResult::OK;
