@@ -70,15 +70,4 @@ void SetCallback(PrintMessageCallback callback)
     s_callback = callback;
 }
 
-void PrintMessage(const char* text, int style)
-{
-    if (s_original && text)
-        s_original(text, style);
-}
-
-PrintMessageFn GetOriginal()
-{
-    return s_original;
-}
-
 }

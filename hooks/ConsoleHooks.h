@@ -14,8 +14,5 @@ void Initialize();
 void Shutdown();
 
 void SetCallback(PrintMessageCallback callback);
-void PrintMessage(const char* text, int style);
-
-PrintMessageFn GetOriginal();
 
 }
