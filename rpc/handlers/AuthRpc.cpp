@@ -181,11 +181,7 @@ namespace Rpc
         result["loginState"] = WoW::GetLoginState();
         result["screen"] = Runtime::Glue::getScreenName() ? Runtime::Glue::getScreenName() : "";
         result["inWorld"] = WoW::IsInWorld();
-        result["hook_state"] = Hooks::Glue::getLastLoginState();
-        result["hook_result"] = Hooks::Glue::getLastLoginResult();
-        result["hook_resultStr"] = Hooks::Glue::getLastLoginResultStr();
-        int captured = -1;
-        if (Hooks::Glue::tryGetCapturedAuthCode(captured)) result["capturedCode"] = captured;
+        result["authResultStr"] = Hooks::Glue::getCapturedLoginResult() ? Hooks::Glue::getCapturedLoginResult() : "";
         return result;
     }
 

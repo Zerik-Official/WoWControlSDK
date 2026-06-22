@@ -40,31 +40,34 @@ namespace Runtime
         bool isLoginLatched() { return s_loginLatch; }
         void setLoginLatch(bool v) { s_loginLatch = v; }
 
-        static LoginResult mapAuthCode(int code)
+        static LoginResult mapLoginResultStr(const char* str)
         {
-            if (code == 0 || code == 14) return LoginResult::OK;
-            switch (code)
-            {
-            case 3:  return LoginResult::BANNED;
-            case 4:  return LoginResult::UNKNOWN_ACCOUNT;
-            case 5:  return LoginResult::INCORRECT_PASSWORD;
-            case 6:  return LoginResult::ALREADYONLINE;
-            case 7:  return LoginResult::NO_TIME;
-            case 8:  return LoginResult::DB_BUSY;
-            case 9:  return LoginResult::BADVERSION;
-            case 10: return LoginResult::SERVER_DOWN;
-            case 12: return LoginResult::SUSPENDED;
-            case 15: return LoginResult::PARENTALCONTROL;
-            case 16: return LoginResult::LOCKED;
-            case 17: return LoginResult::TRIAL_EXPIRED;
-            case 18: return LoginResult::ACCOUNT_CONVERTED;
-            case 22: return LoginResult::CHARGEDBACK;
-            case 24: return LoginResult::GAME_ACCOUNT_LOCKED;
-            case 25: return LoginResult::UNLOCKABLE_LOCK;
-            case 32: return LoginResult::CONVERSION_REQUIRED;
-            case 255:return LoginResult::DISCONNECTED;
-            default: return LoginResult::FAILED;
-            }
+            if (!str) return LoginResult::FAILED;
+            if (strcmp(str, "LOGIN_OK") == 0) return LoginResult::OK;
+            if (strcmp(str, "LOGIN_SERVER_DOWN") == 0) return LoginResult::SERVER_DOWN;
+            if (strcmp(str, "LOGIN_FAILED") == 0) return LoginResult::FAILED;
+            if (strcmp(str, "LOGIN_BANNED") == 0) return LoginResult::BANNED;
+            if (strcmp(str, "LOGIN_BADVERSION") == 0) return LoginResult::BADVERSION;
+            if (strcmp(str, "LOGIN_ALREADYONLINE") == 0) return LoginResult::ALREADYONLINE;
+            if (strcmp(str, "LOGIN_NOTIME") == 0) return LoginResult::NO_TIME;
+            if (strcmp(str, "LOGIN_DBBUSY") == 0) return LoginResult::DB_BUSY;
+            if (strcmp(str, "LOGIN_SUSPENDED") == 0) return LoginResult::SUSPENDED;
+            if (strcmp(str, "LOGIN_PARENTALCONTROL") == 0) return LoginResult::PARENTALCONTROL;
+            if (strcmp(str, "LOGIN_LOCKED_ENFORCED") == 0) return LoginResult::LOCKED;
+            if (strcmp(str, "LOGIN_DISCONNECTED") == 0) return LoginResult::DISCONNECTED;
+            if (strcmp(str, "DISCONNECTED") == 0) return LoginResult::DISCONNECTED;
+            if (strcmp(str, "LOGIN_ACCOUNT_CONVERTED") == 0) return LoginResult::ACCOUNT_CONVERTED;
+            if (strcmp(str, "LOGIN_TRIAL_EXPIRED") == 0) return LoginResult::TRIAL_EXPIRED;
+            if (strcmp(str, "LOGIN_CHARGEBACK") == 0) return LoginResult::CHARGEDBACK;
+            if (strcmp(str, "LOGIN_GAME_ACCOUNT_LOCKED") == 0) return LoginResult::GAME_ACCOUNT_LOCKED;
+            if (strcmp(str, "LOGIN_UNLOCKABLE_LOCK") == 0) return LoginResult::UNLOCKABLE_LOCK;
+            if (strcmp(str, "LOGIN_CONVERSION_REQUIRED") == 0) return LoginResult::CONVERSION_REQUIRED;
+            if (strcmp(str, "LOGIN_UNKNOWN_ACCOUNT") == 0) return LoginResult::UNKNOWN_ACCOUNT;
+            if (strcmp(str, "LOGIN_INCORRECT_PASSWORD") == 0) return LoginResult::INCORRECT_PASSWORD;
+            if (strcmp(str, "LOGIN_NO_GAME_ACCOUNT") == 0) return LoginResult::FAILED;
+            if (strcmp(str, "LOGIN_TOO_FAST") == 0) return LoginResult::FAILED;
+            if (strcmp(str, "LOGIN_EXPIRED") == 0) return LoginResult::FAILED;
+            return LoginResult::FAILED;
         }
 
         LoginResult waitForLoginResult(int timeoutMs)
@@ -77,30 +80,22 @@ namespace Runtime
                         std::chrono::steady_clock::now() - start).count() >= timeoutMs)
                     return LoginResult::TIMEOUT;
 
-                int code = -1;
-                if (Hooks::Glue::tryGetCapturedAuthCode(code))
-                {
-                    if (code == 0)
-                        return LoginResult::OK;
-                    return mapAuthCode(code);
-                }
-
-                if (Hooks::Glue::tryGetLoginFailedResult(code))
-                    return mapAuthCode(code);
+                const char* resultStr = Hooks::Glue::getCapturedLoginResult();
+                if (resultStr)
+                    return mapLoginResultStr(resultStr);
 
                 const char* screen = WoW::GetScreenName();
                 if (screen && strcmp(screen, "charselect") == 0)
-                {
                     return LoginResult::OK;
-                }
 
                 Sleep(15);
             }
         }
 
-    void initialize()
-    {
-        s_loginLatch = false;
+        void initialize()
+        {
+            s_loginLatch = false;
+        }
     }
 }
 
@@ -131,5 +126,4 @@ const char* Runtime::loginResultString(LoginResult result)
     case LoginResult::TIMEOUT:            return "login timeout";
     default:                              return "unknown error";
     }
-}
 }

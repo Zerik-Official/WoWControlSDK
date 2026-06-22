@@ -24,79 +24,29 @@ static void __cdecl GlueMgrUpdate_Hook()
     GlueMgr_PostUpdate();
 }
 
-using LoginMgrFireStateChangeFn = void(__thiscall*)(void* this_ptr, int state, int result);
-static LoginMgrFireStateChangeFn s_loginMgrOriginal = nullptr;
-
-static int s_lastState = 0;
-static int s_lastResult = 0;
-static int s_loginFailedResult = -1;
-
-static void __fastcall LoginMgrFireStateChange_Hook(void* this_ptr, int /*edx*/, int state, int result)
-{
-    s_lastState = state;
-    s_lastResult = result;
-    if (state == 7 && result != 0 && s_loginFailedResult < 0)
-        s_loginFailedResult = result;
-    s_loginMgrOriginal(this_ptr, state, result);
-}
-
-int getLastLoginState()
-{
-    return s_lastState;
-}
-
-int getLastLoginResult()
-{
-    return s_lastResult;
-}
-
-const char* getLastLoginResultStr()
-{
-    switch (s_lastResult)
-    {
-    case 0x00: return "LOGIN_OK";
-    case 0x0A: return "LOGIN_SERVER_DOWN";
-    case 0x0B: return "LOGIN_FAILED";
-    case 0x0D: return "LOGIN_BANNED";
-    case 0x0E: return "LOGIN_BADVERSION";
-    case 0x0F: return "LOGIN_ALREADYONLINE";
-    case 0x10: return "LOGIN_NOTIME";
-    case 0x11: return "LOGIN_DBBUSY";
-    case 0x12: return "LOGIN_SUSPENDED";
-    case 0x13: return "LOGIN_PARENTALCONTROL";
-    case 0x14: return "LOGIN_LOCKED_ENFORCED";
-    case 0x15: return "LOGIN_DISCONNECTED";
-    case 0x16: return "LOGIN_ACCOUNT_CONVERTED";
-    case 0x19: return "LOGIN_TRIAL_EXPIRED";
-    case 0x1C: return "LOGIN_GAME_ACCOUNT_LOCKED";
-    case 0x22: return "LOGIN_CHARGEBACK";
-    case 0x23: return "LOGIN_IGR_WITHOUT_BNET";
-    case 0x24: return "LOGIN_UNLOCKABLE_LOCK";
-    case 0x25: return "LOGIN_CONVERSION_REQUIRED";
-    default: return "LOGIN_UNKNOWN";
-    }
-}
-
-using HandleAuthChallengeFn = void(__thiscall*)(void* this_ptr, int param_2, void* param_3, size_t param_4, int param_5);
-static HandleAuthChallengeFn s_authChallengeOriginal = nullptr;
+using GruntPrintFn = void(__cdecl*)(int, int, const char*, const char*, const char*, unsigned char);
+static GruntPrintFn s_gruntOriginal = nullptr;
 
 static bool s_loginPending = false;
-static int s_capturedAuthCode = -1;
+static const char* s_capturedLoginResult = nullptr;
+
 void setLoginPending()
 {
     s_loginPending = true;
-    s_capturedAuthCode = -1;
-    s_loginFailedResult = -1;
+    s_capturedLoginResult = nullptr;
 }
 
-static void __fastcall HandleAuthChallenge_Hook(void* this_ptr, int /*edx*/, int param_2, void* param_3, size_t param_4, int param_5)
+static void __cdecl GruntLoginState_Hook(int param_1, int param_2, const char* param_3, const char* stateStr, const char* resultStr, unsigned char param_6)
 {
-    if (s_loginPending)
+    if (s_loginPending && stateStr && resultStr)
     {
-        s_capturedAuthCode = param_2;
-        s_loginPending = false;
+        if (strcmp(stateStr, "LOGIN_STATE_FAILED") == 0 && !s_capturedLoginResult)
+        {
+            s_capturedLoginResult = resultStr;
+            s_loginPending = false;
+        }
     }
-    s_authChallengeOriginal(this_ptr, param_2, param_3, param_4, param_5);
+    s_gruntOriginal(param_1, param_2, param_3, stateStr, resultStr, param_6);
 }
 
 static void GlueMgr_PostUpdate()
@@ -108,23 +58,13 @@ static void GlueMgr_PostUpdate()
 
     if (strcmp(screen, "charselect") == 0)
     {
-        s_capturedAuthCode = 0;
         s_loginPending = false;
     }
 }
 
-bool tryGetCapturedAuthCode(int& outCode)
+const char* getCapturedLoginResult()
 {
-    if (s_capturedAuthCode < 0) return false;
-    outCode = s_capturedAuthCode;
-    return true;
-}
-
-bool tryGetLoginFailedResult(int& outCode)
-{
-    if (s_loginFailedResult < 0) return false;
-    outCode = s_loginFailedResult;
-    return true;
+    return s_capturedLoginResult;
 }
 
 void Initialize()
@@ -132,14 +72,12 @@ void Initialize()
     if (s_initialized) return;
 
     s_original = (GlueMgrUpdateFn)0x004DAB40;
-    s_loginMgrOriginal = (LoginMgrFireStateChangeFn)0x00465480;
-    s_authChallengeOriginal = (HandleAuthChallengeFn)0x008CB160;
+    s_gruntOriginal = (GruntPrintFn)0x004DA4B0;
 
     DetourTransactionBegin();
     DetourUpdateThread(GetCurrentThread());
     DetourAttach(&(void*&)s_original, GlueMgrUpdate_Hook);
-    DetourAttach(&(void*&)s_loginMgrOriginal, LoginMgrFireStateChange_Hook);
-    DetourAttach(&(void*&)s_authChallengeOriginal, HandleAuthChallenge_Hook);
+    DetourAttach(&(void*&)s_gruntOriginal, GruntLoginState_Hook);
     DetourTransactionCommit();
 
     s_initialized = true;
@@ -152,8 +90,7 @@ void Shutdown()
     DetourTransactionBegin();
     DetourUpdateThread(GetCurrentThread());
     DetourDetach(&(void*&)s_original, GlueMgrUpdate_Hook);
-    DetourDetach(&(void*&)s_loginMgrOriginal, LoginMgrFireStateChange_Hook);
-    DetourDetach(&(void*&)s_authChallengeOriginal, HandleAuthChallenge_Hook);
+    DetourDetach(&(void*&)s_gruntOriginal, GruntLoginState_Hook);
     DetourTransactionCommit();
 
     s_initialized = false;
