@@ -29,11 +29,14 @@ static LoginMgrFireStateChangeFn s_loginMgrOriginal = nullptr;
 
 static int s_lastState = 0;
 static int s_lastResult = 0;
+static int s_loginFailedResult = -1;
 
 static void __fastcall LoginMgrFireStateChange_Hook(void* this_ptr, int /*edx*/, int state, int result)
 {
     s_lastState = state;
     s_lastResult = result;
+    if (state == 7 && result != 0 && s_loginFailedResult < 0)
+        s_loginFailedResult = result;
     s_loginMgrOriginal(this_ptr, state, result);
 }
 
@@ -52,6 +55,7 @@ const char* getLastLoginResultStr()
     switch (s_lastResult)
     {
     case 0x00: return "LOGIN_OK";
+    case 0x0A: return "LOGIN_SERVER_DOWN";
     case 0x0B: return "LOGIN_FAILED";
     case 0x0D: return "LOGIN_BANNED";
     case 0x0E: return "LOGIN_BADVERSION";
@@ -78,11 +82,11 @@ static HandleAuthChallengeFn s_authChallengeOriginal = nullptr;
 
 static bool s_loginPending = false;
 static int s_capturedAuthCode = -1;
-
 void setLoginPending()
 {
     s_loginPending = true;
     s_capturedAuthCode = -1;
+    s_loginFailedResult = -1;
 }
 
 static void __fastcall HandleAuthChallenge_Hook(void* this_ptr, int /*edx*/, int param_2, void* param_3, size_t param_4, int param_5)
@@ -113,6 +117,13 @@ bool tryGetCapturedAuthCode(int& outCode)
 {
     if (s_capturedAuthCode < 0) return false;
     outCode = s_capturedAuthCode;
+    return true;
+}
+
+bool tryGetLoginFailedResult(int& outCode)
+{
+    if (s_loginFailedResult < 0) return false;
+    outCode = s_loginFailedResult;
     return true;
 }
 

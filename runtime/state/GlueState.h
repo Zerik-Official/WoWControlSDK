@@ -15,6 +15,7 @@ namespace Runtime
         NONE = 0,
         OK,
         FAILED,
+        SERVER_DOWN,
         BANNED,
         SUSPENDED,
         LOCKED,

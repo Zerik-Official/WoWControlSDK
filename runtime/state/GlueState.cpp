@@ -52,7 +52,7 @@ namespace Runtime
             case 7:  return LoginResult::NO_TIME;
             case 8:  return LoginResult::DB_BUSY;
             case 9:  return LoginResult::BADVERSION;
-            case 10: return LoginResult::FAILED;
+            case 10: return LoginResult::SERVER_DOWN;
             case 12: return LoginResult::SUSPENDED;
             case 15: return LoginResult::PARENTALCONTROL;
             case 16: return LoginResult::LOCKED;
@@ -85,6 +85,9 @@ namespace Runtime
                     return mapAuthCode(code);
                 }
 
+                if (Hooks::Glue::tryGetLoginFailedResult(code))
+                    return mapAuthCode(code);
+
                 const char* screen = WoW::GetScreenName();
                 if (screen && strcmp(screen, "charselect") == 0)
                 {
@@ -107,6 +110,7 @@ const char* Runtime::loginResultString(LoginResult result)
     {
     case LoginResult::OK:                 return "ok";
     case LoginResult::FAILED:             return "login failed";
+    case LoginResult::SERVER_DOWN:        return "server down";
     case LoginResult::UNKNOWN_ACCOUNT:    return "unknown account";
     case LoginResult::INCORRECT_PASSWORD: return "incorrect password";
     case LoginResult::DISCONNECTED:       return "disconnected";

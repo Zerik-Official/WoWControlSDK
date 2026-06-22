@@ -19,4 +19,5 @@ std::string Execute(std::function<std::string()> task, DWORD timeoutMs = 15000);
 
     void setLoginPending();
     bool tryGetCapturedAuthCode(int& outCode);
+    bool tryGetLoginFailedResult(int& outCode);
 }
