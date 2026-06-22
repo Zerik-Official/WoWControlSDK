@@ -6,6 +6,7 @@
 #include <mutex>
 #include <future>
 #include <chrono>
+#include <functional>
 
 namespace Hooks::Frame
 {
@@ -16,6 +17,7 @@ static std::function<void()> s_onFrame = nullptr;
 static bool s_initialized = false;
 
 static std::queue<std::packaged_task<std::string()>> s_taskQueue;
+static std::queue<std::function<void()>> s_voidQueue;
 static std::mutex s_queueMutex;
 
 static void __cdecl RenderFrame_Hook()
@@ -30,6 +32,12 @@ static void __cdecl RenderFrame_Hook()
     {
         auto task = std::move(s_taskQueue.front());
         s_taskQueue.pop();
+        task();
+    }
+    while (!s_voidQueue.empty())
+    {
+        auto task = std::move(s_voidQueue.front());
+        s_voidQueue.pop();
         task();
     }
 }
@@ -79,6 +87,12 @@ std::string Execute(Task task, DWORD timeoutMs)
         return SDK::JsonIPC::serializeCommandError("timeout");
 
     return future.get();
+}
+
+void Post(std::function<void()> task)
+{
+    std::lock_guard<std::mutex> lock(s_queueMutex);
+    s_voidQueue.push(std::move(task));
 }
 
 }

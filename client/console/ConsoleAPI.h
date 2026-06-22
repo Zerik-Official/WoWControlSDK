@@ -41,4 +41,7 @@ CVar* FindCVar(const char* name);
 
 char SetCVarValue(CVar* self, const char* value, int a3, int a4, int a5, int a6);
 
+const char* GetCVarString(const char* name);
+bool        SetCVarString(const char* name, const char* value);
+
 }

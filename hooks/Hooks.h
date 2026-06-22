@@ -22,6 +22,11 @@ void registerCVar(Console::CVar** dst, const char* str, const char* desc, Consol
 void registerLuaLib(lua_CFunction func);
 }
 
+namespace Events {
+void Initialize();
+void Shutdown();
+}
+
 namespace GlueXML {
 void registerPostLoad(DummyCallback_t func);
 void registerCharEnum(DummyCallback_t func);

@@ -9,43 +9,63 @@ add_compile_definitions(
 )
 
 add_subdirectory(deps/Detours)
+add_subdirectory(injector)
 
 add_library(WoWControlSDK SHARED
     DllMain.cpp
 
-    core/GameState.cpp
-    core/CharCache.cpp
-
     core/engine/LuaEngine.cpp
 
-    core/api/internal/NameResolver.cpp
-    core/api/internal/UnitResolver.cpp
+    core/native/ObjectManager.cpp
+    core/native/WoWObject.cpp
+    core/native/Unit.cpp
+    core/native/Player.cpp
+    core/native/WorldInfo.cpp
+    core/native/WorldReader.cpp
 
-    core/api/object/ObjectManager.cpp
-    core/api/object/WoWObject.cpp
+    core/api/UnitAPI.cpp
+    core/api/PlayerAPI.cpp
+    core/api/WorldAPI.cpp
+    core/api/GroupAPI.cpp
+    core/api/ObjectAPI.cpp
 
-    core/api/unit/Unit.cpp
-    core/api/unit/Player.cpp
+    runtime/resolvers/NameResolver.cpp
+    runtime/resolvers/UnitResolver.cpp
 
-    core/api/world/WorldInfo.cpp
-    core/api/world/WorldReader.cpp
+    rpc/protocol/Request.cpp
+    rpc/protocol/Response.cpp
+    rpc/Dispatcher.cpp
+    rpc/handlers/ClientRpc.cpp
+    rpc/handlers/PlayerRpc.cpp
+    rpc/handlers/WorldRpc.cpp
+    rpc/handlers/AuthRpc.cpp
+    rpc/handlers/CharRpc.cpp
+    rpc/handlers/Handlers.cpp
+    rpc/handlers/UnitRpc.cpp
+    rpc/handlers/GroupRpc.cpp
+    rpc/handlers/ObjectRpc.cpp
 
-    core/api/game/Unit/UnitAPI.cpp
-    core/api/game/Player/PlayerAPI.cpp
-    core/api/game/World/WorldAPI.cpp
-    core/api/game/Group/GroupAPI.cpp
-    core/api/game/Object/ObjectAPI.cpp
+    runtime/MethodRegistry.cpp
+    runtime/EventBus.cpp
+    runtime/GlueState.cpp
+    runtime/StateCache.cpp
+    runtime/Runtime.cpp
+    runtime/ConsoleManager.cpp
+    runtime/LogCapture.cpp
+    runtime/RealmList.cpp
+    runtime/EventPipe.cpp
 
     hooks/Hooks.cpp
     hooks/EndSceneHook.cpp
     hooks/ConsoleHooks.cpp
     hooks/FrameHooks.cpp
+    hooks/GlueHooks.cpp
+    hooks/EventHooks.cpp
 
     ipc/CommandPipe.cpp
-    ipc/PipeServer.cpp
 
-    commands/CommandHandler.cpp
-    commands/DebugCommands.cpp
+    rpc/handlers/ControlRpc.cpp
+    rpc/handlers/EventRpc.cpp
 
     utils/legacy/JsonUtils.cpp
     utils/json/JsonIPC.cpp
@@ -63,6 +83,11 @@ target_include_directories(WoWControlSDK PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/core
     ${CMAKE_CURRENT_SOURCE_DIR}/core/api
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/native
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/types
+    ${CMAKE_CURRENT_SOURCE_DIR}/runtime/resolvers
+    ${CMAKE_CURRENT_SOURCE_DIR}/rpc
+    ${CMAKE_CURRENT_SOURCE_DIR}/runtime
     ${CMAKE_CURRENT_SOURCE_DIR}/offsets
     ${CMAKE_CURRENT_SOURCE_DIR}/deps
 )
@@ -74,6 +99,7 @@ target_link_libraries(WoWControlSDK PRIVATE
 target_compile_options(WoWControlSDK PRIVATE
     /arch:IA32
     /GS-
+    /utf-8
 )
 
 set_target_properties(WoWControlSDK PROPERTIES

@@ -15,5 +15,6 @@ void Shutdown();
 void SetOnFrame(std::function<void()> callback);
 
 std::string Execute(Task task, DWORD timeoutMs = 1000);
+void Post(std::function<void()> task);
 
 }
