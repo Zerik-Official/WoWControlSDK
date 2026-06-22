@@ -120,6 +120,24 @@ def action_enter_world():
     print("[>] Entering world...")
     print_json(send("client.enterWorld", params))
 
+def action_accept_eula():
+    print_json(send("client.acceptEULA"))
+
+def action_accept_tos():
+    print_json(send("client.acceptTOS"))
+
+def action_accept_termination():
+    print_json(send("client.acceptTermination"))
+
+def action_accept_scanning():
+    print_json(send("client.acceptScanning"))
+
+def action_accept_contest():
+    print_json(send("client.acceptContest"))
+
+def action_accept_all():
+    print_json(send("client.acceptAll"))
+
 def action_logout():
     print_json(send("client.logout"))
 
@@ -272,6 +290,12 @@ MENU = [
 
     ("Auth", None),
     ("Login",                action_login),
+    ("Accept EULA",          action_accept_eula),
+    ("Accept TOS",           action_accept_tos),
+    ("Accept Termination",   action_accept_termination),
+    ("Accept Scanning",      action_accept_scanning),
+    ("Accept Contest",       action_accept_contest),
+    ("Accept ALL",           action_accept_all),
     ("Get characters",       action_get_chars),
     ("Refresh characters",   action_refresh_chars),
     ("Enter world",          action_enter_world),
