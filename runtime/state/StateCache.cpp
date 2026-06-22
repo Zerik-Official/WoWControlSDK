@@ -1,5 +1,7 @@
 #include "runtime/state/StateCache.h"
+#include <Windows.h>
 #include "runtime/events/EventBus.h"
+#include "runtime/events/EventPipe.h"
 #include "runtime/events/EventTypes.h"
 #include "runtime/state/GlueState.h"
 #include "core/api/PlayerAPI.h"
@@ -133,6 +135,7 @@ namespace Runtime
             data["old"] = static_cast<int>(m_lastScreen);
             data["new"] = static_cast<int>(currentScreen);
             m_eventBus->emit(EVENT_SCREEN_CHANGED, data);
+            EventPipe::PushEvent("client.screenChanged", data, GetTickCount64());
             m_lastScreen = currentScreen;
         }
     }

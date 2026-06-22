@@ -3,6 +3,7 @@
 #include "rpc/handlers/Handlers.h"
 #include "ipc/CommandPipe.h"
 #include "hooks/Hooks.h"
+#include "hooks/LoadingHooks.h"
 #include <Windows.h>
 
 namespace Runtime
@@ -39,6 +40,7 @@ namespace Runtime
     void onFrame()
     {
         s_cache.update();
+        Hooks::Loading::PollFlag();
     }
 
     MethodRegistry& registry() { return s_registry; }

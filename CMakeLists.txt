@@ -66,6 +66,7 @@ add_library(WoWControlSDK SHARED
     hooks/FrameHooks.cpp
     hooks/GlueHooks.cpp
     hooks/EventHooks.cpp
+    hooks/LoadingHooks.cpp
 
     ipc/CommandPipe.cpp
 
