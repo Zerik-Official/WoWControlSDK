@@ -89,10 +89,4 @@ std::string Execute(Task task, DWORD timeoutMs)
     return future.get();
 }
 
-void Post(std::function<void()> task)
-{
-    std::lock_guard<std::mutex> lock(s_queueMutex);
-    s_voidQueue.push(std::move(task));
-}
-
 }
