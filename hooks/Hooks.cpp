@@ -1,5 +1,6 @@
 #include "Hooks.h"
 #include "ConsoleHooks.h"
+#include "EventHooks.h"
 #include <Windows.h>
 #include <deps/Detours/detours.h>
 #include <string>
@@ -211,6 +212,7 @@ static void __declspec(naked) LoadCharacters_hk()
 void Hooks::initialize()
 {
     Hooks::Console::Initialize();
+    Hooks::Events::Initialize();
 
     DetourAttach(&(LPVOID&)CVars_Initialize_orig, CVars_Initialize_hk);
     DetourAttach(&(LPVOID&)FrameScript_FireOnUpdate_orig, FrameScript_FireOnUpdate_hk);
