@@ -92,8 +92,13 @@ def action_login():
     pwd  = input("Password: ").strip()
     if not user or not pwd:
         print("[!] Username and password required"); return
+    realm_list = input("Realmlist (optional): ").strip()
+    realm_name = input("Realm name (optional): ").strip()
+    params = {"username": user, "password": pwd}
+    if realm_list: params["realmList"] = realm_list
+    if realm_name: params["realmName"] = realm_name
     print("[>] Waiting for login result...")
-    print_json(send("client.login", {"username": user, "password": pwd}))
+    print_json(send("client.login", params))
 
 def action_get_chars():
     print_json(send("client.getCharacters"))
