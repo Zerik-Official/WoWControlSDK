@@ -52,16 +52,19 @@ add_library(WoWControlSDK SHARED
     runtime/Runtime.cpp
     runtime/ConsoleManager.cpp
     runtime/LogCapture.cpp
+    runtime/EventPipe.cpp
 
     hooks/Hooks.cpp
     hooks/EndSceneHook.cpp
     hooks/ConsoleHooks.cpp
     hooks/FrameHooks.cpp
     hooks/GlueHooks.cpp
+    hooks/EventHooks.cpp
 
     ipc/CommandPipe.cpp
 
     rpc/handlers/ControlRpc.cpp
+    rpc/handlers/EventRpc.cpp
 
     utils/legacy/JsonUtils.cpp
     utils/json/JsonIPC.cpp
