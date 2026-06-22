@@ -1,5 +1,6 @@
 #include "GlueHooks.h"
 #include "core/native/ClientState.h"
+#include "offsets/OffsetsLogin.h"
 #include "utils/json/Json.h"
 #include "utils/TaskQueue.h"
 #include <deps/Detours/detours.h>
@@ -71,8 +72,8 @@ void Initialize()
 {
     if (s_initialized) return;
 
-    s_original = (GlueMgrUpdateFn)0x004DAB40;
-    s_gruntOriginal = (GruntPrintFn)0x004DA4B0;
+    s_original = (GlueMgrUpdateFn)Offsets::Login::GLUE_MGR_UPDATE;
+    s_gruntOriginal = (GruntPrintFn)Offsets::Login::GRUNT_PRINTER;
 
     DetourTransactionBegin();
     DetourUpdateThread(GetCurrentThread());

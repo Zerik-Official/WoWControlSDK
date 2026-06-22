@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include <deps/Detours/detours.h>
 #include "EventHooks.h"
+#include "offsets/OffsetsLua.h"
 #include "runtime/events/EventPipe.h"
 #include "utils/json/Json.h"
 #include <string>
@@ -11,8 +12,8 @@
 namespace Hooks::Events
 {
 
-static void(__cdecl* SignalEventHandler_orig)(int, const char*, int) = (decltype(SignalEventHandler_orig))0x0081AC90;
-static void(__cdecl* FillEvents_orig)(const char**, unsigned int)    = (decltype(FillEvents_orig))0x0081B5F0;
+static void(__cdecl* SignalEventHandler_orig)(int, const char*, int) = (decltype(SignalEventHandler_orig))Offsets::Lua::SIGNAL_EVENT_HANDLER;
+static void(__cdecl* FillEvents_orig)(const char**, unsigned int)    = (decltype(FillEvents_orig))Offsets::Lua::FRAMESCRIPT_FILL_EVENTS;
 
 static std::unordered_map<int, std::string> s_eventIdToName;
 static std::unordered_set<std::string>      s_subscriptions;
