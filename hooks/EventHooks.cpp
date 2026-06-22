@@ -33,9 +33,6 @@ static void __cdecl FillEvents_hook(const char** nameArray, unsigned int count)
     }
     s_eventTableReady = true;
     ReleaseSRWLockExclusive(&s_lock);
-
-    printf("[Events] FillEvents: registered %u events (total mapped: %zu)\n",
-           count, s_eventIdToName.size());
 }
 
 static SDK::Json BuildArgsJson(const char* format, int varargsPtr)
@@ -120,7 +117,6 @@ static void __cdecl SignalEventHandler_hook(int eventID, const char* format, int
     if (subscribed)
     {
         SDK::Json args = BuildArgsJson(format, varargsPtr);
-        printf("[Events] >> %s\n", eventName.c_str());
         Runtime::EventPipe::PushEvent(eventName.c_str(), args, static_cast<uint64_t>(GetTickCount64()));
     }
 
@@ -136,8 +132,6 @@ void Initialize()
     DetourAttach(&(void*&)SignalEventHandler_orig, SignalEventHandler_hook);
     DetourAttach(&(void*&)FillEvents_orig,         FillEvents_hook);
     DetourTransactionCommit();
-
-    printf("[Events] Hooks installed (SignalEventHandler + FillEvents)\n");
 
     s_initialized = true;
 }
@@ -184,7 +178,6 @@ void Subscribe(const char* eventName)
     AcquireSRWLockExclusive(&s_lock);
     s_subscriptions.insert(eventName);
     ReleaseSRWLockExclusive(&s_lock);
-    printf("[Events] Subscribed: %s\n", eventName);
 }
 
 void Unsubscribe(const char* eventName)
