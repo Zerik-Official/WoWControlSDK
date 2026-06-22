@@ -1,6 +1,8 @@
 #include "AuthRpc.h"
 #include "client/login/LoginAPI.h"
 #include "client/console/ConsoleAPI.h"
+#include "core/native/ClientState.h"
+#include "core/native/NetClient.h"
 #include "hooks/FrameHooks.h"
 #include "hooks/GlueHooks.h"
 #include "runtime/GlueState.h"
@@ -164,26 +166,21 @@ namespace Rpc
     {
         Json result;
         result["screen"] = Runtime::Glue::getScreenName() ? Runtime::Glue::getScreenName() : "";
-        result["inWorld"] = *(bool*)0x00BD0792;
-        result["loginState"] = *(int*)0x00B6AA38;
+        result["inWorld"] = WoW::IsInWorld();
+        result["loginState"] = WoW::GetLoginState();
         return result;
     }
 
     static Json handleGetDebugState(const Json&)
     {
         Json result;
-        int* netClient = (int*)0x00c79cf4;
-        int netClientPtr = netClient ? *netClient : 0;
-        int authResult = netClientPtr ? *(int*)(netClientPtr + 0x2f50) : -1;
-        int errorFlag = netClientPtr ? *(int*)(netClientPtr + 0x2f44) : -1;
-        int authStatus = netClientPtr ? *(int*)(netClientPtr + 0x2f4c) : -1;
-        result["netClientPtr"] = netClientPtr;
-        result["authResultCode"] = authResult;
-        result["errorFlag"] = errorFlag;
-        result["authStatus"] = authStatus;
-        result["loginState"] = *(int*)0x00B6AA38;
+        result["netClientPtr"] = WoW::Net::GetClientPtr();
+        result["authResultCode"] = WoW::Net::GetAuthResult();
+        result["errorFlag"] = WoW::Net::GetErrorFlag();
+        result["authStatus"] = WoW::Net::GetAuthStatus();
+        result["loginState"] = WoW::GetLoginState();
         result["screen"] = Runtime::Glue::getScreenName() ? Runtime::Glue::getScreenName() : "";
-        result["inWorld"] = *(bool*)0x00BD0792;
+        result["inWorld"] = WoW::IsInWorld();
         result["hook_state"] = Hooks::Glue::getLastLoginState();
         result["hook_result"] = Hooks::Glue::getLastLoginResult();
         result["hook_resultStr"] = Hooks::Glue::getLastLoginResultStr();
