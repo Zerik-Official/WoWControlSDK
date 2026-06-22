@@ -1,11 +1,7 @@
 #include "GlueHooks.h"
 #include "utils/json/Json.h"
+#include "utils/TaskQueue.h"
 #include <deps/Detours/detours.h>
-#include <queue>
-#include <mutex>
-#include <functional>
-#include <future>
-#include <chrono>
 #include <cstring>
 
 namespace Hooks::Glue
@@ -15,34 +11,13 @@ using GlueMgrUpdateFn = void(*)();
 static GlueMgrUpdateFn s_original = nullptr;
 static bool s_initialized = false;
 
-static std::queue<std::function<void()>> s_voidQueue;
-static std::queue<std::packaged_task<std::string()>> s_taskQueue;
-static std::mutex s_queueMutex;
+static Utils::TaskQueue s_queue;
 
 static void GlueMgr_PostUpdate();
 
 static void __cdecl GlueMgrUpdate_Hook()
 {
-    std::queue<std::function<void()>> voidLocal;
-    std::queue<std::packaged_task<std::string()>> taskLocal;
-    {
-        std::lock_guard<std::mutex> lock(s_queueMutex);
-        std::swap(voidLocal, s_voidQueue);
-        std::swap(taskLocal, s_taskQueue);
-    }
-
-    while (!voidLocal.empty())
-    {
-        auto task = std::move(voidLocal.front());
-        voidLocal.pop();
-        task();
-    }
-    while (!taskLocal.empty())
-    {
-        auto task = std::move(taskLocal.front());
-        taskLocal.pop();
-        task();
-    }
+    s_queue.drainAll();
 
     s_original();
     GlueMgr_PostUpdate();
@@ -174,28 +149,12 @@ void Shutdown()
 
 void Post(std::function<void()> task)
 {
-    std::lock_guard<std::mutex> lock(s_queueMutex);
-    s_voidQueue.push(std::move(task));
+    s_queue.post(std::move(task));
 }
 
-    std::string Execute(std::function<std::string()> task, DWORD timeoutMs)
-    {
-        std::packaged_task<std::string()> wrapped(task);
-        auto future = wrapped.get_future();
-
-        {
-            std::lock_guard<std::mutex> lock(s_queueMutex);
-            s_taskQueue.push(std::move(wrapped));
-        }
-
-        if (future.wait_for(std::chrono::milliseconds(timeoutMs)) == std::future_status::timeout)
-        {
-            SDK::Json err;
-            err["error"] = "timeout";
-            return err.dump();
-        }
-
-        return future.get();
-    }
+std::string Execute(std::function<std::string()> task, DWORD timeoutMs)
+{
+    return s_queue.execute(std::move(task), timeoutMs);
+}
 
 }
