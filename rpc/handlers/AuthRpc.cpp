@@ -1,5 +1,6 @@
 #include "AuthRpc.h"
 #include "client/login/LoginAPI.h"
+#include "client/console/ConsoleAPI.h"
 #include "hooks/FrameHooks.h"
 #include "hooks/GlueHooks.h"
 #include "runtime/GlueState.h"
@@ -219,6 +220,31 @@ namespace Rpc
         return result;
     }
 
+    static Json handleGetRealmlist(const Json&)
+    {
+        std::string raw = Hooks::Glue::Execute([]() -> std::string {
+            const char* val = WoW::Console::GetCVarString("realmList");
+            Json j;
+            j["realmList"] = val ? val : "";
+            return j.dump();
+        });
+
+        return Json::parse(raw);
+    }
+
+    static Json handleSetRealmlist(const Json& params)
+    {
+        std::string value = params.value("realmList", "");
+
+        std::string raw = Hooks::Glue::Execute([value]() -> std::string {
+            Json j;
+            j["ok"] = WoW::Console::SetCVarString("realmList", value.c_str());
+            return j.dump();
+        });
+
+        return Json::parse(raw);
+    }
+
     void registerAuthMethods(Runtime::MethodRegistry& registry)
     {
         registry.registerMethod("client.login", handleLogin);
@@ -227,5 +253,7 @@ namespace Rpc
         registry.registerMethod("client.quit", handleQuit);
         registry.registerMethod("client.getScreen", handleGetScreen);
         registry.registerMethod("client.getDebugState", handleGetDebugState);
+        registry.registerMethod("client.getRealmlist", handleGetRealmlist);
+        registry.registerMethod("client.setRealmlist", handleSetRealmlist);
     }
 }
