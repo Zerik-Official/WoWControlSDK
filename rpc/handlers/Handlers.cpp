@@ -8,6 +8,7 @@
 #include "GroupRpc.h"
 #include "ObjectRpc.h"
 #include "ControlRpc.h"
+#include "EventRpc.h"
 
 namespace Rpc
 {
@@ -22,5 +23,6 @@ namespace Rpc
         registerGroupMethods(registry);
         registerObjectMethods(registry);
         registerControlMethods(registry);
+        registerEventMethods(registry);
     }
 }
