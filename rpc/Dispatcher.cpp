@@ -2,7 +2,7 @@
 #include "protocol/Request.h"
 #include "protocol/Response.h"
 #include "protocol/Errors.h"
-#include "runtime/MethodRegistry.h"
+#include "rpc/MethodRegistry.h"
 
 namespace Rpc
 {

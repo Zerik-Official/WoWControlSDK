@@ -1,6 +1,8 @@
 #include "Hooks.h"
 #include "ConsoleHooks.h"
 #include "EventHooks.h"
+#include "offsets/OffsetsLua.h"
+#include "offsets/OffsetsLogin.h"
 #include <Windows.h>
 #include <deps/Detours/detours.h>
 #include <string>
@@ -22,7 +24,7 @@ void Hooks::FrameXML::registerCVar(WoW::Console::CVar** dst, const char* str, co
     s_customCVars.push_back({ dst, str, desc, flags, initialValue, func });
 }
 
-static void(*CVars_Initialize_orig)() = (decltype(CVars_Initialize_orig))0x0051D9B0;
+static void(*CVars_Initialize_orig)() = (decltype(CVars_Initialize_orig))Offsets::Lua::CVARS_INITIALIZE;
 static void CVars_Initialize_hk()
 {
     CVars_Initialize_orig();
@@ -36,7 +38,7 @@ static void CVars_Initialize_hk()
 static std::vector<const char*> s_customEvents;
 void Hooks::FrameXML::registerEvent(const char* str) { s_customEvents.push_back(str); }
 
-static void (*FrameScript_FillEvents_orig)(const char** list, size_t count) = (decltype(FrameScript_FillEvents_orig))0x0081B5F0;
+static void (*FrameScript_FillEvents_orig)(const char** list, size_t count) = (decltype(FrameScript_FillEvents_orig))Offsets::Lua::FRAMESCRIPT_FILL_EVENTS;
 static void FrameScript_FillEvents_hk(const char** list, size_t count)
 {
     std::vector<const char*> events;
@@ -57,7 +59,7 @@ static void Lua_OpenFrameXMlApi_bulk()
         func(L);
 }
 
-static void(*Lua_OpenFrameXMLApi_orig)() = (decltype(Lua_OpenFrameXMLApi_orig))0x00530F85;
+static void(*Lua_OpenFrameXMLApi_orig)() = (decltype(Lua_OpenFrameXMLApi_orig))Offsets::Lua::LUA_OPEN_FRAMEXML_API;
 static void __declspec(naked) Lua_OpenFrameXMLApi_hk()
 {
     __asm {
@@ -112,7 +114,7 @@ static void GetGuidByKeyword_bulk(const char** stackStr, guid_t* guid)
     GetGuidByKeyword_jmpbackaddr = 0x0060AD44;
 }
 
-static void(*GetGuidByKeyword_orig)() = (decltype(GetGuidByKeyword_orig))0x0060AFAA;
+static void(*GetGuidByKeyword_orig)() = (decltype(GetGuidByKeyword_orig))Offsets::Lua::GET_GUID_BY_KEYWORD;
 static void __declspec(naked) GetGuidByKeyword_hk()
 {
     __asm {
@@ -131,7 +133,7 @@ static void __declspec(naked) GetGuidByKeyword_hk()
     }
 }
 
-static char** (*GetKeywordsByGuid_orig)(guid_t* guid, size_t* size) = (decltype(GetKeywordsByGuid_orig))0x0060BB70;
+static char** (*GetKeywordsByGuid_orig)(guid_t* guid, size_t* size) = (decltype(GetKeywordsByGuid_orig))Offsets::Lua::GET_KEYWORDS_BY_GUID;
 static char** GetKeywordsByGuid_hk(guid_t* guid, size_t* size)
 {
     char** buf = GetKeywordsByGuid_orig(guid, size);
@@ -153,7 +155,7 @@ static char** GetKeywordsByGuid_hk(guid_t* guid, size_t* size)
 static std::vector<Hooks::DummyCallback_t> s_customOnUpdate;
 void Hooks::FrameScript::registerOnUpdate(DummyCallback_t func) { s_customOnUpdate.push_back(func); }
 
-static int(*FrameScript_FireOnUpdate_orig)(int a1, int a2, int a3, int a4) = (decltype(FrameScript_FireOnUpdate_orig))0x00495810;
+static int(*FrameScript_FireOnUpdate_orig)(int a1, int a2, int a3, int a4) = (decltype(FrameScript_FireOnUpdate_orig))Offsets::Lua::FRAMESCRIPT_FIRE_ON_UPDATE;
 static int FrameScript_FireOnUpdate_hk(int a1, int a2, int a3, int a4)
 {
     for (auto func : s_customOnUpdate)
@@ -166,7 +168,7 @@ void Hooks::GlueXML::registerPostLoad(DummyCallback_t func) { s_glueXmlPostLoad.
 
 static void LoadGlueXML_bulk() { for (auto func : s_glueXmlPostLoad) func(); }
 
-static void (*LoadGlueXML_orig)() = (decltype(LoadGlueXML_orig))0x004DA9AC;
+static void (*LoadGlueXML_orig)() = (decltype(LoadGlueXML_orig))Offsets::Login::LOAD_GLUE_XML;
 static void __declspec(naked) LoadGlueXML_hk()
 {
     __asm {
@@ -192,7 +194,7 @@ static void LoadCharacters_bulk()
         func();
 }
 
-static void (*LoadCharacters_orig)() = (decltype(LoadCharacters_orig))0x004E47E5;
+static void (*LoadCharacters_orig)() = (decltype(LoadCharacters_orig))Offsets::Login::LOAD_CHARACTERS;
 static void __declspec(naked) LoadCharacters_hk()
 {
     __asm {

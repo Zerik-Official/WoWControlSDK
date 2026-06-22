@@ -1,6 +1,7 @@
-#include "runtime/resolvers/NameResolver.h"
+#include "core/resolvers/NameResolver.h"
 #include "memory/MemReader.h"
 #include "core/native/ObjectManager.h"
+#include "offsets/OffsetsUnit.h"
 #include <Windows.h>
 #include <cstring>
 
@@ -13,7 +14,7 @@ static bool readNameInternal(uintptr_t objBase, char* out, size_t outSize)
     out[0] = '\0';
 
     using GetUnitNameFn = const char*(__thiscall*)(uintptr_t, char*, int);
-    auto fn = reinterpret_cast<GetUnitNameFn>(0x0072a000);
+    auto fn = reinterpret_cast<GetUnitNameFn>(Offsets::Unit::GET_UNIT_NAME);
 
     char buf[128] = {};
     const char* result = fn(objBase, buf, sizeof(buf) - 1);
@@ -33,7 +34,7 @@ static bool readPVPNameInternal(uintptr_t objBase, char* out, size_t outSize)
     out[0] = '\0';
 
     using PVPNameFn = const char*(__thiscall*)(uintptr_t, char*, size_t, int, int*);
-    auto fn = reinterpret_cast<PVPNameFn>(0x0072a290);
+    auto fn = reinterpret_cast<PVPNameFn>(Offsets::Unit::GET_PVP_NAME);
 
     char buf[1024] = {};
     int flag = 0;

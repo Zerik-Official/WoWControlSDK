@@ -1,10 +1,12 @@
 #include "AuthRpc.h"
 #include "client/login/LoginAPI.h"
 #include "client/console/ConsoleAPI.h"
+#include "core/native/ClientState.h"
+#include "core/native/NetClient.h"
 #include "hooks/FrameHooks.h"
 #include "hooks/GlueHooks.h"
-#include "runtime/GlueState.h"
-#include "runtime/RealmList.h"
+#include "runtime/state/GlueState.h"
+#include "runtime/realm/RealmList.h"
 #include <Windows.h>
 #include <chrono>
 
@@ -15,21 +17,13 @@ namespace Rpc
     static Json handleLogin(const Json& params)
     {
         if (Runtime::Glue::getScreen() != Runtime::Screen::LOGIN)
-        {
-            Json err;
-            err["error"] = "not on login screen";
-            return err;
-        }
+            return SDK::makeErrorJson("not on login screen");
 
         std::string username = params.value("username", "");
         std::string password = params.value("password", "");
 
         if (username.empty() || password.empty())
-        {
-            Json err;
-            err["error"] = "username and password required";
-            return err;
-        }
+            return SDK::makeErrorJson("username and password required");
 
         std::string realmList = params.value("realmList", "");
         std::string realmName = params.value("realmName", "");
@@ -53,9 +47,8 @@ namespace Rpc
         Runtime::LoginResult r = Runtime::Glue::waitForLoginResult(20000);
 
         Json result;
-        switch (r)
+        if (r == Runtime::LoginResult::OK)
         {
-        case Runtime::LoginResult::OK:
             result["ok"] = true;
             if (!realmName.empty())
             {
@@ -94,64 +87,10 @@ namespace Rpc
                     }
                 }
             }
-            break;
-        case Runtime::LoginResult::FAILED:
-            result["error"] = "login failed";
-            break;
-        case Runtime::LoginResult::UNKNOWN_ACCOUNT:
-            result["error"] = "unknown account";
-            break;
-        case Runtime::LoginResult::INCORRECT_PASSWORD:
-            result["error"] = "incorrect password";
-            break;
-        case Runtime::LoginResult::DISCONNECTED:
-            result["error"] = "disconnected";
-            break;
-        case Runtime::LoginResult::PARENTALCONTROL:
-            result["error"] = "parental control";
-            break;
-        case Runtime::LoginResult::CHARGEDBACK:
-            result["error"] = "chargeback";
-            break;
-        case Runtime::LoginResult::CONVERSION_REQUIRED:
-            result["error"] = "conversion required";
-            break;
-        case Runtime::LoginResult::BANNED:
-            result["error"] = "account banned";
-            break;
-        case Runtime::LoginResult::SUSPENDED:
-            result["error"] = "account suspended";
-            break;
-        case Runtime::LoginResult::LOCKED:
-            result["error"] = "account locked";
-            break;
-        case Runtime::LoginResult::ALREADYONLINE:
-            result["error"] = "already online";
-            break;
-        case Runtime::LoginResult::BADVERSION:
-            result["error"] = "bad version";
-            break;
-        case Runtime::LoginResult::NO_TIME:
-            result["error"] = "no time remaining";
-            break;
-        case Runtime::LoginResult::DB_BUSY:
-            result["error"] = "database busy";
-            break;
-        case Runtime::LoginResult::TRIAL_EXPIRED:
-            result["error"] = "trial expired";
-            break;
-        case Runtime::LoginResult::ACCOUNT_CONVERTED:
-            result["error"] = "account converted";
-            break;
-        case Runtime::LoginResult::GAME_ACCOUNT_LOCKED:
-            result["error"] = "game account locked";
-            break;
-        case Runtime::LoginResult::UNLOCKABLE_LOCK:
-            result["error"] = "unlockable lock";
-            break;
-        default:
-            result["error"] = "login timeout";
-            break;
+        }
+        else
+        {
+            result["error"] = Runtime::loginResultString(r);
         }
         return result;
     }
@@ -159,11 +98,7 @@ namespace Rpc
     static Json handleEnterWorld(const Json& params)
     {
         if (Runtime::Glue::getScreen() != Runtime::Screen::CHARSELECT)
-        {
-            Json err;
-            err["error"] = "not on character select screen";
-            return err;
-        }
+            return SDK::makeErrorJson("not on character select screen");
 
         int idx = -1;
 
@@ -172,22 +107,14 @@ namespace Rpc
             std::string name = params["name"].get<std::string>();
             idx = WoW::Login::FindCharacterIndex(name.c_str());
             if (idx < 0)
-            {
-                Json err;
-                err["error"] = "character not found";
-                return err;
-            }
+                return SDK::makeErrorJson("character not found");
         }
         else
         {
             idx = params.value("index", 0);
             WoW::Login::CharVector* chars = WoW::Login::GetChars();
             if (!chars || idx < 0 || idx >= chars->size)
-            {
-                Json err;
-                err["error"] = "index out of range";
-                return err;
-            }
+                return SDK::makeErrorJson("index out of range");
         }
 
         Hooks::Glue::Post([idx]() {
@@ -203,11 +130,7 @@ namespace Rpc
             {
                 if (std::chrono::duration_cast<std::chrono::milliseconds>(
                         std::chrono::steady_clock::now() - start).count() >= timeoutMs)
-                {
-                    Json err;
-                    err["error"] = "enter world timeout";
-                    return err;
-                }
+                    return SDK::makeErrorJson("enter world timeout");
                 Sleep(50);
             }
         }
@@ -243,31 +166,22 @@ namespace Rpc
     {
         Json result;
         result["screen"] = Runtime::Glue::getScreenName() ? Runtime::Glue::getScreenName() : "";
-        result["inWorld"] = *(bool*)0x00BD0792;
-        result["loginState"] = *(int*)0x00B6AA38;
+        result["inWorld"] = WoW::IsInWorld();
+        result["loginState"] = WoW::GetLoginState();
         return result;
     }
 
     static Json handleGetDebugState(const Json&)
     {
         Json result;
-        int* netClient = (int*)0x00c79cf4;
-        int netClientPtr = netClient ? *netClient : 0;
-        int authResult = netClientPtr ? *(int*)(netClientPtr + 0x2f50) : -1;
-        int errorFlag = netClientPtr ? *(int*)(netClientPtr + 0x2f44) : -1;
-        int authStatus = netClientPtr ? *(int*)(netClientPtr + 0x2f4c) : -1;
-        result["netClientPtr"] = netClientPtr;
-        result["authResultCode"] = authResult;
-        result["errorFlag"] = errorFlag;
-        result["authStatus"] = authStatus;
-        result["loginState"] = *(int*)0x00B6AA38;
+        result["netClientPtr"] = WoW::Net::GetClientPtr();
+        result["authResultCode"] = WoW::Net::GetAuthResult();
+        result["errorFlag"] = WoW::Net::GetErrorFlag();
+        result["authStatus"] = WoW::Net::GetAuthStatus();
+        result["loginState"] = WoW::GetLoginState();
         result["screen"] = Runtime::Glue::getScreenName() ? Runtime::Glue::getScreenName() : "";
-        result["inWorld"] = *(bool*)0x00BD0792;
-        result["hook_state"] = Hooks::Glue::getLastLoginState();
-        result["hook_result"] = Hooks::Glue::getLastLoginResult();
-        result["hook_resultStr"] = Hooks::Glue::getLastLoginResultStr();
-        int captured = -1;
-        if (Hooks::Glue::tryGetCapturedAuthCode(captured)) result["capturedCode"] = captured;
+        result["inWorld"] = WoW::IsInWorld();
+        result["authResultStr"] = Hooks::Glue::getCapturedLoginResult() ? Hooks::Glue::getCapturedLoginResult() : "";
         return result;
     }
 

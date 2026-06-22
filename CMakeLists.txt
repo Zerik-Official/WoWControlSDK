@@ -17,11 +17,16 @@ add_library(WoWControlSDK SHARED
     core/engine/LuaEngine.cpp
 
     core/native/ObjectManager.cpp
+    core/native/ClientState.cpp
+    core/native/NetClient.cpp
+    core/native/RealmListReader.cpp
     core/native/WoWObject.cpp
     core/native/Unit.cpp
     core/native/Player.cpp
     core/native/WorldInfo.cpp
     core/native/WorldReader.cpp
+    core/native/GlueAPI.cpp
+    core/native/CharacterReader.cpp
 
     core/api/UnitAPI.cpp
     core/api/PlayerAPI.cpp
@@ -29,8 +34,8 @@ add_library(WoWControlSDK SHARED
     core/api/GroupAPI.cpp
     core/api/ObjectAPI.cpp
 
-    runtime/resolvers/NameResolver.cpp
-    runtime/resolvers/UnitResolver.cpp
+    core/resolvers/NameResolver.cpp
+    core/resolvers/UnitResolver.cpp
 
     rpc/protocol/Request.cpp
     rpc/protocol/Response.cpp
@@ -45,15 +50,15 @@ add_library(WoWControlSDK SHARED
     rpc/handlers/GroupRpc.cpp
     rpc/handlers/ObjectRpc.cpp
 
-    runtime/MethodRegistry.cpp
-    runtime/EventBus.cpp
-    runtime/GlueState.cpp
-    runtime/StateCache.cpp
+    rpc/MethodRegistry.cpp
+    runtime/events/EventBus.cpp
+    runtime/state/GlueState.cpp
+    runtime/state/StateCache.cpp
     runtime/Runtime.cpp
-    runtime/ConsoleManager.cpp
-    runtime/LogCapture.cpp
-    runtime/RealmList.cpp
-    runtime/EventPipe.cpp
+    runtime/console/ConsoleManager.cpp
+    runtime/console/LogCapture.cpp
+    runtime/realm/RealmList.cpp
+    runtime/events/EventPipe.cpp
 
     hooks/Hooks.cpp
     hooks/EndSceneHook.cpp
@@ -67,7 +72,6 @@ add_library(WoWControlSDK SHARED
     rpc/handlers/ControlRpc.cpp
     rpc/handlers/EventRpc.cpp
 
-    utils/legacy/JsonUtils.cpp
     utils/json/JsonIPC.cpp
 
     client/globals/ClientGlobals.cpp
@@ -85,7 +89,7 @@ target_include_directories(WoWControlSDK PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/core/api
     ${CMAKE_CURRENT_SOURCE_DIR}/core/native
     ${CMAKE_CURRENT_SOURCE_DIR}/core/types
-    ${CMAKE_CURRENT_SOURCE_DIR}/runtime/resolvers
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/resolvers
     ${CMAKE_CURRENT_SOURCE_DIR}/rpc
     ${CMAKE_CURRENT_SOURCE_DIR}/runtime
     ${CMAKE_CURRENT_SOURCE_DIR}/offsets

@@ -18,5 +18,17 @@ namespace Lua
     constexpr uintptr_t LUA_TOBOOLEAN    = 0x0084E0B0;
     constexpr uintptr_t LUA_ISNUMBER     = 0x0084DF20;
     constexpr uintptr_t LUA_TYPE         = 0x0084DEB0;
+
+    constexpr uintptr_t LUA_GETSTATE              = 0x00817DB0;
+    constexpr uintptr_t LUA_PUSHCCLOSURE         = 0x0084E400;
+    constexpr uintptr_t LUA_SETFIELD              = 0x0084E900;
+
+    constexpr uintptr_t SIGNAL_EVENT_HANDLER     = 0x0081AC90;
+    constexpr uintptr_t FRAMESCRIPT_FILL_EVENTS  = 0x0081B5F0;
+    constexpr uintptr_t FRAMESCRIPT_FIRE_ON_UPDATE = 0x00495810;
+    constexpr uintptr_t GET_GUID_BY_KEYWORD      = 0x0060AFAA;
+    constexpr uintptr_t GET_KEYWORDS_BY_GUID     = 0x0060BB70;
+    constexpr uintptr_t CVARS_INITIALIZE         = 0x0051D9B0;
+    constexpr uintptr_t LUA_OPEN_FRAMEXML_API    = 0x00530F85;
     }
 }

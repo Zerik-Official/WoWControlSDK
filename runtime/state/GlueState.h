@@ -15,6 +15,7 @@ namespace Runtime
         NONE = 0,
         OK,
         FAILED,
+        SERVER_DOWN,
         BANNED,
         SUSPENDED,
         LOCKED,
@@ -46,4 +47,6 @@ namespace Runtime
 
         void    initialize();
     }
+
+    const char* loginResultString(LoginResult result);
 }

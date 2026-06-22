@@ -18,6 +18,4 @@ namespace NetClient = WoW::NetClient;
 namespace CGame = WoW::Game;
 namespace RCString = WoW::RCString;
 
-inline bool IsInWorld() { return WoW::Client::IsInWorld(); }
-
 #define lua_pushcfunction(L, f) lua_pushcclosure(L, f, 0)

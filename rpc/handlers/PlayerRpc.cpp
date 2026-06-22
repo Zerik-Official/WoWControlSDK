@@ -1,6 +1,6 @@
 #include "PlayerRpc.h"
 #include "runtime/Runtime.h"
-#include "runtime/StateCache.h"
+#include "runtime/state/StateCache.h"
 
 namespace Rpc
 {
@@ -10,11 +10,7 @@ namespace Rpc
     {
         Runtime::PlayerCacheEntry p;
         if (!Runtime::cache().getPlayer(p))
-        {
-            Json err;
-            err["error"] = "player not available";
-            return err;
-        }
+            return SDK::makeErrorJson("player not available");
         Json result;
         result["health"] = p.health;
         result["maxHealth"] = p.maxHealth;
@@ -25,11 +21,7 @@ namespace Rpc
     {
         Runtime::PlayerCacheEntry p;
         if (!Runtime::cache().getPlayer(p))
-        {
-            Json err;
-            err["error"] = "player not available";
-            return err;
-        }
+            return SDK::makeErrorJson("player not available");
         Json pos;
         pos["x"] = p.x;
         pos["y"] = p.y;
@@ -44,11 +36,7 @@ namespace Rpc
     {
         Runtime::PlayerCacheEntry p;
         if (!Runtime::cache().getPlayer(p))
-        {
-            Json err;
-            err["error"] = "player not available";
-            return err;
-        }
+            return SDK::makeErrorJson("player not available");
         Json result;
         result["guid"] = Json::array({p.targetGuid.high, p.targetGuid.low});
         result["valid"] = p.targetGuid.isValid();
@@ -59,11 +47,7 @@ namespace Rpc
     {
         Runtime::PlayerCacheEntry p;
         if (!Runtime::cache().getPlayer(p))
-        {
-            Json err;
-            err["error"] = "player not available";
-            return err;
-        }
+            return SDK::makeErrorJson("player not available");
         Json result;
         result["guid"] = Json::array({p.guid.high, p.guid.low});
         result["health"] = p.health;

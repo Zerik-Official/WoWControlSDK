@@ -1,4 +1,5 @@
 #include "ConsoleHooks.h"
+#include "offsets/OffsetsConsole.h"
 #include <deps/Detours/detours.h>
 #include <cstdio>
 
@@ -43,7 +44,7 @@ void Initialize()
         s_lockInitialized = true;
     }
 
-    s_original = (PrintMessageFn)0x00765270;
+    s_original = (PrintMessageFn)Offsets::Console::PRINT_MESSAGE;
 
     DetourTransactionBegin();
     DetourUpdateThread(GetCurrentThread());
@@ -68,17 +69,6 @@ void Shutdown()
 void SetCallback(PrintMessageCallback callback)
 {
     s_callback = callback;
-}
-
-void PrintMessage(const char* text, int style)
-{
-    if (s_original && text)
-        s_original(text, style);
-}
-
-PrintMessageFn GetOriginal()
-{
-    return s_original;
 }
 
 }

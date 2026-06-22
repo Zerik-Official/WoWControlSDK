@@ -1,11 +1,11 @@
 #include "core/native/Unit.h"
 #include "memory/MemReader.h"
-#include "OffsetsUnit.h"
-#include "OffsetsPlayer.h"
-#include "OffsetsGroup.h"
-#include "runtime/resolvers/UnitResolver.h"
+#include "offsets/OffsetsUnit.h"
+#include "offsets/OffsetsPlayer.h"
+#include "offsets/OffsetsGroup.h"
+#include "core/resolvers/UnitResolver.h"
 #include "core/native/ObjectManager.h"
-#include "runtime/resolvers/NameResolver.h"
+#include "core/resolvers/NameResolver.h"
 
 Unit::Unit(uintptr_t base)
     : WoWObject(base)
@@ -277,7 +277,7 @@ bool Unit::getMapPosition(float* outX, float* outY) const
 
 call_game_func:
     using MapPosFn = void(__cdecl*)(uint32_t, uint32_t, float*, float*);
-    auto fn = reinterpret_cast<MapPosFn>(0x005444f0);
+    auto fn = reinterpret_cast<MapPosFn>(Offsets::Unit::GET_MAP_POSITION);
     fn(guid.low, guid.high, outX, outY);
     return (*outX != 0.0f || *outY != 0.0f);
 }

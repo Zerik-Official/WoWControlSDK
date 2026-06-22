@@ -1,6 +1,6 @@
 #include "core/native/WoWObject.h"
 #include "memory/MemReader.h"
-#include "OffsetsUnit.h"
+#include "offsets/OffsetsUnit.h"
 
 WoWObject::WoWObject(uintptr_t base)
     : m_base(base)

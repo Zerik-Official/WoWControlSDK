@@ -1,10 +1,9 @@
 #include "EventPipe.h"
 #include "utils/json/Json.h"
+#include "utils/CircularBuffer.h"
 #include <Windows.h>
 #include <string>
-#include <vector>
 #include <queue>
-#include <algorithm>
 #include <cstdio>
 
 namespace Runtime
@@ -22,9 +21,8 @@ namespace Runtime
         static bool             s_initialized  = false;
         static bool             s_running      = false;
 
-        static std::vector<BufferedEvent> s_buffer;
-        static std::queue<std::string>    s_writeQueue;
-        static int                        s_maxBuffer = 256;
+        static Utils::CircularBuffer<BufferedEvent> s_buffer;
+        static std::queue<std::string>              s_writeQueue;
 
         static const char* PIPE_NAME = "\\\\.\\pipe\\WowGameEvent";
 
@@ -159,7 +157,6 @@ namespace Runtime
 
             EnterCriticalSection(&s_lock);
             s_buffer.clear();
-            std::vector<BufferedEvent>().swap(s_buffer);
             LeaveCriticalSection(&s_lock);
 
             EnterCriticalSection(&s_writeLock);
@@ -185,9 +182,7 @@ namespace Runtime
             entry.timestampMs = timeMs;
 
             EnterCriticalSection(&s_lock);
-            s_buffer.push_back(std::move(entry));
-            while ((int)s_buffer.size() > s_maxBuffer)
-                s_buffer.erase(s_buffer.begin());
+            s_buffer.push(std::move(entry));
             bool hasPipe = (s_pipe != INVALID_HANDLE_VALUE);
             LeaveCriticalSection(&s_lock);
 
@@ -205,38 +200,22 @@ namespace Runtime
         void SetMaxBuffer(int max)
         {
             EnterCriticalSection(&s_lock);
-            s_maxBuffer = (max > 0) ? max : 256;
-            s_buffer.reserve(s_maxBuffer);
-            while ((int)s_buffer.size() > s_maxBuffer)
-                s_buffer.erase(s_buffer.begin());
+            s_buffer.setMaxSize(max);
             LeaveCriticalSection(&s_lock);
         }
 
         int GetBufferCount()
         {
             EnterCriticalSection(&s_lock);
-            int count = (int)s_buffer.size();
+            int count = s_buffer.size();
             LeaveCriticalSection(&s_lock);
             return count;
         }
 
         std::vector<BufferedEvent> GetHistory(int offset, int count)
         {
-            std::vector<BufferedEvent> result;
             EnterCriticalSection(&s_lock);
-            if (!s_buffer.empty())
-            {
-                int total = (int)s_buffer.size();
-                if (offset < 0) offset = 0;
-                if (offset < total)
-                {
-                    if (count <= 0) count = total - offset;
-                    count = (std::min)(count, total - offset);
-                    result.reserve(count);
-                    for (int i = 0; i < count; i++)
-                        result.push_back(s_buffer[offset + i]);
-                }
-            }
+            auto result = s_buffer.getRange(offset, count);
             LeaveCriticalSection(&s_lock);
             return result;
         }

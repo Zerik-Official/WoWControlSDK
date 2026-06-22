@@ -1,7 +1,7 @@
 #include "core/api/UnitAPI.h"
 #include "core/native/Unit.h"
 #include "core/native/Player.h"
-#include "runtime/resolvers/UnitResolver.h"
+#include "core/resolvers/UnitResolver.h"
 #include "core/native/ObjectManager.h"
 
 namespace

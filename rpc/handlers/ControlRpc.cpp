@@ -1,11 +1,71 @@
 #include "ControlRpc.h"
-#include "runtime/ConsoleManager.h"
-#include "runtime/LogCapture.h"
+#include "core/native/GlueAPI.h"
+#include "offsets/OffsetsLua.h"
+#include "runtime/console/ConsoleManager.h"
+#include "runtime/console/LogCapture.h"
 #include "utils/json/Json.h"
+
+namespace
+{
+
+using LuaExecFn = void(__cdecl*)(const char* code, const char* name, int);
+
+void dismissAgreementDialog()
+{
+    auto exec = (LuaExecFn)Offsets::Lua::WOW_LUA_EXECUTE;
+    exec(
+        "AcceptEULA();AcceptTOS();AcceptTerminationWithoutNotice();AcceptScanning();AcceptContest();"
+        "if TOSFrame and TOSFrame:IsShown() then TOSFrame:Hide() TOSNotice:Hide() AccountLoginUI:Show() end",
+        "sdk_accept", 0);
+}
+
+}
 
 namespace Rpc
 {
     using SDK::Json;
+
+    static Json handleAcceptEULA(const Json&)
+    {
+        WoW::Glue::AcceptEULA();
+        dismissAgreementDialog();
+        return SDK::okJson();
+    }
+
+    static Json handleAcceptTOS(const Json&)
+    {
+        WoW::Glue::AcceptTOS();
+        dismissAgreementDialog();
+        return SDK::okJson();
+    }
+
+    static Json handleAcceptTermination(const Json&)
+    {
+        WoW::Glue::AcceptTermination();
+        dismissAgreementDialog();
+        return SDK::okJson();
+    }
+
+    static Json handleAcceptScanning(const Json&)
+    {
+        WoW::Glue::AcceptScanning();
+        dismissAgreementDialog();
+        return SDK::okJson();
+    }
+
+    static Json handleAcceptContest(const Json&)
+    {
+        WoW::Glue::AcceptContest();
+        dismissAgreementDialog();
+        return SDK::okJson();
+    }
+
+    static Json handleAcceptAll(const Json&)
+    {
+        WoW::Glue::AcceptAll();
+        dismissAgreementDialog();
+        return SDK::okJson();
+    }
 
     static Json handleToggleConsole(const Json&)
     {
@@ -73,6 +133,12 @@ namespace Rpc
 
     void registerControlMethods(Runtime::MethodRegistry& registry)
     {
+        registry.registerMethod("client.acceptEULA", handleAcceptEULA);
+        registry.registerMethod("client.acceptTOS", handleAcceptTOS);
+        registry.registerMethod("client.acceptTermination", handleAcceptTermination);
+        registry.registerMethod("client.acceptScanning", handleAcceptScanning);
+        registry.registerMethod("client.acceptContest", handleAcceptContest);
+        registry.registerMethod("client.acceptAll", handleAcceptAll);
         registry.registerMethod("dll.toggleConsole", handleToggleConsole);
         registry.registerMethod("dll.getInfo", handleGetInfo);
         registry.registerMethod("dll.getLogs", handleGetLogs);

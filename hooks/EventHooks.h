@@ -7,7 +7,6 @@ namespace Hooks::Events
     void    Initialize();
     void    Shutdown();
     bool    IsReady();
-    bool    IsSubscribed(const char* eventName);
     void    Subscribe(const char* eventName);
     void    Unsubscribe(const char* eventName);
     void    ClearSubscriptions();

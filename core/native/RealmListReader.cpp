@@ -1,12 +1,13 @@
-#include "RealmList.h"
+#include "core/native/RealmListReader.h"
+#include "offsets/OffsetsClient.h"
 #include <cstring>
 #include <Windows.h>
 
-namespace Runtime::RealmList
+namespace WoW::Realm
 {
     static int* getServicePtr()
     {
-        return *(int**)0x00c79ce4;
+        return *(int**)Offsets::Realm::SERVICE_PTR;
     }
 
     static char* getEntry(int index)
@@ -15,7 +16,7 @@ namespace Runtime::RealmList
         if (!svc) return nullptr;
         char** entries = (char**)(svc + 3);
         if (!*entries) return nullptr;
-        return *entries + index * 0x148;
+        return *entries + index * Offsets::Realm::ENTRY_STRIDE;
     }
 
     int GetCount()
@@ -29,20 +30,7 @@ namespace Runtime::RealmList
     {
         char* entry = getEntry(index);
         if (!entry) return nullptr;
-        return entry + 6;
-    }
-
-    int FindByName(const char* name)
-    {
-        if (!name) return -1;
-        int count = GetCount();
-        for (int i = 0; i < count; i++)
-        {
-            const char* entryName = GetName(i);
-            if (entryName && strcmp(entryName, name) == 0)
-                return i;
-        }
-        return -1;
+        return entry + Offsets::Realm::ENTRY_NAME_OFFSET;
     }
 
     bool Select(int index)
@@ -50,13 +38,8 @@ namespace Runtime::RealmList
         char* entry = getEntry(index);
         if (!entry) return false;
 
-        CopyMemory((void*)0x00c79b98, entry, 0x148);
-        *(bool*)0x00c79ce9 = true;
+        CopyMemory((void*)Offsets::Realm::SELECTED_COPY, entry, Offsets::Realm::ENTRY_STRIDE);
+        *(bool*)Offsets::Realm::SELECTED_FLAG = true;
         return true;
-    }
-
-    bool IsReady()
-    {
-        return GetCount() > 0;
     }
 }

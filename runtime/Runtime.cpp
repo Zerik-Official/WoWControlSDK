@@ -1,6 +1,8 @@
 #include "Runtime.h"
+#include "core/native/GlueAPI.h"
 #include "rpc/handlers/Handlers.h"
 #include "ipc/CommandPipe.h"
+#include "hooks/Hooks.h"
 #include <Windows.h>
 
 namespace Runtime
@@ -15,7 +17,12 @@ namespace Runtime
     {
         if (s_initialized) return;
 
-        Glue::initialize();
+        Hooks::GlueXML::registerPostLoad([]()
+    {
+        WoW::Glue::AcceptAll();
+    });
+
+    Glue::initialize();
         s_cache.setEventBus(&s_eventBus);
         Rpc::registerAllMethods(s_registry);
 

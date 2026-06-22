@@ -1,11 +1,12 @@
 #include "RCString.h"
+#include "offsets/OffsetsClient.h"
 
 namespace WoW::RCString
 {
 
 uint32_t __stdcall Hash(const char* str)
 {
-    return ((decltype(&Hash))0x0076F640)(str);
+    return ((decltype(&Hash))Offsets::Client::RCSTRING_HASH)(str);
 }
 
 }

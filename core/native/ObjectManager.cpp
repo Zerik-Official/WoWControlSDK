@@ -1,6 +1,6 @@
 #include "core/native/ObjectManager.h"
 #include "memory/MemReader.h"
-#include "OffsetsObjectMgr.h"
+#include "offsets/OffsetsObjectMgr.h"
 
 namespace WoW
 {
@@ -24,7 +24,7 @@ namespace WoW
 
     WoWGUID GetMouseoverGUID()
     {
-        return Memory::safeRead<WoWGUID>(0x00BD07A0);
+        return Memory::safeRead<WoWGUID>(Offsets::ObjectMgr::MOUSEOVER_GUID);
     }
 
     uintptr_t GetObjectByGUID(const WoWGUID& guid)

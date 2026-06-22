@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/types/GUID.h"
-#include "runtime/GlueState.h"
+#include "runtime/state/GlueState.h"
 #include <string>
 #include <mutex>
 
