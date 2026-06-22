@@ -1,4 +1,4 @@
-#include "runtime/resolvers/NameResolver.h"
+#include "core/resolvers/NameResolver.h"
 #include "memory/MemReader.h"
 #include "core/native/ObjectManager.h"
 #include <Windows.h>

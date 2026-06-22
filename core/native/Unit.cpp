@@ -3,9 +3,9 @@
 #include "offsets/OffsetsUnit.h"
 #include "offsets/OffsetsPlayer.h"
 #include "offsets/OffsetsGroup.h"
-#include "runtime/resolvers/UnitResolver.h"
+#include "core/resolvers/UnitResolver.h"
 #include "core/native/ObjectManager.h"
-#include "runtime/resolvers/NameResolver.h"
+#include "core/resolvers/NameResolver.h"
 
 Unit::Unit(uintptr_t base)
     : WoWObject(base)
