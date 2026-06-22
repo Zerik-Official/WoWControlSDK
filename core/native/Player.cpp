@@ -18,11 +18,11 @@ int Player::getXP() const
     if (!isValid())
         return 0;
 
-    uintptr_t ptr = Memory::safeRead<uintptr_t>(m_base + 0x1008);
+    uintptr_t ptr = Memory::safeRead<uintptr_t>(m_base + Offsets::Player::XP_PTR);
     if (!ptr)
         return 0;
 
-    return Memory::safeRead<int>(ptr + 0x798);
+    return Memory::safeRead<int>(ptr + Offsets::Player::Desc::XP);
 }
 
 int Player::getMaxXP() const
@@ -30,11 +30,11 @@ int Player::getMaxXP() const
     if (!isValid())
         return 0;
 
-    uintptr_t ptr = Memory::safeRead<uintptr_t>(m_base + 0x1008);
+    uintptr_t ptr = Memory::safeRead<uintptr_t>(m_base + Offsets::Player::XP_PTR);
     if (!ptr)
         return 0;
 
-    return Memory::safeRead<int>(ptr + 0x79C);
+    return Memory::safeRead<int>(ptr + Offsets::Player::Desc::NEXT_LEVEL_XP);
 }
 
 float Player::getRotation() const
