@@ -25,6 +25,8 @@ add_library(WoWControlSDK SHARED
     core/native/Player.cpp
     core/native/WorldInfo.cpp
     core/native/WorldReader.cpp
+    core/native/GlueAPI.cpp
+    core/native/CharacterReader.cpp
 
     core/api/UnitAPI.cpp
     core/api/PlayerAPI.cpp
