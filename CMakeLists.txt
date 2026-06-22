@@ -17,6 +17,9 @@ add_library(WoWControlSDK SHARED
     core/engine/LuaEngine.cpp
 
     core/native/ObjectManager.cpp
+    core/native/ClientState.cpp
+    core/native/NetClient.cpp
+    core/native/RealmListReader.cpp
     core/native/WoWObject.cpp
     core/native/Unit.cpp
     core/native/Player.cpp
