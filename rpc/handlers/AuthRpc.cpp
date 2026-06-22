@@ -53,9 +53,8 @@ namespace Rpc
         Runtime::LoginResult r = Runtime::Glue::waitForLoginResult(20000);
 
         Json result;
-        switch (r)
+        if (r == Runtime::LoginResult::OK)
         {
-        case Runtime::LoginResult::OK:
             result["ok"] = true;
             if (!realmName.empty())
             {
@@ -94,64 +93,10 @@ namespace Rpc
                     }
                 }
             }
-            break;
-        case Runtime::LoginResult::FAILED:
-            result["error"] = "login failed";
-            break;
-        case Runtime::LoginResult::UNKNOWN_ACCOUNT:
-            result["error"] = "unknown account";
-            break;
-        case Runtime::LoginResult::INCORRECT_PASSWORD:
-            result["error"] = "incorrect password";
-            break;
-        case Runtime::LoginResult::DISCONNECTED:
-            result["error"] = "disconnected";
-            break;
-        case Runtime::LoginResult::PARENTALCONTROL:
-            result["error"] = "parental control";
-            break;
-        case Runtime::LoginResult::CHARGEDBACK:
-            result["error"] = "chargeback";
-            break;
-        case Runtime::LoginResult::CONVERSION_REQUIRED:
-            result["error"] = "conversion required";
-            break;
-        case Runtime::LoginResult::BANNED:
-            result["error"] = "account banned";
-            break;
-        case Runtime::LoginResult::SUSPENDED:
-            result["error"] = "account suspended";
-            break;
-        case Runtime::LoginResult::LOCKED:
-            result["error"] = "account locked";
-            break;
-        case Runtime::LoginResult::ALREADYONLINE:
-            result["error"] = "already online";
-            break;
-        case Runtime::LoginResult::BADVERSION:
-            result["error"] = "bad version";
-            break;
-        case Runtime::LoginResult::NO_TIME:
-            result["error"] = "no time remaining";
-            break;
-        case Runtime::LoginResult::DB_BUSY:
-            result["error"] = "database busy";
-            break;
-        case Runtime::LoginResult::TRIAL_EXPIRED:
-            result["error"] = "trial expired";
-            break;
-        case Runtime::LoginResult::ACCOUNT_CONVERTED:
-            result["error"] = "account converted";
-            break;
-        case Runtime::LoginResult::GAME_ACCOUNT_LOCKED:
-            result["error"] = "game account locked";
-            break;
-        case Runtime::LoginResult::UNLOCKABLE_LOCK:
-            result["error"] = "unlockable lock";
-            break;
-        default:
-            result["error"] = "login timeout";
-            break;
+        }
+        else
+        {
+            result["error"] = Runtime::loginResultString(r);
         }
         return result;
     }

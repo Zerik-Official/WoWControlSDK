@@ -99,9 +99,37 @@ namespace Runtime
             }
         }
 
-        void initialize()
-        {
-            s_loginLatch = false;
-        }
+    void initialize()
+    {
+        s_loginLatch = false;
     }
+}
+
+const char* Runtime::loginResultString(LoginResult result)
+{
+    switch (result)
+    {
+    case LoginResult::OK:                 return "ok";
+    case LoginResult::FAILED:             return "login failed";
+    case LoginResult::UNKNOWN_ACCOUNT:    return "unknown account";
+    case LoginResult::INCORRECT_PASSWORD: return "incorrect password";
+    case LoginResult::DISCONNECTED:       return "disconnected";
+    case LoginResult::PARENTALCONTROL:    return "parental control";
+    case LoginResult::CHARGEDBACK:        return "chargeback";
+    case LoginResult::CONVERSION_REQUIRED:return "conversion required";
+    case LoginResult::BANNED:             return "account banned";
+    case LoginResult::SUSPENDED:          return "account suspended";
+    case LoginResult::LOCKED:             return "account locked";
+    case LoginResult::ALREADYONLINE:      return "already online";
+    case LoginResult::BADVERSION:         return "bad version";
+    case LoginResult::NO_TIME:            return "no time remaining";
+    case LoginResult::DB_BUSY:            return "database busy";
+    case LoginResult::TRIAL_EXPIRED:      return "trial expired";
+    case LoginResult::ACCOUNT_CONVERTED:  return "account converted";
+    case LoginResult::GAME_ACCOUNT_LOCKED:return "game account locked";
+    case LoginResult::UNLOCKABLE_LOCK:    return "unlockable lock";
+    case LoginResult::TIMEOUT:            return "login timeout";
+    default:                              return "unknown error";
+    }
+}
 }

@@ -46,4 +46,6 @@ namespace Runtime
 
         void    initialize();
     }
+
+    const char* loginResultString(LoginResult result);
 }
