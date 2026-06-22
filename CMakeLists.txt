@@ -52,6 +52,7 @@ add_library(WoWControlSDK SHARED
     runtime/Runtime.cpp
     runtime/ConsoleManager.cpp
     runtime/LogCapture.cpp
+    runtime/RealmList.cpp
     runtime/EventPipe.cpp
 
     hooks/Hooks.cpp
