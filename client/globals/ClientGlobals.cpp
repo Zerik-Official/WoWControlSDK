@@ -1,11 +1,12 @@
 #include "ClientGlobals.h"
+#include "core/native/ClientState.h"
 
 namespace WoW::Client
 {
 
 bool IsInWorld()
 {
-    return *(char*)0x00BD0792;
+    return WoW::IsInWorld();
 }
 
 }
