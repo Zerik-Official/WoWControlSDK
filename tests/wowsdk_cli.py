@@ -122,6 +122,14 @@ def action_quit():
     if input("Quit WoW? (y/n): ").strip().lower() == "y":
         print_json(send("client.quit"))
 
+def action_get_realmlist():
+    print_json(send("client.getRealmlist"))
+
+def action_set_realmlist():
+    val = input("Realmlist (e.g. 127.0.0.1): ").strip()
+    if val:
+        print_json(send("client.setRealmlist", {"realmList": val}))
+
 def action_player_state():
     print_json(send("player.getState"))
 
@@ -264,6 +272,8 @@ MENU = [
     ("Enter world",          action_enter_world),
     ("Logout to charselect", action_logout),
     ("Quit game",            action_quit),
+    ("Get realmlist",        action_get_realmlist),
+    ("Set realmlist",        action_set_realmlist),
 
     ("Player", None),
     ("Player state",         action_player_state),

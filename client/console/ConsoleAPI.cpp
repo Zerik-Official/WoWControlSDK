@@ -26,16 +26,16 @@ char SetCVarValue(CVar* self, const char* value, int a3, int a4, int a5, int a6)
 
 const char* GetCVarString(const char* name)
 {
-    CVar* cvar = GetCVar(name);
+    CVar* cvar = FindCVar(name);
     if (!cvar) return nullptr;
     return cvar->vStr;
 }
 
 bool SetCVarString(const char* name, const char* value)
 {
-    CVar* cvar = GetCVar(name);
+    CVar* cvar = FindCVar(name);
     if (!cvar) return false;
-    SetCVarValue(cvar, value, 0, 0, 0, 0);
+    SetCVarValue(cvar, value, 1, 0, 0, 1);
     return true;
 }
 
