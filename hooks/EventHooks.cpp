@@ -1,5 +1,5 @@
 #include <Windows.h>
-#include <deps/Detours/detours.h>
+#include "base/DetourHelper.h"
 #include "EventHooks.h"
 #include "offsets/OffsetsLua.h"
 #include "runtime/events/EventPipe.h"
@@ -127,11 +127,10 @@ void Initialize()
 {
     if (s_initialized) return;
 
-    DetourTransactionBegin();
-    DetourUpdateThread(GetCurrentThread());
-    DetourAttach(&(void*&)SignalEventHandler_orig, SignalEventHandler_hook);
-    DetourAttach(&(void*&)FillEvents_orig,         FillEvents_hook);
-    DetourTransactionCommit();
+    Detail::attachBatch(
+        Detail::DetourEntry{SignalEventHandler_orig, SignalEventHandler_hook},
+        Detail::DetourEntry{FillEvents_orig, FillEvents_hook}
+    );
 
     s_initialized = true;
 }
@@ -140,11 +139,10 @@ void Shutdown()
 {
     if (!s_initialized) return;
 
-    DetourTransactionBegin();
-    DetourUpdateThread(GetCurrentThread());
-    DetourDetach(&(void*&)SignalEventHandler_orig, SignalEventHandler_hook);
-    DetourDetach(&(void*&)FillEvents_orig,         FillEvents_hook);
-    DetourTransactionCommit();
+    Detail::detachBatch(
+        Detail::DetourEntry{SignalEventHandler_orig, SignalEventHandler_hook},
+        Detail::DetourEntry{FillEvents_orig, FillEvents_hook}
+    );
 
     AcquireSRWLockExclusive(&s_lock);
     s_subscriptions.clear();
