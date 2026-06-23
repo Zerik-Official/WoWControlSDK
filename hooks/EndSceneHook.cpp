@@ -1,15 +1,12 @@
 #include "EndSceneHook.h"
+#include "base/DetourHelper.h"
+#include "offsets/OffsetsFrame.h"
 #include "utils/json/JsonIPC.h"
-#include <deps/Detours/detours.h>
 #include <d3d9.h>
 #include <mutex>
 #include <queue>
 #include <string>
 #include <functional>
-
-#define D3D_PTR_1               0x00C5DF88
-#define D3D_PTR_2               0x397C
-#define D3D_ENDSCENE_VTABLE_IDX 42
 
 typedef HRESULT (WINAPI* EndScene_t)(IDirect3DDevice9*);
 
@@ -37,29 +34,23 @@ namespace EndSceneHook {
 void initialize()
 {
     uintptr_t p1 = 0, p2 = 0, vtable = 0;
-    if (!safeReadPtr(D3D_PTR_1, p1))         return;
-    if (!safeReadPtr(p1 + D3D_PTR_2, p2))    return;
-    if (!safeReadPtr(p2, vtable))             return;
+    if (!safeReadPtr(Offsets::Frame::D3D_PTR, p1)) return;
+    if (!safeReadPtr(p1 + Offsets::Frame::D3D_DEVICE_OFFSET, p2)) return;
+    if (!safeReadPtr(p2, vtable)) return;
 
     uintptr_t endSceneAddr = 0;
-    if (!safeReadPtr(vtable + D3D_ENDSCENE_VTABLE_IDX * sizeof(uintptr_t), endSceneAddr)) return;
+    if (!safeReadPtr(vtable + Offsets::Frame::D3D_ENDSCENE_VTABLE_IDX * sizeof(uintptr_t), endSceneAddr)) return;
 
     s_original = reinterpret_cast<EndScene_t>(endSceneAddr);
 
-    DetourTransactionBegin();
-    DetourUpdateThread(GetCurrentThread());
-    DetourAttach(&reinterpret_cast<PVOID&>(s_original), hkEndScene);
-    DetourTransactionCommit();
+    Hooks::Detail::attach(s_original, hkEndScene);
 }
 
 void shutdown()
 {
     if (!s_original) return;
 
-    DetourTransactionBegin();
-    DetourUpdateThread(GetCurrentThread());
-    DetourDetach(&reinterpret_cast<PVOID&>(s_original), hkEndScene);
-    DetourTransactionCommit();
+    Hooks::Detail::detach(s_original, hkEndScene);
 
     s_original = nullptr;
 }
