@@ -1,6 +1,7 @@
 #include "FrameHooks.h"
+#include "base/DetourHelper.h"
+#include "offsets/OffsetsFrame.h"
 #include "utils/TaskQueue.h"
-#include <deps/Detours/detours.h>
 
 namespace Hooks::Frame
 {
@@ -26,12 +27,9 @@ void Initialize()
 {
     if (s_initialized) return;
 
-    s_original = (RenderFrameFn)0x008714b0;
+    s_original = (RenderFrameFn)Offsets::Frame::RENDER_FRAME;
 
-    DetourTransactionBegin();
-    DetourUpdateThread(GetCurrentThread());
-    DetourAttach(&(void*&)s_original, RenderFrame_Hook);
-    DetourTransactionCommit();
+    Detail::attach(s_original, RenderFrame_Hook);
 
     s_initialized = true;
 }
@@ -40,10 +38,7 @@ void Shutdown()
 {
     if (!s_initialized) return;
 
-    DetourTransactionBegin();
-    DetourUpdateThread(GetCurrentThread());
-    DetourDetach(&(void*&)s_original, RenderFrame_Hook);
-    DetourTransactionCommit();
+    Detail::detach(s_original, RenderFrame_Hook);
 
     s_initialized = false;
 }
