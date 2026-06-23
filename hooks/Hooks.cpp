@@ -1,6 +1,7 @@
 #include "Hooks.h"
 #include "ConsoleHooks.h"
 #include "EventHooks.h"
+#include "LoadingHooks.h"
 #include "offsets/OffsetsLua.h"
 #include "offsets/OffsetsLogin.h"
 #include <Windows.h>
@@ -215,6 +216,7 @@ void Hooks::initialize()
 {
     Hooks::Console::Initialize();
     Hooks::Events::Initialize();
+    Hooks::Loading::Initialize();
 
     DetourAttach(&(LPVOID&)CVars_Initialize_orig, CVars_Initialize_hk);
     DetourAttach(&(LPVOID&)FrameScript_FireOnUpdate_orig, FrameScript_FireOnUpdate_hk);
