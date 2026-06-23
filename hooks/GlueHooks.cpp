@@ -1,9 +1,9 @@
 #include "GlueHooks.h"
+#include "base/DetourHelper.h"
 #include "core/native/ClientState.h"
 #include "offsets/OffsetsLogin.h"
 #include "utils/json/Json.h"
 #include "utils/TaskQueue.h"
-#include <deps/Detours/detours.h>
 #include <cstring>
 
 namespace Hooks::Glue
@@ -75,11 +75,10 @@ void Initialize()
     s_original = (GlueMgrUpdateFn)Offsets::Login::GLUE_MGR_UPDATE;
     s_gruntOriginal = (GruntPrintFn)Offsets::Login::GRUNT_PRINTER;
 
-    DetourTransactionBegin();
-    DetourUpdateThread(GetCurrentThread());
-    DetourAttach(&(void*&)s_original, GlueMgrUpdate_Hook);
-    DetourAttach(&(void*&)s_gruntOriginal, GruntLoginState_Hook);
-    DetourTransactionCommit();
+    Detail::attachBatch(
+        Detail::DetourEntry{s_original, GlueMgrUpdate_Hook},
+        Detail::DetourEntry{s_gruntOriginal, GruntLoginState_Hook}
+    );
 
     s_initialized = true;
 }
@@ -88,11 +87,10 @@ void Shutdown()
 {
     if (!s_initialized) return;
 
-    DetourTransactionBegin();
-    DetourUpdateThread(GetCurrentThread());
-    DetourDetach(&(void*&)s_original, GlueMgrUpdate_Hook);
-    DetourDetach(&(void*&)s_gruntOriginal, GruntLoginState_Hook);
-    DetourTransactionCommit();
+    Detail::detachBatch(
+        Detail::DetourEntry{s_original, GlueMgrUpdate_Hook},
+        Detail::DetourEntry{s_gruntOriginal, GruntLoginState_Hook}
+    );
 
     s_initialized = false;
 }
