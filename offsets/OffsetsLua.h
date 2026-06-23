@@ -30,5 +30,8 @@ namespace Lua
     constexpr uintptr_t GET_KEYWORDS_BY_GUID     = 0x0060BB70;
     constexpr uintptr_t CVARS_INITIALIZE         = 0x0051D9B0;
     constexpr uintptr_t LUA_OPEN_FRAMEXML_API    = 0x00530F85;
+
+    constexpr uintptr_t GET_GUID_BY_KEYWORD_FOUND     = 0x0060AD57;
+    constexpr uintptr_t GET_GUID_BY_KEYWORD_NOT_FOUND  = 0x0060AD44;
     }
 }
