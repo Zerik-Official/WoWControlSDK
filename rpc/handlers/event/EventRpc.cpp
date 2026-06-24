@@ -8,42 +8,41 @@ namespace Rpc
 {
     using SDK::Json;
 
-    static Json handleSubscribe(const Json& params)
+    static bool requireEventsArray(const Json& params, Json& err)
     {
         if (!params.contains("events") || !params["events"].is_array())
-            return SDK::makeErrorJson("events must be an array");
+        {
+            err = SDK::makeErrorJson("events must be an array");
+            return false;
+        }
+        return true;
+    }
 
+    static Json handleEventAction(const Json& params, void(*action)(const char*), const char* countKey)
+    {
+        Json err;
+        if (!requireEventsArray(params, err))
+            return err;
         int count = 0;
         for (const auto& e : params["events"])
         {
-            std::string name = e.get<std::string>();
-            Hooks::Events::Subscribe(name.c_str());
+            action(e.get<std::string>().c_str());
             count++;
         }
-
         Json j;
         j["ok"] = true;
-        j["subscribed"] = count;
+        j[countKey] = count;
         return j;
+    }
+
+    static Json handleSubscribe(const Json& params)
+    {
+        return handleEventAction(params, Hooks::Events::Subscribe, "subscribed");
     }
 
     static Json handleUnsubscribe(const Json& params)
     {
-        if (!params.contains("events") || !params["events"].is_array())
-            return SDK::makeErrorJson("events must be an array");
-
-        int count = 0;
-        for (const auto& e : params["events"])
-        {
-            std::string name = e.get<std::string>();
-            Hooks::Events::Unsubscribe(name.c_str());
-            count++;
-        }
-
-        Json j;
-        j["ok"] = true;
-        j["unsubscribed"] = count;
-        return j;
+        return handleEventAction(params, Hooks::Events::Unsubscribe, "unsubscribed");
     }
 
     static Json handleList(const Json&)

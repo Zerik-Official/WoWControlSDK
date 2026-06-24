@@ -19,11 +19,11 @@ namespace Runtime
         if (s_initialized) return;
 
         Hooks::GlueXML::registerPostLoad([]()
-    {
-        WoW::Glue::AcceptAll();
-    });
+        {
+            WoW::Glue::AcceptAll();
+        });
 
-    Glue::initialize();
+        Glue::initialize();
         s_cache.setEventBus(&s_eventBus);
         Rpc::registerAllMethods(s_registry);
 

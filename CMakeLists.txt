@@ -40,15 +40,15 @@ add_library(WoWControlSDK SHARED
     rpc/protocol/Request.cpp
     rpc/protocol/Response.cpp
     rpc/Dispatcher.cpp
-    rpc/handlers/ClientRpc.cpp
-    rpc/handlers/PlayerRpc.cpp
-    rpc/handlers/WorldRpc.cpp
-    rpc/handlers/AuthRpc.cpp
-    rpc/handlers/CharRpc.cpp
+    rpc/handlers/core/ClientRpc.cpp
+    rpc/handlers/player/PlayerRpc.cpp
+    rpc/handlers/core/WorldRpc.cpp
+    rpc/handlers/auth/AuthRpc.cpp
+    rpc/handlers/core/CharRpc.cpp
     rpc/handlers/Handlers.cpp
-    rpc/handlers/UnitRpc.cpp
-    rpc/handlers/GroupRpc.cpp
-    rpc/handlers/ObjectRpc.cpp
+    rpc/handlers/core/UnitRpc.cpp
+    rpc/handlers/core/GroupRpc.cpp
+    rpc/handlers/core/ObjectRpc.cpp
 
     rpc/MethodRegistry.cpp
     runtime/events/EventBus.cpp
@@ -72,8 +72,8 @@ add_library(WoWControlSDK SHARED
 
     ipc/CommandPipe.cpp
 
-    rpc/handlers/ControlRpc.cpp
-    rpc/handlers/EventRpc.cpp
+    rpc/handlers/control/ControlRpc.cpp
+    rpc/handlers/event/EventRpc.cpp
 
     utils/json/JsonIPC.cpp
 
