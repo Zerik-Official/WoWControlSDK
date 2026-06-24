@@ -1,5 +1,5 @@
 #include "PlayerRpc.h"
-#include "player/PlayerJson.h"
+#include "PlayerJson.h"
 #include "runtime/Runtime.h"
 #include "runtime/state/StateCache.h"
 
