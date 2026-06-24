@@ -1,6 +1,6 @@
 #include "ControlRpc.h"
+#include "core/engine/LuaEngine.h"
 #include "core/native/GlueAPI.h"
-#include "offsets/OffsetsLua.h"
 #include "runtime/console/ConsoleManager.h"
 #include "runtime/console/LogCapture.h"
 #include "utils/json/Json.h"
@@ -8,15 +8,11 @@
 namespace
 {
 
-using LuaExecFn = void(__cdecl*)(const char* code, const char* name, int);
-
 void dismissAgreementDialog()
 {
-    auto exec = (LuaExecFn)Offsets::Lua::WOW_LUA_EXECUTE;
-    exec(
+    LuaEngine::execute(
         "AcceptEULA();AcceptTOS();AcceptTerminationWithoutNotice();AcceptScanning();AcceptContest();"
-        "if TOSFrame and TOSFrame:IsShown() then TOSFrame:Hide() TOSNotice:Hide() AccountLoginUI:Show() end",
-        "sdk_accept", 0);
+        "if TOSFrame and TOSFrame:IsShown() then TOSFrame:Hide() TOSNotice:Hide() AccountLoginUI:Show() end");
 }
 
 }

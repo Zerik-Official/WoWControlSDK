@@ -1,13 +1,29 @@
 #pragma once
 #include <string>
+#include <vector>
 
 namespace LuaEngine {
 
-bool        initialize();
-void        shutdown();
+enum class LuaType { Nil, Bool, Number, String };
 
-std::string execute(const std::string& code);
+struct LuaValue {
+    LuaType type = LuaType::Nil;
+    bool boolVal = false;
+    double numVal = 0.0;
+    std::string strVal;
+};
 
-void        executeSimple(const std::string& code);
+struct LuaResult {
+    bool ok = false;
+    std::string error;
+    std::vector<LuaValue> values;
+};
+
+bool     initialize();
+void     shutdown();
+
+void     execute(const std::string& code);
+
+LuaResult evaluate(const std::string& code);
 
 }

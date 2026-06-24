@@ -7,6 +7,7 @@
 #include "core/UnitRpc.h"
 #include "core/GroupRpc.h"
 #include "core/ObjectRpc.h"
+#include "core/LuaRpc.h"
 #include "control/ControlRpc.h"
 #include "event/EventRpc.h"
 
@@ -22,6 +23,7 @@ namespace Rpc
         registerUnitMethods(registry);
         registerGroupMethods(registry);
         registerObjectMethods(registry);
+        registerLuaMethods(registry);
         registerControlMethods(registry);
         registerEventMethods(registry);
     }
