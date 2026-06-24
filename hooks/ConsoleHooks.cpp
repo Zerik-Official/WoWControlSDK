@@ -1,6 +1,6 @@
 #include "ConsoleHooks.h"
+#include "base/DetourHelper.h"
 #include "offsets/OffsetsConsole.h"
-#include <deps/Detours/detours.h>
 #include <cstdio>
 
 namespace Hooks::Console
@@ -46,10 +46,7 @@ void Initialize()
 
     s_original = (PrintMessageFn)Offsets::Console::PRINT_MESSAGE;
 
-    DetourTransactionBegin();
-    DetourUpdateThread(GetCurrentThread());
-    DetourAttach(&(void*&)s_original, PrintMessage_Hook);
-    DetourTransactionCommit();
+    Detail::attach(s_original, PrintMessage_Hook);
 
     s_initialized = true;
 }
@@ -58,10 +55,7 @@ void Shutdown()
 {
     if (!s_initialized) return;
 
-    DetourTransactionBegin();
-    DetourUpdateThread(GetCurrentThread());
-    DetourDetach(&(void*&)s_original, PrintMessage_Hook);
-    DetourTransactionCommit();
+    Detail::detach(s_original, PrintMessage_Hook);
 
     s_initialized = false;
 }

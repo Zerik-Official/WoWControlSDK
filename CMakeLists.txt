@@ -61,6 +61,8 @@ add_library(WoWControlSDK SHARED
     runtime/events/EventPipe.cpp
 
     hooks/Hooks.cpp
+    hooks/lua/LuaHooks.cpp
+    hooks/glue/GlueLoadHooks.cpp
     hooks/EndSceneHook.cpp
     hooks/ConsoleHooks.cpp
     hooks/FrameHooks.cpp
