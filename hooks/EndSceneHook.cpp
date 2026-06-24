@@ -1,25 +1,14 @@
 #include "EndSceneHook.h"
 #include "base/DetourHelper.h"
 #include "offsets/OffsetsFrame.h"
-#include "utils/json/JsonIPC.h"
+#include "utils/TaskQueue.h"
 #include <d3d9.h>
-#include <mutex>
-#include <queue>
-#include <string>
-#include <functional>
 
 typedef HRESULT (WINAPI* EndScene_t)(IDirect3DDevice9*);
 
 static EndScene_t s_original = nullptr;
 
-struct PendingTask {
-    EndSceneHook::Task    task;
-    std::string*          result;
-    HANDLE                doneEvent;
-};
-
-static std::mutex           s_mutex;
-static std::queue<PendingTask*> s_queue;
+static Utils::TaskQueue s_queue;
 
 static bool safeReadPtr(uintptr_t addr, uintptr_t& out)
 {
@@ -57,41 +46,12 @@ void shutdown()
 
 std::string dispatch(Task task, DWORD timeoutMs)
 {
-    HANDLE ev = CreateEventA(nullptr, FALSE, FALSE, nullptr);
-    std::string result;
-
-    PendingTask* pt = new PendingTask{ std::move(task), &result, ev };
-
-    {
-        std::lock_guard<std::mutex> lock(s_mutex);
-        s_queue.push(pt);
-    }
-
-    WaitForSingleObject(ev, timeoutMs);
-    CloseHandle(ev);
-
-    if (result.empty())
-        return SDK::JsonIPC::serializeCommandError("timeout");
-
-    return result;
+    return s_queue.execute(std::move(task), static_cast<int>(timeoutMs));
 }
 
 HRESULT WINAPI hkEndScene(IDirect3DDevice9* pDevice)
 {
-    std::queue<PendingTask*> local;
-    {
-        std::lock_guard<std::mutex> lock(s_mutex);
-        std::swap(local, s_queue);
-    }
-
-    while (!local.empty()) {
-        PendingTask* pt = local.front();
-        local.pop();
-
-        *pt->result = pt->task();
-        SetEvent(pt->doneEvent);
-        delete pt;
-    }
+    s_queue.drainAll();
 
     return s_original(pDevice);
 }
