@@ -25,47 +25,19 @@ namespace Rpc
 {
     using SDK::Json;
 
-    static Json handleAcceptEULA(const Json&)
+    static Json handleAgreementAction(const Json&, void(*action)())
     {
-        WoW::Glue::AcceptEULA();
+        action();
         dismissAgreementDialog();
         return SDK::okJson();
     }
 
-    static Json handleAcceptTOS(const Json&)
-    {
-        WoW::Glue::AcceptTOS();
-        dismissAgreementDialog();
-        return SDK::okJson();
-    }
-
-    static Json handleAcceptTermination(const Json&)
-    {
-        WoW::Glue::AcceptTermination();
-        dismissAgreementDialog();
-        return SDK::okJson();
-    }
-
-    static Json handleAcceptScanning(const Json&)
-    {
-        WoW::Glue::AcceptScanning();
-        dismissAgreementDialog();
-        return SDK::okJson();
-    }
-
-    static Json handleAcceptContest(const Json&)
-    {
-        WoW::Glue::AcceptContest();
-        dismissAgreementDialog();
-        return SDK::okJson();
-    }
-
-    static Json handleAcceptAll(const Json&)
-    {
-        WoW::Glue::AcceptAll();
-        dismissAgreementDialog();
-        return SDK::okJson();
-    }
+    static Json handleAcceptEULA(const Json& p)        { return handleAgreementAction(p, WoW::Glue::AcceptEULA); }
+    static Json handleAcceptTOS(const Json& p)          { return handleAgreementAction(p, WoW::Glue::AcceptTOS); }
+    static Json handleAcceptTermination(const Json& p)  { return handleAgreementAction(p, WoW::Glue::AcceptTermination); }
+    static Json handleAcceptScanning(const Json& p)     { return handleAgreementAction(p, WoW::Glue::AcceptScanning); }
+    static Json handleAcceptContest(const Json& p)      { return handleAgreementAction(p, WoW::Glue::AcceptContest); }
+    static Json handleAcceptAll(const Json& p)          { return handleAgreementAction(p, WoW::Glue::AcceptAll); }
 
     static Json handleToggleConsole(const Json&)
     {
