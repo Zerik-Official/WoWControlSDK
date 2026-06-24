@@ -1,4 +1,5 @@
 #include "PlayerRpc.h"
+#include "player/PlayerJson.h"
 #include "runtime/Runtime.h"
 #include "runtime/state/StateCache.h"
 
@@ -6,11 +7,19 @@ namespace Rpc
 {
     using SDK::Json;
 
+    static bool getPlayer(Runtime::PlayerCacheEntry& out, Json& err)
+    {
+        if (Runtime::cache().getPlayer(out)) return true;
+        err = SDK::makeErrorJson("player not available");
+        return false;
+    }
+
     static Json handleGetHealth(const Json&)
     {
         Runtime::PlayerCacheEntry p;
-        if (!Runtime::cache().getPlayer(p))
-            return SDK::makeErrorJson("player not available");
+        Json err;
+        if (!getPlayer(p, err))
+            return err;
         Json result;
         result["health"] = p.health;
         result["maxHealth"] = p.maxHealth;
@@ -20,14 +29,11 @@ namespace Rpc
     static Json handleGetPosition(const Json&)
     {
         Runtime::PlayerCacheEntry p;
-        if (!Runtime::cache().getPlayer(p))
-            return SDK::makeErrorJson("player not available");
-        Json pos;
-        pos["x"] = p.x;
-        pos["y"] = p.y;
-        pos["z"] = p.z;
+        Json err;
+        if (!getPlayer(p, err))
+            return err;
         Json result;
-        result["position"] = pos;
+        result["position"] = makePositionJson(p);
         result["rotation"] = p.rotation;
         return result;
     }
@@ -35,10 +41,11 @@ namespace Rpc
     static Json handleGetTarget(const Json&)
     {
         Runtime::PlayerCacheEntry p;
-        if (!Runtime::cache().getPlayer(p))
-            return SDK::makeErrorJson("player not available");
+        Json err;
+        if (!getPlayer(p, err))
+            return err;
         Json result;
-        result["guid"] = Json::array({p.targetGuid.high, p.targetGuid.low});
+        result["guid"] = makeGuidJson(p.targetGuid);
         result["valid"] = p.targetGuid.isValid();
         return result;
     }
@@ -46,38 +53,10 @@ namespace Rpc
     static Json handleGetState(const Json&)
     {
         Runtime::PlayerCacheEntry p;
-        if (!Runtime::cache().getPlayer(p))
-            return SDK::makeErrorJson("player not available");
-        Json result;
-        result["guid"] = Json::array({p.guid.high, p.guid.low});
-        result["health"] = p.health;
-        result["maxHealth"] = p.maxHealth;
-        result["power"] = p.power;
-        result["maxPower"] = p.maxPower;
-        result["level"] = p.level;
-        result["race"] = p.race;
-        result["class"] = p.class_;
-        result["xp"] = p.xp;
-        result["maxXp"] = p.maxXp;
-        Json pos;
-        pos["x"] = p.x;
-        pos["y"] = p.y;
-        pos["z"] = p.z;
-        result["position"] = pos;
-        result["rotation"] = p.rotation;
-        result["targetGuid"] = Json::array({p.targetGuid.high, p.targetGuid.low});
-        result["inCombat"] = p.inCombat;
-        result["dead"] = p.dead;
-        result["ghost"] = p.ghost;
-        result["mounted"] = p.mounted;
-        result["flying"] = p.flying;
-        result["swimming"] = p.swimming;
-        result["afk"] = p.afk;
-        result["dnd"] = p.dnd;
-        result["underwater"] = p.underwater;
-        result["casting"] = p.casting;
-        result["valid"] = p.valid;
-        return result;
+        Json err;
+        if (!getPlayer(p, err))
+            return err;
+        return makePlayerStateJson(p);
     }
 
     void registerPlayerMethods(Runtime::MethodRegistry& registry)
