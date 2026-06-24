@@ -41,6 +41,7 @@ add_library(WoWControlSDK SHARED
     rpc/protocol/Response.cpp
     rpc/Dispatcher.cpp
     rpc/handlers/core/ClientRpc.cpp
+    rpc/handlers/core/LuaRpc.cpp
     rpc/handlers/player/PlayerRpc.cpp
     rpc/handlers/core/WorldRpc.cpp
     rpc/handlers/auth/AuthRpc.cpp

@@ -33,5 +33,10 @@ namespace Lua
 
     constexpr uintptr_t GET_GUID_BY_KEYWORD_FOUND     = 0x0060AD57;
     constexpr uintptr_t GET_GUID_BY_KEYWORD_NOT_FOUND  = 0x0060AD44;
+
+    constexpr uintptr_t LUA_PROTECTED_CALL             = 0x0084F6C0;
+    constexpr uintptr_t FRAMESCRIPT_GET_VARIABLE       = 0x00818010;
+    constexpr uintptr_t FRAMESCRIPT_FILL_METHOD_TABLE  = 0x008167E0;
+    constexpr uintptr_t FRAMESCRIPT_FIND_TABLE         = 0x0084E590;
     }
 }
