@@ -14,19 +14,72 @@ namespace Rpc
 {
     using SDK::Json;
 
-    static Json handleLogin(const Json& params)
+    static bool validateLoginParams(const Json& params, std::string& user, std::string& pass, std::string& realmList, std::string& realmName, Json& err)
     {
         if (Runtime::Glue::getScreen() != Runtime::Screen::LOGIN)
-            return SDK::makeErrorJson("not on login screen");
+        {
+            err = SDK::makeErrorJson("not on login screen");
+            return false;
+        }
 
-        std::string username = params.value("username", "");
-        std::string password = params.value("password", "");
+        user = params.value("username", "");
+        pass = params.value("password", "");
 
-        if (username.empty() || password.empty())
-            return SDK::makeErrorJson("username and password required");
+        if (user.empty() || pass.empty())
+        {
+            err = SDK::makeErrorJson("username and password required");
+            return false;
+        }
 
-        std::string realmList = params.value("realmList", "");
-        std::string realmName = params.value("realmName", "");
+        realmList = params.value("realmList", "");
+        realmName = params.value("realmName", "");
+        return true;
+    }
+
+    static void waitForRealmReady(Json& result)
+    {
+        auto start = std::chrono::steady_clock::now();
+        while (!Runtime::RealmList::IsReady())
+        {
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::steady_clock::now() - start).count() >= 5000)
+            {
+                result["error"] = "realm list timeout";
+                result["ok"] = false;
+                return;
+            }
+            Sleep(50);
+        }
+    }
+
+    static void waitForCharSelect(Json& result, const std::string& realmName)
+    {
+        Hooks::Glue::Post([realmName]() {
+            int idx = Runtime::RealmList::FindByName(realmName.c_str());
+            if (idx < 0) idx = 0;
+            Runtime::RealmList::Select(idx);
+        });
+
+        auto start = std::chrono::steady_clock::now();
+        while (Runtime::Glue::getScreen() != Runtime::Screen::CHARSELECT)
+        {
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::steady_clock::now() - start).count() >= 15000)
+            {
+                result["error"] = "realm select timeout";
+                result["ok"] = false;
+                return;
+            }
+            Sleep(50);
+        }
+    }
+
+    static Json handleLogin(const Json& params)
+    {
+        std::string username, password, realmList, realmName;
+        Json err;
+        if (!validateLoginParams(params, username, password, realmList, realmName, err))
+            return err;
 
         Hooks::Glue::Post([username, password, realmList, realmName]() {
             if (!realmList.empty())
@@ -52,40 +105,9 @@ namespace Rpc
             result["ok"] = true;
             if (!realmName.empty())
             {
-                auto start = std::chrono::steady_clock::now();
-                while (!Runtime::RealmList::IsReady())
-                {
-                    if (std::chrono::duration_cast<std::chrono::milliseconds>(
-                            std::chrono::steady_clock::now() - start).count() >= 5000)
-                    {
-                        result["error"] = "realm list timeout";
-                        result["ok"] = false;
-                        break;
-                    }
-                    Sleep(50);
-                }
-
+                waitForRealmReady(result);
                 if (!result.contains("error"))
-                {
-                    Hooks::Glue::Post([realmName]() {
-                        int idx = Runtime::RealmList::FindByName(realmName.c_str());
-                        if (idx < 0) idx = 0;
-                        Runtime::RealmList::Select(idx);
-                    });
-
-                    start = std::chrono::steady_clock::now();
-                    while (Runtime::Glue::getScreen() != Runtime::Screen::CHARSELECT)
-                    {
-                        if (std::chrono::duration_cast<std::chrono::milliseconds>(
-                                std::chrono::steady_clock::now() - start).count() >= 15000)
-                        {
-                            result["error"] = "realm select timeout";
-                            result["ok"] = false;
-                            break;
-                        }
-                        Sleep(50);
-                    }
-                }
+                    waitForCharSelect(result, realmName);
             }
         }
         else
