@@ -3,7 +3,6 @@
 #include "hooks/FrameHooks.h"
 #include "hooks/GlueHooks.h"
 #include "core/native/GlueAPI.h"
-#include "core/native/GlueAPI.h"
 #include "hooks/ConsoleHooks.h"
 #include "runtime/Runtime.h"
 #include "runtime/console/ConsoleManager.h"
