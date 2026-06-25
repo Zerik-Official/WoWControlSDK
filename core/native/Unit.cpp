@@ -158,14 +158,15 @@ bool Unit::isInCombat() const
 
 bool Unit::isDead() const
 {
+    if (isValid() && hasAura(8326)) return true;
     if (getHealth() <= 0) return true;
     uint32_t dynFlags = Memory::safeRead<uint32_t>(m_unitData + Offsets::Unit::Desc::DYNAMIC_FLAGS);
     return (dynFlags >> 5) & 1;
 }
 
-bool Unit::isGhost() const
+bool Unit::hasAura(int spellId) const
 {
-    if (!isValid()) return false;
+    if (!isValid() || spellId <= 0) return false;
     int count1 = Memory::safeRead<int>(m_base + Offsets::Unit::AURA_COUNT1);
     uintptr_t auraTable = 0;
     int auraCount = 0;
@@ -186,9 +187,14 @@ bool Unit::isGhost() const
     for (int i = 0; i < auraCount; ++i)
     {
         uintptr_t entry = auraTable + (uintptr_t)(i * Offsets::Unit::AURA_ENTRY_SIZE);
-        if (Memory::safeRead<int>(entry + 8) == 8326) return true;
+        if (Memory::safeRead<int>(entry + 8) == spellId) return true;
     }
     return false;
+}
+
+bool Unit::isGhost() const
+{
+    return hasAura(8326);
 }
 
 bool Unit::isCasting() const
@@ -251,35 +257,17 @@ bool Unit::getMapPosition(float* outX, float* outY) const
     WoWGUID guid = getGUID();
     if (!guid.isValid()) return false;
 
-    WoWGUID localGuid = WoW::GetLocalGUID();
-    if (guid == localGuid)
-        goto call_game_func;
-
-    for (int i = 0; i < Offsets::Group::PARTY_MAX_MEMBERS; i++)
-    {
-        WoWGUID pg = Memory::safeRead<WoWGUID>(
-            Offsets::Group::PARTY_PLAYER_GUIDS + (i * sizeof(WoWGUID)));
-        if (pg == guid)
-            goto call_game_func;
-    }
-
-    for (int i = 0; i < Offsets::Group::RAID_MAX_MEMBERS; i++)
-    {
-        uintptr_t ptr = Memory::safeRead<uintptr_t>(
-            Offsets::Group::RAID_GROUP_START + (i * sizeof(uintptr_t)));
-        if (!ptr) continue;
-        WoWGUID rg = Memory::safeRead<WoWGUID>(ptr);
-        if (rg == guid)
-            goto call_game_func;
-    }
-
-    return false;
-
-call_game_func:
     using MapPosFn = void(__cdecl*)(uint32_t, uint32_t, float*, float*);
     auto fn = reinterpret_cast<MapPosFn>(Offsets::Unit::GET_MAP_POSITION);
     fn(guid.low, guid.high, outX, outY);
     return (*outX != 0.0f || *outY != 0.0f);
+}
+
+float Unit::getRotation() const
+{
+    if (!isValid())
+        return 0.0f;
+    return Memory::safeRead<float>(m_base + Offsets::Player::ROT_OFFSET);
 }
 
 bool Unit::getWorldPosition(float* outX, float* outY) const
