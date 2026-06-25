@@ -78,7 +78,6 @@ add_library(WoWControlSDK SHARED
 
     utils/json/JsonIPC.cpp
 
-    client/globals/ClientGlobals.cpp
     client/strings/RCString.cpp
     client/login/LoginAPI.cpp
     client/console/ConsoleAPI.cpp
