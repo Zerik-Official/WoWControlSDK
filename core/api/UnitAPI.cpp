@@ -41,7 +41,10 @@ namespace CoreAPI
     int         UnitRef::getRace()         const { return Unit::GetRace(m_handle); }
     int         UnitRef::getClass()        const { return Unit::GetClass(m_handle); }
 
-    Position    UnitRef::getPosition()     const { return Unit::GetPosition(m_handle); }
+    Position    UnitRef::getPosition()      const { return Unit::GetPosition(m_handle); }
+    Position    UnitRef::getMapPosition()   const { return Unit::GetUnitMapPosition(m_handle); }
+    Position    UnitRef::getWorldPosition() const { return Unit::GetUnitWorldPosition(m_handle); }
+    float       UnitRef::getRotation()      const { return Unit::GetRotation(m_handle); }
 
     WoWGUID     UnitRef::getGUID()         const { return Unit::GetGUID(m_handle); }
     WoWGUID     UnitRef::getTargetGUID()   const { return Unit::GetTargetGUID(m_handle); }
@@ -174,9 +177,10 @@ namespace CoreAPI
         Position GetPosition(UnitHandle handle)
         {
             if (handle.isNull()) return { 0.f, 0.f, 0.f };
-            ::Player local = ::Player::local();
-            if (local.exists() && local.getBase() == handle.base)
-                return { local.getX(), local.getY(), local.getZ() };
+            ::Unit unit(handle.base);
+            float x, y, z;
+            if (unit.getWorldPosition(&x, &y, &z))
+                return { x, y, z };
             return { 0.f, 0.f, 0.f };
         }
 
@@ -196,6 +200,12 @@ namespace CoreAPI
         {
             if (handle.isNull()) return {};
             return resolve(handle).getName();
+        }
+
+        float GetRotation(UnitHandle handle)
+        {
+            if (handle.isNull()) return 0.f;
+            return resolve(handle).getRotation();
         }
 
         Position GetUnitMapPosition(UnitHandle handle)
