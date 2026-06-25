@@ -9,4 +9,18 @@
 namespace SDK
 {
     using Json = nlohmann::json;
+
+    inline Json okJson()
+    {
+        Json j;
+        j["ok"] = true;
+        return j;
+    }
+
+    inline Json makeErrorJson(const char* msg)
+    {
+        Json j;
+        j["error"] = msg;
+        return j;
+    }
 }

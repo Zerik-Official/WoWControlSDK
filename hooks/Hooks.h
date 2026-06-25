@@ -1,31 +1,15 @@
 #pragma once
-#include "client/GameClient.h"
 
-namespace Hooks {
+#include "hooks/lua/LuaHooks.h"
+#include "hooks/glue/GlueLoadHooks.h"
+#include "hooks/EventHooks.h"
+#include "hooks/FrameHooks.h"
+#include "hooks/GlueHooks.h"
+#include "hooks/ConsoleHooks.h"
+#include "hooks/LoadingHooks.h"
 
-using DummyCallback_t = void(*)();
-
-namespace FrameScript {
-using TokenGuidGetter  = guid_t();
-using TokenNGuidGetter = guid_t(int);
-using TokenIdGetter    = bool(guid_t);
-using TokenIdNGetter   = int(guid_t);
-
-void registerToken(const char* token, TokenGuidGetter* getGuid, TokenIdGetter* getId);
-void registerToken(const char* token, TokenNGuidGetter* getGuid, TokenIdNGetter* getId);
-void registerOnUpdate(DummyCallback_t func);
-}
-
-namespace FrameXML {
-void registerEvent(const char* str);
-void registerCVar(Console::CVar** dst, const char* str, const char* desc, Console::CVarFlags flags, const char* initialValue, Console::CVar::Handler_t func);
-void registerLuaLib(lua_CFunction func);
-}
-
-namespace GlueXML {
-void registerPostLoad(DummyCallback_t func);
-void registerCharEnum(DummyCallback_t func);
-}
+namespace Hooks
+{
 
 void initialize();
 

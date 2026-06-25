@@ -8,11 +8,6 @@ namespace Offsets
     {
         constexpr uintptr_t DESCRIPTOR_BASE              = 0x8;
 
-        constexpr uintptr_t HEALTH                       = 0x1044;
-        constexpr uintptr_t HEALTH_MAX                   = 0x1048;
-        constexpr uintptr_t MANA                         = 0x1054;
-        constexpr uintptr_t MANA_MAX                     = 0x1068;
-
         constexpr uintptr_t CASTING_SPELL_ID             = 0xA6C;
         constexpr uintptr_t CHANNELING_SPELL_ID          = 0xA80;
         constexpr uintptr_t IS_AUTO_ATTACKING            = 0xA20;
@@ -21,8 +16,6 @@ namespace Offsets
         constexpr uintptr_t MOVE_DATA_PTR                = 0xD8;
         constexpr uintptr_t MOVE_DATA_FLAGS              = 0x44;
         constexpr uint32_t  MOVEFLAG_FLYING              = 0x02000000;
-        constexpr uintptr_t FLY_FLAGS_POINTER            = 0xD8;
-        constexpr uintptr_t FLY_FLAGS                    = 0x44;
 
         constexpr uintptr_t AURA_COUNT1                  = 0xDD0;
         constexpr uintptr_t AURA_COUNT2                  = 0xC54;
@@ -62,6 +55,10 @@ namespace Offsets
             constexpr uint32_t MOVE_SWIMMING             = 0x00200000;
             constexpr uint32_t MOVE_FLYING               = 0x02000000;
         }
+
+        constexpr uintptr_t GET_UNIT_NAME       = 0x0072a000;
+        constexpr uintptr_t GET_PVP_NAME        = 0x0072a290;
+        constexpr uintptr_t GET_MAP_POSITION    = 0x005444f0;
     }
 
     namespace Object
