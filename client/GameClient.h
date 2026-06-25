@@ -1,7 +1,6 @@
 #pragma once
 
 #include "types/Types.h"
-#include "globals/ClientGlobals.h"
 #include "strings/RCString.h"
 #include "login/LoginAPI.h"
 #include "console/ConsoleAPI.h"

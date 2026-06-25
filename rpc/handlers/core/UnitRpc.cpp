@@ -7,6 +7,15 @@ namespace Rpc
 {
     using SDK::Json;
 
+    static Json toJson(const CoreAPI::Position& pos)
+    {
+        Json p;
+        p["x"] = pos.x;
+        p["y"] = pos.y;
+        p["z"] = pos.z;
+        return p;
+    }
+
     static Json handleGet(const Json& params)
     {
         std::string token = params.value("token", "player");
@@ -34,12 +43,9 @@ namespace Rpc
             j["swimming"] = unit.isSwimming();
             j["casting"] = unit.isCasting();
             j["channeling"] = unit.isChanneling();
-            auto pos = unit.getPosition();
-            Json p;
-            p["x"] = pos.x;
-            p["y"] = pos.y;
-            p["z"] = pos.z;
-            j["position"] = p;
+            j["position"] = toJson(unit.getPosition());
+            j["mapPosition"] = toJson(unit.getMapPosition());
+            j["rotation"] = unit.getRotation();
             WoWGUID guid = unit.getGUID();
             j["guid"] = Json::array({guid.high, guid.low});
             WoWGUID target = unit.getTargetGUID();
@@ -85,12 +91,24 @@ namespace Rpc
             j["exists"] = unit.exists();
             if (!unit.exists()) return j.dump();
 
-            auto pos = unit.getPosition();
-            Json p;
-            p["x"] = pos.x;
-            p["y"] = pos.y;
-            p["z"] = pos.z;
-            j["position"] = p;
+            j["position"] = toJson(unit.getPosition());
+            return j.dump();
+        });
+
+        return Json::parse(raw);
+    }
+
+    static Json handleGetMapPosition(const Json& params)
+    {
+        std::string token = params.value("token", "player");
+
+        std::string raw = Hooks::Glue::Execute([token]() -> std::string {
+            CoreAPI::UnitRef unit = CoreAPI::Unit::Get(token.c_str());
+            Json j;
+            j["exists"] = unit.exists();
+            if (!unit.exists()) return j.dump();
+
+            j["mapPosition"] = toJson(unit.getMapPosition());
             return j.dump();
         });
 
@@ -102,5 +120,6 @@ namespace Rpc
         registry.registerMethod("unit.get", handleGet);
         registry.registerMethod("unit.state", handleGetState);
         registry.registerMethod("unit.position", handleGetPosition);
+        registry.registerMethod("unit.mapPosition", handleGetMapPosition);
     }
 }

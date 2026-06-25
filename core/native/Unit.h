@@ -37,6 +37,7 @@ public:
 
     std::string getName() const;
 
+    bool hasAura(int spellId) const;
     bool isInCombat()      const;
     bool isDead()          const;
     bool isGhost()         const;
@@ -48,8 +49,9 @@ public:
     bool isFlying()        const;
     bool isMounted()       const;
 
-    int  getCastingSpellId()    const;
-    int  getChannelingSpellId() const;
+    int   getCastingSpellId()    const;
+    int   getChannelingSpellId() const;
+    float getRotation()          const;
 
 protected:
     uintptr_t m_unitData = 0;

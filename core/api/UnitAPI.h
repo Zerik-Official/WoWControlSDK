@@ -39,9 +39,12 @@ namespace CoreAPI
         int         getRace()       const;
         int         getClass()      const;
 
-        Position    getPosition()   const;
+        Position    getPosition()       const;
+        Position    getMapPosition()    const;
+        Position    getWorldPosition()  const;
+        float       getRotation()       const;
 
-        WoWGUID     getGUID()       const;
+        WoWGUID     getGUID()           const;
         WoWGUID     getTargetGUID() const;
 
         std::string getName()       const;
@@ -80,6 +83,8 @@ namespace CoreAPI
         WoWGUID     GetTargetGUID(UnitHandle handle);
 
         std::string GetName(UnitHandle handle);
+
+        float       GetRotation(UnitHandle handle);
 
         Position    GetUnitMapPosition(UnitHandle handle);
         Position    GetUnitWorldPosition(UnitHandle handle);

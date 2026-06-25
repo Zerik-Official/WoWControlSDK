@@ -20,43 +20,9 @@ namespace
         return CoreAPI::UnitHandle{ p.getBase(), p.getGUID() };
     }
 
-    bool hasAuraById(uintptr_t base, int spellId)
-    {
-        if (!base || spellId <= 0) return false;
-
-        int       auraCount = 0;
-        uintptr_t auraTable = 0;
-
-        int count1 = Memory::safeRead<int>(base + Offsets::Unit::AURA_COUNT1);
-
-        if (count1 == -1)
-        {
-            int count2 = Memory::safeRead<int>(base + Offsets::Unit::AURA_COUNT2);
-            if (count2 <= 0 || count2 > 40) return false;
-            auraTable = Memory::safeRead<uintptr_t>(base + Offsets::Unit::AURA_TABLE2);
-            auraCount = count2;
-        }
-        else
-        {
-            if (count1 <= 0 || count1 > 40) return false;
-            auraTable = base + Offsets::Unit::AURA_TABLE1;
-            auraCount = count1;
-        }
-
-        if (!auraTable) return false;
-
-        for (int i = 0; i < auraCount; ++i)
-        {
-            uintptr_t entry = auraTable + (uintptr_t)(i * Offsets::Unit::AURA_ENTRY_SIZE);
-            if (Memory::safeRead<int>(entry + 8) == spellId) return true;
-        }
-
-        return false;
-    }
-
     bool readIsGhost(uintptr_t base)
     {
-        return hasAuraById(base, Offsets::Player::GHOST_SPELL_ID);
+        return ::Unit(base).hasAura(Offsets::Player::GHOST_SPELL_ID);
     }
 
     bool readIsUnderwater()
@@ -88,35 +54,16 @@ namespace CoreAPI
     {
     }
 
-    float PlayerRef::getRotation()  const
-    {
-        if (getHandle().isNull()) return 0.f;
-        return ::Player(getHandle().base).getRotation();
-    }
+    float PlayerRef::getRotation()  const { return Player::GetRotation(); }
+    int   PlayerRef::getXP()        const { return Player::GetXP(); }
+    int   PlayerRef::getMaxXP()     const { return Player::GetMaxXP(); }
 
-    int PlayerRef::getXP() const
-    {
-        if (getHandle().isNull()) return 0;
-        return ::Player(getHandle().base).getXP();
-    }
+    bool PlayerRef::isGhost()      const { return Player::IsGhost(); }
+    bool PlayerRef::isUnderwater() const { return Player::IsUnderwater(); }
+    bool PlayerRef::isAfk()        const { return Player::IsAfk(); }
+    bool PlayerRef::isDnd()        const { return Player::IsDnd(); }
 
-    int PlayerRef::getMaxXP() const
-    {
-        if (getHandle().isNull()) return 0;
-        return ::Player(getHandle().base).getMaxXP();
-    }
-
-    bool PlayerRef::isGhost()      const { return getHandle().isNull() ? false : readIsGhost(getHandle().base); }
-    bool PlayerRef::isUnderwater() const { return readIsUnderwater(); }
-    bool PlayerRef::isAfk()        const { return getHandle().isNull() ? false : readIsAfk(getHandle().base); }
-    bool PlayerRef::isDnd()        const { return getHandle().isNull() ? false : readIsDnd(getHandle().base); }
-
-    Position PlayerRef::getPosition() const
-    {
-        if (getHandle().isNull()) return { 0.f, 0.f, 0.f };
-        ::Player p(getHandle().base);
-        return { p.getX(), p.getY(), p.getZ() };
-    }
+    Position PlayerRef::getPosition() const { return Player::GetPosition(); }
 
     UnitRef PlayerRef::getTarget()  const { return Player::GetTarget(); }
 

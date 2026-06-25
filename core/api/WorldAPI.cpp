@@ -1,4 +1,5 @@
 #include "core/api/WorldAPI.h"
+#include "core/native/ClientState.h"
 #include "core/native/WorldReader.h"
 #include "memory/MemReader.h"
 #include "offsets/OffsetsMap.h"
@@ -44,7 +45,7 @@ namespace CoreAPI
 
         bool IsInWorld()
         {
-            return Memory::safeRead<int>(Offsets::Map::IS_WORLD) != 0;
+            return WoW::IsInWorld();
         }
 
         bool IsOnLoadingScreen()
