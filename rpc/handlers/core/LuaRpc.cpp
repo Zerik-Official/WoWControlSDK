@@ -6,16 +6,6 @@ namespace Rpc
 {
     using SDK::Json;
 
-    static Json handleExecute(const Json& params)
-    {
-        std::string code = params.value("code", "");
-        if (code.empty())
-            return SDK::makeErrorJson("code is required");
-
-        LuaEngine::execute(code);
-        return SDK::okJson();
-    }
-
     static Json valueToJson(const LuaEngine::LuaValue& v)
     {
         switch (v.type)
@@ -27,43 +17,110 @@ namespace Rpc
         }
     }
 
+    static Json resultToJson(const LuaEngine::LuaResult& r)
+    {
+        Json j;
+        j["ok"] = r.ok;
+        if (!r.ok)
+        {
+            j["error"] = r.error;
+        }
+        else
+        {
+            if (r.values.size() == 1)
+            {
+                j["result"] = valueToJson(r.values[0]);
+            }
+            else if (r.values.size() > 1)
+            {
+                Json arr = Json::array();
+                for (const auto& v : r.values)
+                    arr.push_back(valueToJson(v));
+                j["result"] = arr;
+            }
+            else
+            {
+                j["result"] = nullptr;
+            }
+        }
+        return j;
+    }
+
+    static Json handleExecute(const Json& params)
+    {
+        std::string code = params.value("code", "");
+        if (code.empty())
+            return SDK::makeErrorJson("code is required");
+
+        LuaEngine::execute(code);
+        return SDK::okJson();
+    }
+
     static Json handleEvaluate(const Json& params)
     {
         std::string code = params.value("code", "");
         if (code.empty())
             return SDK::makeErrorJson("code is required");
 
-        auto result = LuaEngine::evaluate(code);
-        if (!result.ok)
+        return resultToJson(LuaEngine::evaluate(code));
+    }
+
+    static Json handleGetGlobal(const Json& params)
+    {
+        std::string name = params.value("name", "");
+        if (name.empty())
+            return SDK::makeErrorJson("name is required");
+
+        return resultToJson(LuaEngine::evaluate("return " + name));
+    }
+
+    static Json handleSetGlobal(const Json& params)
+    {
+        std::string name = params.value("name", "");
+        if (name.empty())
+            return SDK::makeErrorJson("name is required");
+
+        LuaEngine::LuaValue v;
+        if (params.contains("value"))
         {
-            Json err;
-            err["error"] = result.error;
-            return err;
+            const auto& val = params["value"];
+            if (val.is_boolean())
+            {
+                v.type = LuaEngine::LuaType::Bool;
+                v.boolVal = val.get<bool>();
+            }
+            else if (val.is_number())
+            {
+                v.type = LuaEngine::LuaType::Number;
+                v.numVal = val.get<double>();
+            }
+            else if (val.is_string())
+            {
+                v.type = LuaEngine::LuaType::String;
+                v.strVal = val.get<std::string>();
+            }
         }
 
-        Json j;
-        j["ok"] = true;
-        if (result.values.size() == 1)
-        {
-            j["result"] = valueToJson(result.values[0]);
-        }
-        else if (result.values.size() > 1)
-        {
-            Json arr = Json::array();
-            for (const auto& v : result.values)
-                arr.push_back(valueToJson(v));
-            j["result"] = arr;
-        }
-        else
-        {
-            j["result"] = nullptr;
-        }
-        return j;
+        LuaEngine::setGlobal(name, v);
+        return SDK::okJson();
+    }
+
+    static Json handleCreateNamespace(const Json& params)
+    {
+        std::string name = params.value("name", "");
+        if (name.empty())
+            return SDK::makeErrorJson("name is required");
+
+        LuaEngine::createTable(name);
+        return SDK::okJson();
     }
 
     void registerLuaMethods(Runtime::MethodRegistry& registry)
     {
         registry.registerMethod("lua.execute", handleExecute);
         registry.registerMethod("lua.evaluate", handleEvaluate);
+        registry.registerMethod("lua.getGlobal", handleGetGlobal);
+        registry.registerMethod("lua.setGlobal", handleSetGlobal);
+        registry.registerMethod("lua.createNamespace", handleCreateNamespace);
     }
 }

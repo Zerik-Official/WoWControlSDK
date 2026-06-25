@@ -26,4 +26,8 @@ void     execute(const std::string& code);
 
 LuaResult evaluate(const std::string& code);
 
+LuaResult getGlobal(const std::string& name);
+void     setGlobal(const std::string& name, const LuaValue& value);
+void     createTable(const std::string& name);
+
 }
