@@ -273,6 +273,43 @@ def action_listen_events():
     except KeyboardInterrupt:
         print("\n[>] Listener stopped.")
 
+# ─── Lua ────────────────────────────────────────────────────
+
+def action_lua_execute():
+    code = input("Lua code: ").strip()
+    if code: print_json(send("lua.execute", {"code": code}))
+
+def action_lua_evaluate():
+    code = input("Lua code: ").strip()
+    if code: print_json(send("lua.evaluate", {"code": code}))
+
+def action_lua_get_global():
+    name = input("Global name: ").strip()
+    if name: print_json(send("lua.getGlobal", {"name": name}))
+
+def action_lua_set_global():
+    name = input("Global name: ").strip()
+    if not name: return
+    raw = input("Value (string/number/bool): ").strip()
+    if not raw: return
+    try:
+        v = json.loads(raw)
+        if isinstance(v, (int, float)):
+            val = v
+        elif isinstance(v, bool):
+            val = v
+        elif isinstance(v, str):
+            val = v
+        else:
+            print("[!] Unsupported type"); return
+    except json.JSONDecodeError:
+        val = raw
+    print_json(send("lua.setGlobal", {"name": name, "value": val}))
+
+def action_lua_create_namespace():
+    name = input("Namespace name (e.g. SDK): ").strip()
+    if name: print_json(send("lua.createNamespace", {"name": name}))
+
 # ─── Menu ─────────────────────────────────────────────────────
 
 MENU = [
@@ -333,6 +370,13 @@ MENU = [
     ("Set max buffer",       action_events_set_buffer),
     ("Check hook ready",     action_events_ready),
     ("Listen live",          action_listen_events),
+
+    ("Lua", None),
+    ("lua.execute (fire-and-forget)",    action_lua_execute),
+    ("lua.evaluate (with return)",       action_lua_evaluate),
+    ("lua.getGlobal",                    action_lua_get_global),
+    ("lua.setGlobal",                    action_lua_set_global),
+    ("lua.createNamespace",              action_lua_create_namespace),
 
     ("", None),
     ("Exit",                 None),
