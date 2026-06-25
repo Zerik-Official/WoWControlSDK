@@ -87,7 +87,7 @@ namespace Runtime
             ColorPrint(DIM, "────────────────────────────────────────────────────────");
             ColorPrint(WHT, "  Version : 1.0.0");
             ColorPrint(WHT, "  Author  : Zerik-Official");
-            ColorPrint(WHT, "  License : GNU General Public License v3.0");
+            ColorPrint(WHT, "  License : Apache License, Version 2.0");
             ColorPrint(WHT, "  Repo    : https://github.com/Zerik-Official/WoWControlSDK");
             ColorPrint(DIM, "────────────────────────────────────────────────────────");
             Print("");
