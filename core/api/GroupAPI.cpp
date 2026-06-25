@@ -7,6 +7,55 @@
 
 namespace
 {
+    struct GroupCache
+    {
+        CoreAPI::GroupInfo info;
+        uint32_t checksum = 0;
+        bool valid = false;
+    };
+
+    CoreAPI::GroupInfo buildGroup();
+
+    static GroupCache& getCache()
+    {
+        static GroupCache cache;
+        return cache;
+    }
+
+    static uint32_t computeChecksum()
+    {
+        uint32_t sum = 0;
+        for (int i = 0; i < Offsets::Group::PARTY_MAX_MEMBERS; i++)
+        {
+            WoWGUID guid = Memory::safeRead<WoWGUID>(
+                Offsets::Group::PARTY_PLAYER_GUIDS + (uintptr_t)(i * sizeof(WoWGUID))
+            );
+            sum ^= guid.low ^ guid.high;
+        }
+        for (int i = 0; i < Offsets::Group::RAID_MAX_MEMBERS; i++)
+        {
+            uintptr_t ptr = Memory::safeRead<uintptr_t>(
+                Offsets::Group::RAID_GROUP_START + (uintptr_t)(i * sizeof(uintptr_t))
+            );
+            if (!ptr) continue;
+            WoWGUID guid = Memory::safeRead<WoWGUID>(ptr);
+            sum ^= guid.low ^ guid.high;
+        }
+        return sum;
+    }
+
+    static CoreAPI::GroupInfo& getOrBuildGroup()
+    {
+        GroupCache& cache = getCache();
+        uint32_t cs = computeChecksum();
+        if (cache.valid && cache.checksum == cs)
+            return cache.info;
+        cache.info = buildGroup();
+        cache.checksum = cs;
+        cache.valid = true;
+        return cache.info;
+    }
+
     std::vector<WoWGUID> readPartyGuids()
     {
         std::vector<WoWGUID> guids;
@@ -134,38 +183,38 @@ namespace CoreAPI
     {
         GroupInfo GetGroup()
         {
-            return buildGroup();
+            return getOrBuildGroup();
         }
 
         GroupType GetGroupType()
         {
-            return buildGroup().type;
+            return getOrBuildGroup().type;
         }
 
         bool IsInGroup()
         {
-            GroupInfo g = buildGroup();
+            GroupInfo& g = getOrBuildGroup();
             return g.valid && g.type != GroupType::None;
         }
 
         bool IsInRaid()
         {
-            return buildGroup().type == GroupType::Raid;
+            return getOrBuildGroup().type == GroupType::Raid;
         }
 
         int GetMemberCount()
         {
-            return (int)buildGroup().members.size();
+            return (int)getOrBuildGroup().members.size();
         }
 
         WoWGUID GetLeaderGuid()
         {
-            return buildGroup().leaderGuid;
+            return getOrBuildGroup().leaderGuid;
         }
 
         GroupCombatSummary GetCombatSummary()
         {
-            GroupInfo          group = buildGroup();
+            GroupInfo&         group = getOrBuildGroup();
             GroupCombatSummary s     = {};
 
             for (const GroupMember& m : group.members)
@@ -196,7 +245,7 @@ namespace CoreAPI
 
         UnitRef GetMember(int index)
         {
-            GroupInfo g = buildGroup();
+            GroupInfo& g = getOrBuildGroup();
             if (index < 0 || index >= (int)g.members.size())
                 return UnitRef(NullHandle());
 
