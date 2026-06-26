@@ -221,7 +221,9 @@ Console.WriteLine(response);
 
 ## Feedback
 
-Found a bug? Have a suggestion? Open an [issue](https://github.com/Zerik-Official/WoWControlSDK/issues) on GitHub.
+Found a bug? Have a suggestion? Open an [issue](https://github.com/Zerik-Official/WoWControlSDK/issues) on GitHub, or reach out on [Discord](https://discord.com/users/738137581295763576).
+
+The project is also indexed on [DeepWiki](https://deepwiki.com/Zerik-Official/WoWControlSDK) — you can ask it questions about the codebase for quick answers. It updates every 7 days.
 
 ## License
 
