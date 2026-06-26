@@ -23,9 +23,9 @@
 </p>
 
 > [!CAUTION]
-> This SDK is **not** focused on hacking, cheating, or botting. It is a tool for legitimate integration — launchers, stream overlays, Discord rich presence, UI automation, and similar use cases. **Always play fair.** The author is not responsible for account suspensions or bans resulting from misuse of this software.
+> This SDK is **not** focused on hacking, cheating, or botting. It is a tool for legitimate integration — launchers, stream overlays, Discord rich presence, UI automation, and similar use cases. Though clearly most methods benefit botting use cases. **Always play fair.** The author is not responsible for account suspensions or bans resulting from misuse of this software.
 
-A lightweight DLL injector and SDK that exposes **World of Warcraft 3.3.5a** internals through a clean **JSON-RPC 2.0** interface over Windows Named Pipes. Communicate with WoW from **any language** — Python, JavaScript, C#, Rust — by sending JSON commands to `\\.\pipe\WowGameCommand`.
+A lightweight DLL injector and SDK that exposes internal methods of **World of Warcraft 3.3.5a** through a clean **JSON-RPC 2.0** interface over Windows Named Pipes. Communicate with WoW from **any language** — Python, JavaScript, C#, Rust — by sending JSON commands to `\\.\pipe\WowGameCommand`.
 
 This project was born from the need to extract real-time information from WoW (current screen, character data, map state, etc.) for an upcoming launcher — though maybe with way more features than I actually need just for a RichPresence. WoW's Lua API is very restrictive: no HTTP requests, no real-time file I/O, no way to communicate outside the game. The idea was inspired by [wow-discord-rpc](https://github.com/AipNooBest/wow-discord-rpc), a brilliant and clever project that encodes data into pixels and reads them from the screen to feed Discord's Rich Presence — it's what inspired me to create this SDK. WoWControlSDK takes a more direct approach: a lightweight injected DLL with a clean RPC interface.
 
@@ -35,7 +35,7 @@ This is still an early, rough version. As time goes on and I have more free time
 
 ## Documentation
 
-Documentation is a work in progress. Detailed docs will live in the `docs/` folder over time, covering architecture, writing custom RPC handlers, extending the API, and more.
+Work in progress. Browse the docs structure at [`docs/`](./docs/README.en.md) for architecture, injection guide, and detailed RPC method references.
 
 ## Features
 

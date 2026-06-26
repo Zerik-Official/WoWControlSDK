@@ -23,9 +23,9 @@
 </p>
 
 > [!CAUTION]
-> Este SDK **no** está enfocado en hacking, trampas o bots. Es una herramienta para integración legítima — launchers, overlays de stream, Discord rich presence, automatización de interfaz, y usos similares. **Recuerda jugar siempre de manera honesta.** El autor no se hace responsable por suspensiones de cuenta o baneos resultantes del mal uso de este software.
+> Este SDK **no** está enfocado en hacking, trampas o bots. Es una herramienta para integración legítima — launchers, overlays de stream, Discord rich presence, automatización de interfaz, y usos similares. Aunque está claro que la mayoría de métodos benefician el uso de bots. **Recuerda jugar siempre de manera honesta.** El autor no se hace responsable por suspensiones de cuenta o baneos resultantes del mal uso de este software.
 
-SDK liviano inyectable que expone los internos de **World of Warcraft 3.3.5a** a través de una interfaz **JSON-RPC 2.0** limpia sobre Named Pipes de Windows. Comunicate con WoW desde **cualquier lenguaje** — Python, JavaScript, C#, Rust — enviando comandos JSON a `\\.\pipe\WowGameCommand`.
+SDK liviano inyectable que expone métodos internos de **World of Warcraft 3.3.5a** a través de una interfaz **JSON-RPC 2.0** limpia sobre Named Pipes de Windows. Comunicate con WoW desde **cualquier lenguaje** — Python, JavaScript, C#, Rust — enviando comandos JSON a `\\.\pipe\WowGameCommand`.
 
 Este proyecto nace de la necesidad de extraer información en tiempo real de WoW (pantalla actual, datos del personaje, estado del mapa, etc.) para un próximo launcher — aunque quizás con demasiadas funcionalidades para lo que realmente necesito para un RichPresence. La API Lua de WoW es muy limitante: nada de peticiones HTTP, nada de lectura de archivos en tiempo real, no puedes comunicarte con el exterior. La idea se inspiró en [wow-discord-rpc](https://github.com/AipNooBest/wow-discord-rpc), un proyecto genial y muy ingenioso que codifica datos en píxeles y los lee desde la pantalla para alimentar el Rich Presence de Discord — fue lo que me inspiró a crear este SDK. WoWControlSDK toma un enfoque más directo: una DLL inyectable liviana con una interfaz RPC limpia.
 
@@ -35,7 +35,7 @@ Esta es aún una versión temprana y verde. Con el tiempo y a medida que tenga m
 
 ## Documentación
 
-La documentación está en progreso. Con el tiempo, los docs detallados estarán en la carpeta `docs/`, cubriendo arquitectura, escritura de handlers RPC personalizados, extensión de la API, y más.
+En progreso. Explora la estructura de documentación en [`docs/`](./docs/README.es.md) para arquitectura, guía de inyección y referencias detalladas de métodos RPC.
 
 ## Funcionalidades
 
