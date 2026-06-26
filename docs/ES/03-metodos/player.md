@@ -1,0 +1,3 @@
+# Métodos player.*
+
+TODO
