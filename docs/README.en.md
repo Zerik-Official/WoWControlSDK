@@ -1,5 +1,7 @@
 # WoWControlSDK Documentation
 
+<p align="center"><a href="README.es.md">Ver en Español</a></p>
+
 ## Index
 
 - [Architecture](./EN/01-architecture.md)
@@ -48,6 +50,10 @@ docs/
         ├── events.md
         └── dll.md
 ```
+
+## DeepWiki
+
+The project is indexed on [DeepWiki](https://deepwiki.com/Zerik-Official/WoWControlSDK) — you can ask it questions about the codebase for quick answers. The index updates every 7 days.
 
 ## Conventions
 
