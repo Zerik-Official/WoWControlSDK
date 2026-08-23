@@ -35,7 +35,7 @@ This is still an early, rough version. As time goes on and I have more free time
 
 ## Documentation
 
-Work in progress. Browse the docs structure at [`docs/`](./docs/README.en.md) for architecture, injection guide, and detailed RPC method references.
+Browse the docs structure at [`docs/`](./docs/README.en.md) for architecture, injection guide, and detailed RPC method references.
 
 ## Features
 
@@ -215,6 +215,12 @@ Console.WriteLine(response);
 | `object.exists` / `object.getType` / `object.isUnit` / `object.isPlayer` | Object inspection |
 | `events.subscribe` / `events.unsubscribe` / `events.list` | Event system — supports native Lua events (PLAYER_LOGIN, PLAYER_ENTERING_WORLD, etc.) |
 | `dll.toggleConsole` / `dll.getInfo` / `dll.getLogs` / `dll.setLogConfig` | DLL management |
+| `window.restore` / `window.maximize` / `window.focus` / `window.getPosition` | WoW window management |
+
+> [!NOTE]
+> There are many more methods available. Check the full documentation at [`docs/`](./docs/README.en.md).
+
+---
 
 > [!WARNING]
 > Only **WoW 3.3.5a (build 12340)** is supported. A clean, unmodified WoW client is recommended, though lightly modded clients may also work.

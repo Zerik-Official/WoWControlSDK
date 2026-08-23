@@ -44,6 +44,89 @@ def pipe_connected():
     except pywintypes.error:
         return False
 
+# ─── Window ───────────────────────────────────────────────────
+
+def action_window_get_handle():
+    print_json(send("window.getHandle"))
+
+def action_window_get_info():
+    print_json(send("window.getInfo"))
+
+def action_window_show():
+    print_json(send("window.show"))
+
+def action_window_hide():
+    print_json(send("window.hide"))
+
+def action_window_minimize():
+    print_json(send("window.minimize"))
+
+def action_window_restore():
+    print_json(send("window.restore"))
+
+def action_window_maximize():
+    print_json(send("window.maximize"))
+
+def action_window_focus():
+    print_json(send("window.focus"))
+
+def action_window_get_position():
+    print_json(send("window.getPosition"))
+
+def action_window_set_position():
+    x = int(input("X: ").strip() or "0")
+    y = int(input("Y: ").strip() or "0")
+    print_json(send("window.setPosition", {"x": x, "y": y}))
+
+def action_window_get_size():
+    print_json(send("window.getSize"))
+
+def action_window_set_size():
+    w = int(input("Width: ").strip() or "0")
+    h = int(input("Height: ").strip() or "0")
+    print_json(send("window.setSize", {"width": w, "height": h}))
+
+def action_window_set_bounds():
+    x = int(input("X [0]: ").strip() or "0")
+    y = int(input("Y [0]: ").strip() or "0")
+    w = int(input("Width [0]: ").strip() or "0")
+    h = int(input("Height [0]: ").strip() or "0")
+    print_json(send("window.setBounds", {"x": x, "y": y, "width": w, "height": h}))
+
+def action_window_set_title():
+    title = input("Title: ").strip()
+    if title:
+        print_json(send("window.setTitle", {"title": title}))
+
+def action_window_set_topmost():
+    v = input("Topmost? (y/n) [n]: ").strip().lower()
+    print_json(send("window.setTopMost", {"topMost": v == "y"}))
+
+def action_window_set_opacity():
+    raw = input("Opacity 0-100 [100]: ").strip()
+    percent = int(raw) if raw.isdigit() else 100
+    print_json(send("window.setOpacity", {"percent": percent}))
+
+def action_window_flash():
+    c = input("Count (0=infinite) [0]: ").strip()
+    t = input("Timeout ms [0]: ").strip()
+    count = int(c) if c.isdigit() else 0
+    timeout = int(t) if t.isdigit() else 0
+    print_json(send("window.flashTaskbar", {"count": count, "timeoutMs": timeout}))
+
+def action_window_set_icon():
+    path = input("Icon path (.ico): ").strip()
+    if not path:
+        print("[!] Path required"); return
+    t = input("Type (small/big/both) [both]: ").strip().lower()
+    params = {"path": path}
+    if t == "small" or t == "big":
+        params["type"] = t
+    print_json(send("window.setIcon", params))
+
+def action_window_restore_icon():
+    print_json(send("window.setIcon", {"restore": True}))
+
 # ─── Actions ─────────────────────────────────────────────────
 
 def action_launch_wow():
@@ -370,6 +453,27 @@ MENU = [
     ("Set max buffer",       action_events_set_buffer),
     ("Check hook ready",     action_events_ready),
     ("Listen live",          action_listen_events),
+
+    ("Window", None),
+    ("window.getHandle",      action_window_get_handle),
+    ("window.getInfo",        action_window_get_info),
+    ("window.show",           action_window_show),
+    ("window.hide",           action_window_hide),
+    ("window.minimize",       action_window_minimize),
+    ("window.restore",        action_window_restore),
+    ("window.maximize",       action_window_maximize),
+    ("window.focus",          action_window_focus),
+    ("window.getPosition",    action_window_get_position),
+    ("window.setPosition",    action_window_set_position),
+    ("window.getSize",        action_window_get_size),
+    ("window.setSize",        action_window_set_size),
+("window.setBounds",      action_window_set_bounds),
+    ("window.setTitle",       action_window_set_title),
+    ("window.setTopMost",     action_window_set_topmost),
+    ("window.setOpacity",     action_window_set_opacity),
+    ("window.flashTaskbar",   action_window_flash),
+    ("window.setIcon",        action_window_set_icon),
+    ("window.restoreIcon",    action_window_restore_icon),
 
     ("Lua", None),
     ("lua.execute (fire-and-forget)",    action_lua_execute),
