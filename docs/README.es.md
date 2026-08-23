@@ -16,6 +16,7 @@
   - [client.*](./ES/03-metodos/client.md)
   - [events.*](./ES/03-metodos/events.md)
   - [dll.*](./ES/03-metodos/dll.md)
+  - [window.*](./ES/03-metodos/window.md)
 
 ## Estructura
 
@@ -48,7 +49,8 @@ docs/
         ├── object.md
         ├── client.md
         ├── events.md
-        └── dll.md
+        ├── dll.md
+        └── window.md
 ```
 
 ## DeepWiki
