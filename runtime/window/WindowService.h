@@ -59,21 +59,35 @@ public:
 
     bool FlashTaskbar(uint32_t count = 0, uint32_t timeoutMs = 0);
 
+    bool SetIcon(const std::string& path, const std::optional<std::string>& type);
+    bool RestoreIcon();
+
     void SetEventCallback(WindowEventCallback callback);
 
 private:
+    struct IconState
+    {
+        HICON originalSmall = nullptr;
+        HICON originalBig = nullptr;
+        HICON customSmall = nullptr;
+        HICON customBig = nullptr;
+        bool hasOriginal = false;
+    };
+
     WindowService() = default;
-    ~WindowService() = default;
+    ~WindowService();
 
     HWND m_hwnd = nullptr;
     WNDPROC m_originalWndProc = nullptr;
     WindowEventCallback m_eventCallback;
+    IconState m_iconState;
 
     static const char* s_windowClasses[3];
     static LRESULT CALLBACK SubclassedWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
     void EmitEvent(const std::string& event, const SDK::Json& payload);
     void InvalidateHandle();
     void UpdateCacheFromHWND();
+    void DestroyCustomIcons();
 };
 
 }
