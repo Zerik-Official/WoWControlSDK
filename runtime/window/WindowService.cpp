@@ -2,6 +2,7 @@
 #include "runtime/console/ConsoleManager.h"
 #include <Windows.h>
 #include <string>
+#include <algorithm>
 
 namespace Runtime::Window
 {
@@ -16,6 +17,11 @@ WindowService& WindowService::Instance()
 {
     static WindowService instance;
     return instance;
+}
+
+WindowService::~WindowService()
+{
+    DestroyCustomIcons();
 }
 
 void WindowService::Initialize()
@@ -36,6 +42,29 @@ void WindowService::Shutdown()
     m_hwnd = nullptr;
 }
 
+static BOOL CALLBACK EnumWindowsCallback(HWND hwnd, LPARAM lparam)
+{
+    const char* const* classes = reinterpret_cast<const char* const*>(lparam);
+    char className[256];
+    if (GetClassNameA(hwnd, className, sizeof(className)))
+    {
+        for (int i = 0; i < 3; ++i)
+        {
+            if (_stricmp(className, classes[i]) == 0)
+            {
+                DWORD pid = 0;
+                GetWindowThreadProcessId(hwnd, &pid);
+                if (pid == GetCurrentProcessId())
+                {
+                    *reinterpret_cast<HWND*>(lparam + 24) = hwnd;
+                    return FALSE;
+                }
+            }
+        }
+    }
+    return TRUE;
+}
+
 bool WindowService::FindWoWWindow()
 {
     for (const char* cls : s_windowClasses)
@@ -47,6 +76,41 @@ bool WindowService::FindWoWWindow()
             return true;
         }
     }
+
+    for (const char* cls : s_windowClasses)
+    {
+        HWND hwnd = FindWindowA(cls, nullptr);
+        if (hwnd)
+        {
+            m_hwnd = hwnd;
+            return true;
+        }
+    }
+
+    HWND found = nullptr;
+    EnumWindows([](HWND hwnd, LPARAM lparam) -> BOOL
+    {
+        const char* const* classes = reinterpret_cast<const char* const*>(lparam);
+        char className[256];
+        if (GetClassNameA(hwnd, className, sizeof(className)))
+        {
+            for (int i = 0; i < 3; ++i)
+            {
+                if (_stricmp(className, classes[i]) == 0)
+                {
+                    DWORD pid = 0;
+                    GetWindowThreadProcessId(hwnd, &pid);
+                    if (pid == GetCurrentProcessId())
+                    {
+                        *reinterpret_cast<HWND*>(lparam + 24) = hwnd;
+                        return FALSE;
+                    }
+                }
+            }
+        }
+        return TRUE;
+    }, reinterpret_cast<LPARAM>(s_windowClasses));
+
     return false;
 }
 
@@ -236,6 +300,121 @@ bool WindowService::FlashTaskbar(uint32_t count, uint32_t timeoutMs)
     fwi.dwTimeout = timeoutMs;
 
     return FlashWindowEx(&fwi) != FALSE;
+}
+
+bool WindowService::SetIcon(const std::string& path, const std::optional<std::string>& type)
+{
+    auto hwnd = GetHandle();
+    if (!hwnd) return false;
+
+    if (type.has_value())
+    {
+        const std::string& t = type.value();
+        if (t != "small" && t != "big")
+        {
+            return false;
+        }
+    }
+
+    if (!m_iconState.hasOriginal)
+    {
+        m_iconState.originalSmall = reinterpret_cast<HICON>(
+            SendMessageA(*hwnd, WM_GETICON, ICON_SMALL, 0));
+        m_iconState.originalBig = reinterpret_cast<HICON>(
+            SendMessageA(*hwnd, WM_GETICON, ICON_BIG, 0));
+
+        if (!m_iconState.originalSmall)
+        {
+            m_iconState.originalSmall = reinterpret_cast<HICON>(
+                GetClassLongPtrA(*hwnd, GCLP_HICONSM));
+        }
+        if (!m_iconState.originalBig)
+        {
+            m_iconState.originalBig = reinterpret_cast<HICON>(
+                GetClassLongPtrA(*hwnd, GCLP_HICON));
+        }
+        m_iconState.hasOriginal = true;
+    }
+
+    if (m_iconState.customSmall)
+    {
+        DestroyIcon(m_iconState.customSmall);
+        m_iconState.customSmall = nullptr;
+    }
+    if (m_iconState.customBig)
+    {
+        DestroyIcon(m_iconState.customBig);
+        m_iconState.customBig = nullptr;
+    }
+
+    HICON newSmall = nullptr;
+    HICON newBig = nullptr;
+
+    if (!type.has_value() || type.value() == "small")
+    {
+        newSmall = reinterpret_cast<HICON>(LoadImageA(nullptr, path.c_str(), IMAGE_ICON, 16, 16, LR_LOADFROMFILE));
+        if (newSmall)
+        {
+            m_iconState.customSmall = newSmall;
+            SendMessageA(*hwnd, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(newSmall));
+        }
+    }
+
+    if (!type.has_value() || type.value() == "big")
+    {
+        newBig = reinterpret_cast<HICON>(LoadImageA(nullptr, path.c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE));
+        if (newBig)
+        {
+            m_iconState.customBig = newBig;
+            SendMessageA(*hwnd, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(newBig));
+        }
+    }
+
+    return (newSmall != nullptr) || (newBig != nullptr);
+}
+
+bool WindowService::RestoreIcon()
+{
+    auto hwnd = GetHandle();
+    if (!hwnd) return false;
+
+    if (!m_iconState.hasOriginal) return false;
+
+    if (m_iconState.customSmall)
+    {
+        DestroyIcon(m_iconState.customSmall);
+        m_iconState.customSmall = nullptr;
+    }
+    if (m_iconState.customBig)
+    {
+        DestroyIcon(m_iconState.customBig);
+        m_iconState.customBig = nullptr;
+    }
+
+    if (m_iconState.originalSmall)
+    {
+        SendMessageA(*hwnd, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(m_iconState.originalSmall));
+    }
+    if (m_iconState.originalBig)
+    {
+        SendMessageA(*hwnd, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(m_iconState.originalBig));
+    }
+
+    return true;
+}
+
+void WindowService::DestroyCustomIcons()
+{
+    if (m_iconState.customSmall)
+    {
+        DestroyIcon(m_iconState.customSmall);
+        m_iconState.customSmall = nullptr;
+    }
+    if (m_iconState.customBig)
+    {
+        DestroyIcon(m_iconState.customBig);
+        m_iconState.customBig = nullptr;
+    }
 }
 
 void WindowService::SetEventCallback(WindowEventCallback callback)
