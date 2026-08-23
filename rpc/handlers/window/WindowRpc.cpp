@@ -174,6 +174,56 @@ SDK::Json HandleFlashTaskbar(const SDK::Json& params)
     return SDK::okJson();
 }
 
+SDK::Json HandleSetIcon(const SDK::Json& params)
+{
+    bool hasPath = params.contains("path");
+    bool hasRestore = params.value("restore", false);
+
+    if (hasPath && hasRestore)
+    {
+        SDK::Json result;
+        result["error"] = "Cannot specify both 'path' and 'restore'";
+        return result;
+    }
+
+    if (hasRestore)
+    {
+        Runtime::Window::WindowService::Instance().RestoreIcon();
+        return SDK::okJson();
+    }
+
+    if (!hasPath)
+    {
+        SDK::Json result;
+        result["error"] = "Missing required parameter: 'path' or 'restore'";
+        return result;
+    }
+
+    std::string path = params.value("path", "");
+    if (path.empty())
+    {
+        SDK::Json result;
+        result["error"] = "Parameter 'path' cannot be empty";
+        return result;
+    }
+
+    std::optional<std::string> type;
+    if (params.contains("type"))
+    {
+        std::string t = params.value("type", "");
+        if (t != "small" && t != "big")
+        {
+            SDK::Json result;
+            result["error"] = "Invalid 'type' value. Expected 'small' or 'big'";
+            return result;
+        }
+        type = t;
+    }
+
+    bool ok = Runtime::Window::WindowService::Instance().SetIcon(path, type);
+    return SDK::okJson();
+}
+
 }
 
 void registerWindowMethods(Runtime::MethodRegistry& registry)
@@ -195,6 +245,7 @@ void registerWindowMethods(Runtime::MethodRegistry& registry)
     registry.registerMethod("window.setTopMost", HandleSetTopMost);
     registry.registerMethod("window.setOpacity", HandleSetOpacity);
     registry.registerMethod("window.flashTaskbar", HandleFlashTaskbar);
+    registry.registerMethod("window.setIcon", HandleSetIcon);
 }
 
 }
