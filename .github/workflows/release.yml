@@ -1,0 +1,102 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure CMake
+        run: cmake -B build
+
+      - name: Build Release
+        run: cmake --build build --config Release
+
+      - name: Verify build outputs
+        shell: pwsh
+        run: |
+          $files = @(
+            "bin/release/WoWControlSDK.dll",
+            "bin/release/WowInjector.exe",
+            "tests/wowsdk_cli.py",
+            "requirements.txt",
+            "LICENSE"
+          )
+
+          foreach ($file in $files) {
+            if (-not (Test-Path $file)) {
+              Write-Error "Missing release file: $file"
+              exit 1
+            }
+          }
+
+      - name: Generate manifest
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}"
+          $commit = "${{ github.sha }}"
+
+          $artifacts = @{}
+
+          foreach ($file in @(
+            "bin/release/WoWControlSDK.dll",
+            "bin/release/WowInjector.exe"
+          )) {
+            $name = Split-Path $file -Leaf
+            $hash = (Get-FileHash $file -Algorithm SHA256).Hash.ToLower()
+            $size = (Get-Item $file).Length
+
+            $artifacts[$name] = @{
+              sha256 = $hash
+              size = $size
+            }
+          }
+
+          $manifest = @{
+            schema_version = 1
+            version = $version
+            commit = $commit
+            artifacts = $artifacts
+          }
+
+          $manifest |
+            ConvertTo-Json -Depth 5 |
+            Set-Content manifest.json -Encoding UTF8
+
+      - name: Create release package
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}"
+          $package = "release/WoWControlSDK-$version"
+
+          New-Item -ItemType Directory -Force -Path "$package/binaries" | Out-Null
+
+          Copy-Item "bin/release/WoWControlSDK.dll" "$package/binaries/"
+          Copy-Item "bin/release/WowInjector.exe" "$package/binaries/"
+
+          Copy-Item "tests/wowsdk_cli.py" "$package/wowsdk_cli.py"
+          Copy-Item "requirements.txt" "$package/"
+          Copy-Item "LICENSE" "$package/"
+          Copy-Item "manifest.json" "$package/"
+
+          Compress-Archive `
+            -Path $package `
+            -DestinationPath "WoWControlSDK-$version.zip"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            WoWControlSDK-${{ github.ref_name }}.zip
+            manifest.json
