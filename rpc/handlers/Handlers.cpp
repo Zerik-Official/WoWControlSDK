@@ -10,6 +10,7 @@
 #include "core/LuaRpc.h"
 #include "control/ControlRpc.h"
 #include "event/EventRpc.h"
+#include "window/WindowRpc.h"
 
 namespace Rpc
 {
@@ -26,5 +27,6 @@ namespace Rpc
         registerLuaMethods(registry);
         registerControlMethods(registry);
         registerEventMethods(registry);
+        RPC::Window::registerWindowMethods(registry);
     }
 }

@@ -4,6 +4,7 @@
 #include "ipc/CommandPipe.h"
 #include "hooks/Hooks.h"
 #include "hooks/LoadingHooks.h"
+#include "window/WindowService.h"
 #include <Windows.h>
 
 namespace Runtime
@@ -27,6 +28,14 @@ namespace Runtime
         s_cache.setEventBus(&s_eventBus);
         Rpc::registerAllMethods(s_registry);
 
+        Window::WindowService::Instance().Initialize();
+        Window::WindowService::Instance().SetEventCallback(
+            [](const std::string& event, const SDK::Json& payload)
+            {
+                s_eventBus.emit(event, payload);
+            }
+        );
+
         s_cmdThread = CreateThread(nullptr, 0, CommandPipe::threadProc, nullptr, 0, nullptr);
 
         s_initialized = true;
@@ -34,6 +43,7 @@ namespace Runtime
 
     void shutdown()
     {
+        Window::WindowService::Instance().Shutdown();
         s_initialized = false;
     }
 

@@ -61,6 +61,8 @@ add_library(WoWControlSDK SHARED
     runtime/realm/RealmList.cpp
     runtime/events/EventPipe.cpp
 
+    runtime/window/WindowService.cpp
+
     hooks/Hooks.cpp
     hooks/lua/LuaHooks.cpp
     hooks/glue/GlueLoadHooks.cpp
@@ -75,6 +77,8 @@ add_library(WoWControlSDK SHARED
 
     rpc/handlers/control/ControlRpc.cpp
     rpc/handlers/event/EventRpc.cpp
+
+    rpc/handlers/window/WindowRpc.cpp
 
     utils/json/JsonIPC.cpp
 

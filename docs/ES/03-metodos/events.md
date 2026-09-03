@@ -221,7 +221,7 @@ Ninguno.
 
 El SDK proporciona dos categorías de eventos:
 
-**Eventos UI de WoW** — eventos estándar del游戏 disparados por `FrameScript_SignalEvent`. Suscríbete a cualquier nombre de evento de WoW. Ejemplos:
+**Eventos UI de WoW** — eventos estándar del juego disparados por `FrameScript_SignalEvent`. Suscríbete a cualquier nombre de evento de WoW. Ejemplos:
 - `PLAYER_LOGIN`
 - `PLAYER_ENTERING_WORLD`
 - `PLAYER_LEAVE_COMBAT`

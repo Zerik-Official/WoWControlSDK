@@ -16,6 +16,7 @@
   - [client.*](./EN/03-methods/client.md)
   - [events.*](./EN/03-methods/events.md)
   - [dll.*](./EN/03-methods/dll.md)
+  - [window.*](./EN/03-methods/window.md)
 
 ## Structure
 
@@ -35,7 +36,8 @@ docs/
 │       ├── object.md
 │       ├── client.md
 │       ├── events.md
-│       └── dll.md
+│       ├── dll.md
+│       └── window.md
 └── ES/                 ← Spanish docs (mirrors EN/)
     ├── 01-arquitectura.md
     ├── 02-inyeccion.md
@@ -48,7 +50,8 @@ docs/
         ├── object.md
         ├── client.md
         ├── events.md
-        └── dll.md
+        ├── dll.md
+        └── window.md
 ```
 
 ## DeepWiki
