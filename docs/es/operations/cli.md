@@ -26,7 +26,7 @@ DLL_PATH  = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "bin",
 INJECTOR  = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "bin", "release", "WowInjector.exe"))
 ```
 
-Ajusta `WOW_PATH` antes de usar las opciones de arranque. `DLL_PATH` e `INJECTOR` ya apuntan a la salida Release.
+Ajusta `WOW_PATH` antes de usar las opciones de arranque. `DLL_PATH` e `INJECTOR` ya apuntan a la salida Release. La CLI lanza el juego con `--no-auth`, así que sus peticiones y su escucha de eventos no necesitan token.
 
 ## Ejecución
 

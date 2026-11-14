@@ -6,11 +6,13 @@
 void printUsage(const char* argv0)
 {
     fprintf(stderr,
-        "usage: %s --wow <path> --dll <path> [options]\n"
+        "usage: %s --wow <path> --dll <path> (--token-stdin | --no-auth) [options]\n"
         "\n"
         "required:\n"
         "  --wow <path>        path to WoW.exe\n"
         "  --dll <path>        path to WoWControlSDK.dll\n"
+        "  --token-stdin       read the session token (32-128 hex characters) from stdin\n"
+        "  --no-auth           disable authentication (development only)\n"
         "\n"
         "options:\n"
         "  --pipe <name>       named pipe to wait for before unfreezing (default: WowGameCommand)\n"
@@ -34,6 +36,8 @@ bool parseArgs(int argc, char* argv[], Args& out)
         else if (strcmp(argv[i], "--wow-args") == 0 && i + 1 < argc) out.wowArgs  = argv[++i];
         else if (strcmp(argv[i], "--kill")     == 0) out.kill = true;
         else if (strcmp(argv[i], "--no-pipe")  == 0) out.usePipe = false;
+        else if (strcmp(argv[i], "--token-stdin") == 0) out.tokenStdin = true;
+        else if (strcmp(argv[i], "--no-auth")  == 0) out.noAuth = true;
         else if (strcmp(argv[i], "--pipe-cmd") == 0 && i + 1 < argc)
             out.pipeCommands.emplace_back(argv[++i]);
         else
@@ -45,6 +49,12 @@ bool parseArgs(int argc, char* argv[], Args& out)
 
     if (!out.wowPath || !out.dllPath)
         return false;
+
+    if (out.tokenStdin == out.noAuth)
+    {
+        fprintf(stderr, "[injector] choose exactly one of --token-stdin or --no-auth\n");
+        return false;
+    }
 
     return true;
 }

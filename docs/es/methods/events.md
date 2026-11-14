@@ -230,7 +230,7 @@ Los eventos de carga se sondean desde memoria una vez por frame en lugar de enga
 
 ## Transmisión de eventos en vivo
 
-Conéctate a `\\.\pipe\WowGameEvent` para recibir eventos como JSON delimitado por saltos de línea. El pipe acepta un cliente a la vez y permanece abierto hasta que el cliente se desconecta.
+Conéctate a `\\.\pipe\WowGameEvent` para recibir eventos como JSON delimitado por saltos de línea. El pipe acepta un cliente a la vez y permanece abierto hasta que el cliente se desconecta. Envía primero el saludo de autenticación; el SDK responde con `auth.ok` o `auth.failed` (consulta [autenticación](../protocol.md#autenticacion)). Con `--no-auth` no hace falta el saludo.
 
 ```python
 import json
@@ -239,7 +239,7 @@ import win32file
 
 pipe = win32file.CreateFile(
     r"\\.\pipe\WowGameEvent",
-    win32file.GENERIC_READ,
+    win32file.GENERIC_READ | win32file.GENERIC_WRITE,
     0,
     None,
     win32file.OPEN_EXISTING,
@@ -248,6 +248,7 @@ pipe = win32file.CreateFile(
 )
 
 try:
+    win32file.WriteFile(pipe, (json.dumps({"auth": TOKEN}) + "\n").encode("utf-8"))
     buffer = ""
     while True:
         _, data = win32file.ReadFile(pipe, 65536)

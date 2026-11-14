@@ -135,7 +135,7 @@ def action_launch_wow():
             print(f"[!] Not found: {p}")
             return
     cmd = [
-        INJECTOR, "--wow", WOW_PATH, "--dll", DLL_PATH, "--kill",
+        INJECTOR, "--wow", WOW_PATH, "--dll", DLL_PATH, "--kill", "--no-auth",
         "--wow-args", "-console",
         "--pipe-cmd", json.dumps({"jsonrpc":"2.0","method":"dll.toggleConsole","params":{},"id":1}),
         "--pipe-cmd", json.dumps({"jsonrpc":"2.0","method":"dll.setLogConfig","params":{"showInConsole":True},"id":2}),
