@@ -7,7 +7,7 @@ Events fall into two groups:
 | Group | Delivery | Examples |
 | --- | --- | --- |
 | WoW UI events | Pushed only after `events.subscribe` | `PLAYER_LOGIN`, `PLAYER_ENTERING_WORLD`, `UNIT_HEALTH`, `ZONE_CHANGED` |
-| SDK events | Pushed automatically | `client.screenChanged`, `loading.startup`, `loading.progress`, `loading.finished` |
+| SDK events | Pushed automatically | `client.screenChanged`, `loading.startup`, `loading.progress`, `loading.finished`, `loading.cancelled` |
 
 Every event that reaches the event pipe is also stored in the history buffer.
 
@@ -212,11 +212,21 @@ None.
 | Event | Description | Arguments |
 | --- | --- | --- |
 | `client.screenChanged` | The glue screen changed | `{"old": <int>, "new": <int>}` where `0` is unknown, `1` is login, `2` is character select and `3` is world |
-| `loading.startup` | A loading screen appeared | `{}` |
+| `loading.startup` | A loading screen appeared | `{"mapId": <int>, "background": <object or null>}` |
 | `loading.progress` | Loading progress update | `{"progress": <float>}` between `0.0` and `1.0` |
-| `loading.finished` | Loading completed and the world was entered | `{}` |
+| `loading.finished` | Loading completed and the world was entered | `{"mapId": <int>}` |
+| `loading.cancelled` | The loading screen closed without entering the world within 3 seconds | `{"mapId": <int>}` |
 
-Loading events are polled from memory rather than hooked from Lua, and `loading.progress` is emitted at most once every 100 milliseconds.
+`background` describes the loading screen image from `LoadingScreens.dbc`, or is `null` when the map has none and the generic `Interface\Glues\loading` image is used:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | integer | `LoadingScreens.dbc` row id |
+| `name` | string | Internal name of the loading screen |
+| `file` | string | Path of the `.blp` image, for example `Interface\Glues\LoadingScreens\LoadScreenNorthrend.blp` |
+| `hasWideScreen` | boolean | Whether a `Wide` variant exists; the client shows it on wide resolutions |
+
+Loading events are polled from memory once per frame rather than hooked from Lua, and `loading.progress` is emitted at most once every 100 milliseconds. A loading screen is reported only while the client's loading bar exists, so the screen drawn and destroyed in the same frame when logging out to the character list does not produce events.
 
 ## Live event streaming
 
