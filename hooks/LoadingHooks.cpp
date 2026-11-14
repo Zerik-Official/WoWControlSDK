@@ -50,8 +50,8 @@ namespace Hooks::Loading
         {
             s_awaitingWorld       = false;
             s_mapId               = LoadingScreen::getMapId();
-            s_lastEmittedProgress = -1.0f;
-            s_lastProgressTime    = 0;
+            s_lastEmittedProgress = LoadingScreen::getProgress();
+            s_lastProgressTime    = now;
 
             SDK::Json data;
             data["mapId"]      = s_mapId;
