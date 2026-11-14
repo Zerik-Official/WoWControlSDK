@@ -123,7 +123,7 @@ sequenceDiagram
 3. Si el evento está suscrito con `events.subscribe`, se envía a `\\.\pipe\WowGameEvent`.
 4. `StateCache` sondea el estado del jugador, el mundo y la pantalla en cada frame.
 5. Cuando cambia la pantalla glue, `StateCache` envía `client.screenChanged`.
-6. Los hooks de carga envían `loading.startup`, `loading.progress` y `loading.finished`.
+6. Los hooks de carga envían `loading.startup`, `loading.progress`, `loading.finished` y `loading.cancelled`.
 
 Los eventos también se guardan en un búfer circular que `events.getHistory` puede leer. El pipe de eventos acepta un cliente externo a la vez y escribe un objeto JSON por línea.
 
@@ -150,7 +150,7 @@ Todas las direcciones del juego, punteros a función y offsets de estructuras se
 | `OffsetsConsole.h` | Funciones de CVar |
 | `OffsetsFrame.h` | Frame de render y D3D |
 | `OffsetsGroup.h` | Estructuras de grupo y raid |
-| `OffsetsLoading.h` | Flag y progreso de carga |
+| `OffsetsLoading.h` | Estado y progreso de la pantalla de carga y tablas `Map` / `LoadingScreens` |
 | `OffsetsLogin.h` | Autenticación, logout y lista de personajes |
 | `OffsetsLua.h` | Estado de Lua y handler de eventos de señal |
 | `OffsetsMap.h` | Conversión de posición de mapa |
@@ -170,7 +170,7 @@ Los eventos que llegan al pipe se dividen en dos grupos:
 
 | Grupo | Eventos |
 | --- | --- |
-| Eventos del SDK, enviados automáticamente | `client.screenChanged`, `loading.startup`, `loading.progress`, `loading.finished` |
+| Eventos del SDK, enviados automáticamente | `client.screenChanged`, `loading.startup`, `loading.progress`, `loading.finished`, `loading.cancelled` |
 | Eventos UI de WoW, enviados tras `events.subscribe` | `PLAYER_LOGIN`, `PLAYER_ENTERING_WORLD`, `UNIT_HEALTH`, `ZONE_CHANGED` y cualquier otro evento disparado por `FrameScript_SignalEvent` |
 
 El historial es un búfer circular de 256 entradas por defecto. `events.getHistory`, `events.clearHistory` y `events.setMaxBuffer` lo gestionan, y las mismas entradas se escriben en el pipe cuando hay un cliente conectado.
