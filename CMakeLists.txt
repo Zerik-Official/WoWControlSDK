@@ -28,12 +28,22 @@ add_library(WoWControlSDK SHARED
     core/native/WorldReader.cpp
     core/native/GlueAPI.cpp
     core/native/CharacterReader.cpp
+    core/native/ClientDb.cpp
+    core/native/NameCache.cpp
+    core/native/FrameScript.cpp
+    core/native/ClientPacket.cpp
 
     core/api/UnitAPI.cpp
     core/api/PlayerAPI.cpp
     core/api/WorldAPI.cpp
     core/api/GroupAPI.cpp
     core/api/ObjectAPI.cpp
+    core/api/FriendsAPI.cpp
+    core/api/SummonAPI.cpp
+    core/api/LfgAPI.cpp
+    core/api/TradeAPI.cpp
+    core/api/DuelAPI.cpp
+    core/api/BattlefieldAPI.cpp
 
     core/resolvers/NameResolver.cpp
     core/resolvers/UnitResolver.cpp
@@ -61,6 +71,7 @@ add_library(WoWControlSDK SHARED
     runtime/console/LogCapture.cpp
     runtime/realm/RealmList.cpp
     runtime/events/EventPipe.cpp
+    runtime/events/GameEventBridge.cpp
 
     runtime/window/WindowService.cpp
 
@@ -73,6 +84,7 @@ add_library(WoWControlSDK SHARED
     hooks/GlueHooks.cpp
     hooks/EventHooks.cpp
     hooks/LoadingHooks.cpp
+    hooks/SocialHooks.cpp
 
     ipc/CommandPipe.cpp
     ipc/Auth.cpp
@@ -82,6 +94,7 @@ add_library(WoWControlSDK SHARED
     rpc/handlers/event/EventRpc.cpp
 
     rpc/handlers/window/WindowRpc.cpp
+    rpc/handlers/social/SocialRpc.cpp
 
     utils/json/JsonIPC.cpp
 
