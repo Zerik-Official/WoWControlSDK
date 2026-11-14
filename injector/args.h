@@ -12,6 +12,8 @@ struct Args
     DWORD                    waitMs    = 500;
     bool                     usePipe   = true;
     bool                     kill      = false;
+    bool                     tokenStdin = false;
+    bool                     noAuth    = false;
     std::vector<std::string> pipeCommands;
 };
 
