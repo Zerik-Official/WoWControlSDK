@@ -1,0 +1,99 @@
+site_name: WoWControlSDK
+site_description: Control SDK for World of Warcraft 3.3.5a over JSON-RPC 2.0
+site_url: https://zerik-official.github.io/WoWControlSDK/docs/
+docs_dir: docs
+dev_addr: 127.0.0.1:8001
+exclude_docs: |
+  README.md
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue grey
+      accent: amber
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue grey
+      accent: amber
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+plugins:
+  - search
+  - i18n:
+      docs_structure: folder
+      languages:
+        - locale: en
+          default: true
+          name: English
+          build: true
+        - locale: es
+          name: Español
+          build: true
+          nav_translations:
+            Home: Inicio
+            Getting started: Primeros pasos
+            Architecture: Arquitectura
+            Injection: Inyección
+            RPC protocol: Protocolo RPC
+            Methods: Métodos
+            Operations: Operación
+            Building: Compilación
+            CLI tool: Herramienta CLI
+            Releases: Versiones
+            Documentation site: Sitio de documentación
+            Glossary: Glosario
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Architecture: architecture.md
+  - Injection: injection.md
+  - RPC protocol: protocol.md
+  - Methods:
+      - methods/index.md
+      - lua.*: methods/lua.md
+      - unit.*: methods/unit.md
+      - group.*: methods/group.md
+      - player.*: methods/player.md
+      - world.*: methods/world.md
+      - object.*: methods/object.md
+      - client.*: methods/client.md
+      - events.*: methods/events.md
+      - dll.*: methods/dll.md
+      - window.*: methods/window.md
+  - Operations:
+      - Building: operations/building.md
+      - CLI tool: operations/cli.md
+      - Releases: operations/releases.md
+      - Documentation site: operations/documentation.md
+  - Glossary: glossary.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
