@@ -73,6 +73,12 @@ nav:
       - group.*: methods/group.md
       - player.*: methods/player.md
       - world.*: methods/world.md
+      - friends.*: methods/friends.md
+      - summon.*: methods/summon.md
+      - lfg.*: methods/lfg.md
+      - trade.*: methods/trade.md
+      - duel.*: methods/duel.md
+      - battlefield.*: methods/battlefield.md
       - object.*: methods/object.md
       - client.*: methods/client.md
       - events.*: methods/events.md
