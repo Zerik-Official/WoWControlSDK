@@ -11,7 +11,8 @@ Cada método RPC pertenece a un dominio. Cada dominio tiene su propia página co
 - **GUIDs** devueltos como arreglos `[high, low]` de dos enteros sin signo de 32 bits.
 - **Posiciones** como objetos con `x`, `y` y `z` en coma flotante. Las posiciones del mundo usan coordenadas del juego; las de mapa están normalizadas.
 - **Errores** normalmente dentro de `result` como `{"error": "<mensaje>"}`. Un sobre JSON-RPC correcto no garantiza que la operación haya funcionado.
-- **Métodos cacheados** (`player.*`, `world.*` y `group.*`) que leen la caché por frame o por checksum y responden de inmediato. Los métodos no cacheados llaman al hilo del juego.
+- **Métodos cacheados** (`player.*` y `world.*`) que leen la caché por frame y responden de inmediato. Los demás métodos se ejecutan en el hilo del juego.
+- **Acciones nativas** (`group.acceptInvite`, `summon.accept`, `lfg.acceptProposal`, `trade.accept`, `duel.accept`, `battlefield.acceptPort` y sus opuestos) que llaman a las mismas funciones del cliente que los botones del juego. Nunca ejecutan Lua.
 
 ## Dominios
 
@@ -19,9 +20,15 @@ Cada método RPC pertenece a un dominio. Cada dominio tiene su propia página co
 | --- | --- | --- |
 | [lua.*](lua.md) | 5 | Ejecutar, evaluar y gestionar globales en la Lua VM de WoW |
 | [unit.*](unit.md) | 4 | Leer salud, poder, posición, rotación y flags de estado de una unidad |
-| [group.*](group.md) | 2 | Leer la lista del grupo o raid y un resumen de combate |
+| [group.*](group.md) | 5 | Leer la lista del grupo o raid, un resumen de combate y las invitaciones de grupo, y responder a las invitaciones |
 | [player.*](player.md) | 4 | Leer salud, posición, objetivo y estado completo cacheados del jugador |
-| [world.*](world.md) | 1 | Leer el mapa, la zona y el estado de carga actuales |
+| [world.*](world.md) | 1 | Leer el mapa, la zona, la instancia, la dificultad y el estado de carga actuales |
+| [friends.*](friends.md) | 1 | Leer la lista de amigos |
+| [summon.*](summon.md) | 3 | Leer, aceptar y rechazar invocaciones |
+| [lfg.*](lfg.md) | 4 | Leer y responder a las propuestas del Buscador de mazmorras |
+| [trade.*](trade.md) | 6 | Leer y responder a las solicitudes de comercio y a la ventana de comercio |
+| [duel.*](duel.md) | 3 | Leer, aceptar y rechazar duelos |
+| [battlefield.*](battlefield.md) | 3 | Leer las colas de campos de batalla y arenas y responder a sus invitaciones |
 | [object.*](object.md) | 4 | Inspeccionar si una entidad existe y de qué tipo es |
 | [client.*](client.md) | 17 | Login, selección de reino, lista de personajes, estado de pantalla y automatización de EULA/TOS |
 | [events.*](events.md) | 8 | Suscribirse a eventos de WoW y gestionar el historial |
@@ -34,9 +41,15 @@ Cada método RPC pertenece a un dominio. Cada dominio tiene su propia página co
 | --- | --- |
 | `lua` | `execute`, `evaluate`, `getGlobal`, `setGlobal`, `createNamespace` |
 | `unit` | `get`, `state`, `position`, `mapPosition` |
-| `group` | `get`, `combatSummary` |
+| `group` | `get`, `combatSummary`, `getInvite`, `acceptInvite`, `declineInvite` |
 | `player` | `getHealth`, `getPosition`, `getTarget`, `getState` |
 | `world` | `getState` |
+| `friends` | `list` |
+| `summon` | `get`, `accept`, `decline` |
+| `lfg` | `getProposal`, `getDungeon`, `acceptProposal`, `rejectProposal` |
+| `trade` | `get`, `acceptRequest`, `declineRequest`, `accept`, `unaccept`, `cancel` |
+| `duel` | `get`, `accept`, `decline` |
+| `battlefield` | `getQueues`, `acceptPort`, `leaveQueue` |
 | `object` | `exists`, `getType`, `isUnit`, `isPlayer` |
 | `client` | `ping`, `getScreen`, `getDebugState`, `login`, `enterWorld`, `logout`, `quit`, `getCharacters`, `refreshCharacters`, `getRealmlist`, `setRealmlist`, `acceptEULA`, `acceptTOS`, `acceptTermination`, `acceptScanning`, `acceptContest`, `acceptAll` |
 | `events` | `subscribe`, `unsubscribe`, `list`, `clear`, `getHistory`, `clearHistory`, `setMaxBuffer`, `isReady` |
