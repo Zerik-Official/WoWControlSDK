@@ -49,6 +49,7 @@ __pycache__/
 deps/**/build/
 deps/**/out/
 deps/**/*.obj
+site/*
 
 # =========================
 # OS junk
