@@ -1,92 +1,97 @@
 #include "LoadingHooks.h"
 #include <Windows.h>
-#include "offsets/OffsetsLoading.h"
-#include "offsets/OffsetsClient.h"
+#include "core/native/ClientState.h"
+#include "core/native/LoadingScreen.h"
 #include "runtime/events/EventPipe.h"
 #include "utils/json/Json.h"
 
 namespace Hooks::Loading
 {
-    static bool     s_loading             = false;
-    static int      s_lastFlag           = -1;
+    static bool     s_active              = false;
+    static int      s_mapId               = -1;
     static float    s_lastEmittedProgress = -1.0f;
     static uint64_t s_lastProgressTime    = 0;
-    static bool     s_lastInWorld         = false;
-    static uint64_t s_startupTime         = 0;
-    static float    s_firstProgress       = -1.0f;
-    static bool     s_hadRealProgress     = false;
-    static float    s_idleProgress        = -1.0f;
+    static bool     s_awaitingWorld       = false;
+    static uint64_t s_closedTime          = 0;
+
+    static constexpr uint64_t PROGRESS_INTERVAL_MS = 100;
+    static constexpr uint64_t WORLD_GRACE_MS       = 3000;
+
+    static SDK::Json backgroundJson(int mapId)
+    {
+        LoadingScreen::Background background = LoadingScreen::getBackground(mapId);
+        if (!background.found)
+            return SDK::Json();
+
+        SDK::Json data;
+        data["id"]            = background.id;
+        data["name"]          = background.name;
+        data["file"]          = background.file;
+        data["hasWideScreen"] = background.hasWideScreen;
+        return data;
+    }
+
+    static void pushEnd(const char* eventName, uint64_t now)
+    {
+        SDK::Json data;
+        data["mapId"] = s_mapId;
+        Runtime::EventPipe::PushEvent(eventName, data, now);
+        s_awaitingWorld = false;
+        s_mapId = -1;
+    }
 
     void PollFlag()
     {
-        int flag = *(int*)Offsets::Loading::LOADING_FLAG;
-        bool inWorld = *(bool*)Offsets::Client::IN_WORLD_FLAG;
-        uint64_t now = GetTickCount64();
+        bool     active  = LoadingScreen::isActive();
+        bool     inWorld = WoW::IsInWorld();
+        uint64_t now     = GetTickCount64();
 
-        if (!s_loading && flag != -1 && !inWorld)
+        if (active && !s_active)
         {
-            bool startup = false;
+            s_awaitingWorld       = false;
+            s_mapId               = LoadingScreen::getMapId();
+            s_lastEmittedProgress = -1.0f;
+            s_lastProgressTime    = 0;
 
-            if (flag != s_lastFlag)
-                startup = true;
-
-            else if (s_lastInWorld)
-                startup = true;
-
-            else
-            {
-                float prog = *(float*)Offsets::Loading::PROGRESS_VALUE;
-                if (prog < 1.0f && prog != s_idleProgress && s_idleProgress != -1.0f)
-                    startup = true;
-                s_idleProgress = prog;
-            }
-
-            if (startup)
-            {
-                s_loading = true;
-                s_startupTime = now;
-                s_lastEmittedProgress = -1.0f;
-                s_lastProgressTime = now;
-                s_firstProgress = *(float*)Offsets::Loading::PROGRESS_VALUE;
-                s_hadRealProgress = false;
-                s_idleProgress = -1.0f;
-                SDK::Json data;
-                Runtime::EventPipe::PushEvent("loading.startup", data, now);
-            }
+            SDK::Json data;
+            data["mapId"]      = s_mapId;
+            data["background"] = backgroundJson(s_mapId);
+            Runtime::EventPipe::PushEvent("loading.startup", data, now);
         }
 
-        if (s_loading && now - s_lastProgressTime >= 100)
+        if (active && now - s_lastProgressTime >= PROGRESS_INTERVAL_MS)
         {
-            float progress = *(float*)Offsets::Loading::PROGRESS_VALUE;
+            float progress = LoadingScreen::getProgress();
             if (progress != s_lastEmittedProgress)
             {
-                if (progress != s_firstProgress)
-                    s_hadRealProgress = true;
                 s_lastEmittedProgress = progress;
-                s_lastProgressTime = now;
+                s_lastProgressTime    = now;
                 SDK::Json data;
                 data["progress"] = progress;
                 Runtime::EventPipe::PushEvent("loading.progress", data, now);
             }
         }
 
-        if (inWorld && !s_lastInWorld && s_loading)
+        if (!active && s_active)
         {
-            s_loading = false;
-            s_lastEmittedProgress = -1.0f;
-            SDK::Json data;
-            Runtime::EventPipe::PushEvent("loading.finished", data, now);
+            if (inWorld)
+                pushEnd("loading.finished", now);
+            else
+            {
+                s_awaitingWorld = true;
+                s_closedTime    = now;
+            }
         }
 
-        if (s_loading && !inWorld && now - s_startupTime > 5000 && !s_hadRealProgress)
+        if (s_awaitingWorld && !active)
         {
-            s_loading = false;
-            s_lastFlag = -1;
-            s_lastEmittedProgress = -1.0f;
+            if (inWorld)
+                pushEnd("loading.finished", now);
+            else if (now - s_closedTime >= WORLD_GRACE_MS)
+                pushEnd("loading.cancelled", now);
         }
 
-        s_lastFlag = flag;
-        s_lastInWorld = inWorld;
+        s_active = active;
     }
 
     void Initialize() {}
