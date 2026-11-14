@@ -164,7 +164,7 @@ The event system has two independent layers.
 
 **EventBus** (`runtime/events/EventBus.h`) is the in-process publish/subscribe bus. `StateCache` uses it to emit events such as `player.healthChanged` and `world.zoneChanged`. No internal component subscribes to those events today; the bus is available for future in-process use.
 
-**EventPipe** (`runtime/events/EventPipe.h`) is the external stream at `\\.\pipe\WowGameEvent`. `StateCache` writes `client.screenChanged`, and `LoadingHooks` writes the loading events. Subscribed WoW UI events are written by `EventHooks`. The pipe runs in byte mode and separates messages with a newline.
+**EventPipe** (`runtime/events/EventPipe.h`) is the external stream at `\\.\pipe\WowGameEvent`. `StateCache` writes `client.screenChanged`, and `LoadingHooks` writes the loading events. Subscribed WoW UI events are written by `EventHooks`. `EventHooks` also hands social, trade, duel, queue and whisper events to `runtime/events/GameEventBridge`, which reads the related data through `core/api/` and writes the `friends.*`, `group.invite*`, `summon.*`, `lfg.*`, `trade.*`, `duel.*`, `battlefield.*` and `chat.whisperReceived` events. `hooks/SocialHooks` detours the native functions behind the invitation, summon, trade and duel buttons so answers given in the game are reported too. The pipe runs in byte mode and separates messages with a newline.
 
 Events pushed to the event pipe fall into two groups:
 
@@ -177,4 +177,4 @@ The event history is a circular buffer with a default of 256 entries. `events.ge
 
 ## State cache
 
-`runtime/state/StateCache` refreshes player, world and screen state once per frame. The `player.*` and `world.*` domains read that cache instead of posting a request to the game thread, so they return quickly and cost the same regardless of game load. Group data uses a checksum-based cache and is rebuilt only when the group composition changes.
+`runtime/state/StateCache` refreshes player, world and screen state once per frame. The `player.*` and `world.*` domains read that cache instead of posting a request to the game thread, so they return quickly and cost the same regardless of game load. Group data is read from the client's group tables on the game thread on every call, so it always reflects the latest values sent by the server.
