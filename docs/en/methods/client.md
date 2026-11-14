@@ -1,0 +1,302 @@
+# client.* methods
+
+Control the game session: login, realm selection, character management, screen detection, diagnostics and legal agreement automation.
+
+Most state-changing calls are posted to the game thread. Calls that need a result, such as `client.login` and `client.enterWorld`, block the RPC thread while polling.
+
+## client.ping
+
+Health check. It succeeds whenever the DLL is loaded and the command pipe is listening.
+
+### Parameters
+
+None.
+
+### Response
+
+```json
+{"status": "ok"}
+```
+
+## client.getScreen
+
+Returns the current game screen and login state.
+
+### Parameters
+
+None.
+
+### Response
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `screen` | string | `"login"`, `"charselect"`, `"world"` or the raw glue screen name |
+| `inWorld` | boolean | Whether the player is in the game world |
+| `loginState` | integer | Raw WoW login state value |
+
+## client.getDebugState
+
+Returns low-level authentication and connection state for diagnostics.
+
+### Parameters
+
+None.
+
+### Response
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `netClientPtr` | integer | Memory address of the `NetClient` object |
+| `authResultCode` | integer | Raw WoW authentication result code |
+| `errorFlag` | integer | Net error flag |
+| `authStatus` | integer | Raw authentication status |
+| `loginState` | integer | Raw login state |
+| `screen` | string | Current glue screen name |
+| `inWorld` | boolean | Whether the player is in the game world |
+| `authResultStr` | string | Captured login result string |
+
+!!! warning
+    The fields are raw memory values that depend on the client build. Use this method for diagnosis, not for application logic.
+
+## client.login
+
+Performs a complete login sequence. It optionally sets the realm list and realm name CVars, sends the credentials and waits for the login result.
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `username` | string | Yes | Account username |
+| `password` | string | Yes | Account password |
+| `realmList` | string | No | If provided, sets the `realmList` CVar before login |
+| `realmName` | string | No | If provided, selects the realm and waits for the character select screen |
+
+### Response
+
+On success:
+
+```json
+{"ok": true}
+```
+
+On failure:
+
+```json
+{"error": "incorrect password"}
+```
+
+When the login succeeds but a later wait fails, the response also contains `ok: false`:
+
+```json
+{"ok": false, "error": "realm list timeout"}
+```
+
+### Error strings
+
+| Error | Meaning |
+| --- | --- |
+| `not on login screen` | The client is not on the login screen |
+| `username and password required` | One of the credentials is empty |
+| `login failed` | Generic authentication failure |
+| `server down` | The login server is offline |
+| `unknown account` | The account does not exist |
+| `incorrect password` | Wrong password |
+| `disconnected` | The connection was closed |
+| `parental control` | Parental controls block the account |
+| `chargeback` | The account has a chargeback |
+| `conversion required` | The account must be converted |
+| `account banned` | The account is banned |
+| `account suspended` | The account is suspended |
+| `account locked` | The account is locked |
+| `game account locked` | The game account is locked |
+| `unlockable lock` | The account has an unlockable lock |
+| `already online` | The account is already logged in |
+| `bad version` | The client version is not accepted |
+| `no time remaining` | The subscription expired |
+| `database busy` | The login database is busy |
+| `trial expired` | The trial period expired |
+| `account converted` | The account was converted |
+| `login timeout` | No login result arrived within 20 seconds |
+| `realm list timeout` | The realm list was not ready within 5 seconds |
+| `realm select timeout` | The character select screen did not appear within 15 seconds |
+| `unknown error` | An unmapped login result |
+
+### Example
+
+```json
+{"jsonrpc": "2.0", "id": 1, "method": "client.login", "params": {"username": "myuser", "password": "mypass", "realmName": "MyServer"}}
+```
+
+!!! note
+    The login wait is 20 seconds. When `realmName` is provided, the method also waits up to 5 seconds for the realm list and up to 15 seconds for the character select screen.
+
+!!! warning
+    This method blocks the RPC thread while polling with `Sleep(50)`. Do not call it from time-sensitive code.
+
+## client.enterWorld
+
+Selects a character and enters the world.
+
+### Parameters
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `index` | integer | No | `0` | Character slot index, used when `name` is not provided |
+| `name` | string | No | | Character name, which takes precedence over `index` |
+| `wait` | boolean | No | `true` | Wait until the world is fully loaded, up to 30 seconds |
+
+### Response
+
+```json
+{"ok": true}
+```
+
+### Errors
+
+| Condition | Error |
+| --- | --- |
+| Not on the character select screen | `not on character select screen` |
+| The name does not exist | `character not found` |
+| The index is out of range | `index out of range` |
+| The world did not load within 30 seconds | `enter world timeout` |
+
+## client.logout
+
+Logs out from the world to the character select screen.
+
+### Parameters
+
+None.
+
+### Response
+
+```json
+{"ok": true}
+```
+
+!!! note
+    The call is posted to the game thread and returns immediately. It does not wait for the logout to complete.
+
+## client.quit
+
+Quits the game client.
+
+### Parameters
+
+None.
+
+### Response
+
+```json
+{"ok": true}
+```
+
+!!! warning
+    The response is sent before the process exits. The pipe connection is closed shortly after.
+
+## client.getCharacters
+
+Returns the characters on the selected realm.
+
+### Parameters
+
+None.
+
+### Response
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `count` | integer | Number of characters |
+| `characters` | array | Character objects |
+
+**Character fields:**
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `index` | integer | Slot index, starting at 0 |
+| `name` | string | Character name |
+| `level` | integer | Character level |
+| `race` | integer | Race ID |
+| `class` | integer | Class ID |
+| `gender` | integer | Gender ID |
+| `map` | integer | Last known map ID |
+| `zone` | integer | Last known zone ID |
+
+!!! note
+    Call this method on the character select screen, after `client.login` or `client.refreshCharacters`.
+
+## client.refreshCharacters
+
+Requests a fresh character list from the server.
+
+### Parameters
+
+None.
+
+### Response
+
+```json
+{"ok": true}
+```
+
+!!! note
+    The request is posted to the game thread and does not wait for completion. Call `client.getCharacters` after a short delay.
+
+## client.getRealmlist
+
+Returns the current `realmList` CVar.
+
+### Parameters
+
+None.
+
+### Response
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `realmList` | string | Current realm list address |
+
+## client.setRealmlist
+
+Sets the `realmList` CVar.
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `realmList` | string | Yes | New realm list address |
+
+### Response
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `ok` | boolean | Whether the CVar was set |
+
+!!! note
+    Set the realm list while the client is on the login screen. The value is used by the next login attempt.
+
+## EULA and TOS methods
+
+The following methods dismiss the corresponding legal agreement dialog:
+
+| Method | Agreement |
+| --- | --- |
+| `client.acceptEULA` | End User License Agreement |
+| `client.acceptTOS` | Terms of Service |
+| `client.acceptTermination` | Termination Without Cause |
+| `client.acceptScanning` | Scanning agreement |
+| `client.acceptContest` | Contest agreement |
+| `client.acceptAll` | All of the above |
+
+### Parameters
+
+None, for all six methods.
+
+### Response
+
+```json
+{"ok": true}
+```
+
+!!! note
+    These calls are designed for the first-run login flow. Calling them when no agreement is displayed is harmless. Each call invokes the game function and hides the agreement frame through Lua.
