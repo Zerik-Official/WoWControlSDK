@@ -75,6 +75,8 @@ add_library(WoWControlSDK SHARED
     hooks/LoadingHooks.cpp
 
     ipc/CommandPipe.cpp
+    ipc/Auth.cpp
+    ipc/PipeSecurity.cpp
 
     rpc/handlers/control/ControlRpc.cpp
     rpc/handlers/event/EventRpc.cpp
