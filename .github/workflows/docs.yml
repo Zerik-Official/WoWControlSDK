@@ -1,0 +1,106 @@
+name: docs
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-docs.txt
+
+      - name: Install MkDocs Material and the i18n plugin
+        run: pip install -r requirements-docs.txt
+
+      - name: Build the site in both languages, failing on any warning
+        run: mkdocs build --strict
+
+      - name: Nest the built site under /docs, so it lands at /WoWControlSDK/docs/
+        run: |
+          mkdir -p pages-root/docs
+          cp -r site/. pages-root/docs/
+
+      - name: Redirect the root of the Pages site to the docs
+        run: |
+          cat > pages-root/index.html <<'HTML'
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8">
+              <title>WoWControlSDK documentation</title>
+              <meta http-equiv="refresh" content="0; url=docs/">
+              <link rel="canonical" href="https://zerik-official.github.io/WoWControlSDK/docs/">
+            </head>
+            <body>
+              <a href="docs/">WoWControlSDK documentation</a>
+            </body>
+          </html>
+          HTML
+
+      - name: Set up the Pages environment
+        uses: actions/configure-pages@v5
+
+      - name: Upload the built site as a Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: pages-root
+
+  rebuild:
+    name: Rebuild DLL and injector
+    runs-on: windows-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Configure CMake for the 32-bit client
+        run: cmake -B build -A Win32
+
+      - name: Build Release
+        run: cmake --build build --config Release
+
+      - name: Verify build outputs
+        shell: pwsh
+        run: |
+          $files = @(
+            "bin/release/WoWControlSDK.dll",
+            "bin/release/WowInjector.exe"
+          )
+
+          foreach ($file in $files) {
+            if (-not (Test-Path $file)) {
+              Write-Error "Missing build output: $file"
+              exit 1
+            }
+          }
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: [build, rebuild]
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy the uploaded artifact
+        id: deployment
+        uses: actions/deploy-pages@v4
