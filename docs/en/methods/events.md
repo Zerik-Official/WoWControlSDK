@@ -230,7 +230,7 @@ Loading events are polled from memory once per frame rather than hooked from Lua
 
 ## Live event streaming
 
-Connect to `\\.\pipe\WowGameEvent` to receive events as newline-delimited JSON. The pipe accepts one client at a time and stays open until the client disconnects.
+Connect to `\\.\pipe\WowGameEvent` to receive events as newline-delimited JSON. The pipe accepts one client at a time and stays open until the client disconnects. Send the authentication handshake first; the SDK answers with `auth.ok` or `auth.failed` (see [authentication](../protocol.md#authentication)). With `--no-auth` no handshake is needed.
 
 ```python
 import json
@@ -239,7 +239,7 @@ import win32file
 
 pipe = win32file.CreateFile(
     r"\\.\pipe\WowGameEvent",
-    win32file.GENERIC_READ,
+    win32file.GENERIC_READ | win32file.GENERIC_WRITE,
     0,
     None,
     win32file.OPEN_EXISTING,
@@ -248,6 +248,7 @@ pipe = win32file.CreateFile(
 )
 
 try:
+    win32file.WriteFile(pipe, (json.dumps({"auth": TOKEN}) + "\n").encode("utf-8"))
     buffer = ""
     while True:
         _, data = win32file.ReadFile(pipe, 65536)
