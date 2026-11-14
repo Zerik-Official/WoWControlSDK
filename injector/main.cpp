@@ -19,6 +19,70 @@ static void die(const char* msg)
     ExitProcess(1);
 }
 
+static bool isHexToken(const std::string& token)
+{
+    if (token.size() < 32 || token.size() > 128)
+        return false;
+
+    for (char c : token)
+    {
+        bool hex = (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+        if (!hex)
+            return false;
+    }
+    return true;
+}
+
+static std::string readTokenFromStdin()
+{
+    char buf[256] = {};
+    if (!fgets(buf, sizeof(buf), stdin))
+        return std::string();
+
+    std::string token(buf);
+    while (!token.empty() && (token.back() == '\n' || token.back() == '\r' || token.back() == ' '))
+        token.pop_back();
+    return token;
+}
+
+static std::string withAuth(const std::string& command, const std::string& token)
+{
+    size_t brace = command.find('{');
+    if (token.empty() || brace == std::string::npos)
+        return command;
+
+    std::string result = command;
+    result.insert(brace + 1, "\"auth\":\"" + token + "\",");
+    return result;
+}
+
+static bool configureAuth(const char* pipeName, const std::string& token)
+{
+    std::string params = token.empty()
+        ? std::string("{\"disabled\":true}")
+        : std::string("{\"token\":\"") + token + "\"}";
+    std::string request = "{\"jsonrpc\":\"2.0\",\"method\":\"auth.init\",\"params\":" + params + ",\"id\":0}";
+
+    for (int attempt = 0; attempt < 50; attempt++)
+    {
+        std::string response;
+        if (sendPipeCommand(pipeName, request, response))
+        {
+            if (response.find("\"ok\":true") != std::string::npos)
+            {
+                fprintf(stdout, "[injector] authentication %s\n", token.empty() ? "disabled" : "enabled");
+                return true;
+            }
+            fprintf(stderr, "[injector] auth.init rejected: %s\n", response.c_str());
+            return false;
+        }
+        Sleep(100);
+    }
+
+    fprintf(stderr, "[injector] auth.init failed: pipe unavailable\n");
+    return false;
+}
+
 int main(int argc, char* argv[])
 {
     Args args{};
@@ -26,6 +90,17 @@ int main(int argc, char* argv[])
     {
         printUsage(argv[0]);
         return 1;
+    }
+
+    std::string token;
+    if (args.tokenStdin)
+    {
+        token = readTokenFromStdin();
+        if (!isHexToken(token))
+        {
+            fprintf(stderr, "[injector] error: the token must be 32 to 128 hexadecimal characters\n");
+            return 1;
+        }
     }
 
     const char* exeName = strrchr(args.wowPath, '\\');
@@ -59,7 +134,14 @@ int main(int argc, char* argv[])
     injectDll(pi.hProcess, args.dllPath);
 
     if (args.usePipe)
+    {
         waitForPipe(args.pipeName, 15000);
+        if (!configureAuth(args.pipeName, token))
+        {
+            TerminateProcess(pi.hProcess, 1);
+            return 1;
+        }
+    }
     else
     {
         fprintf(stdout, "[injector] waiting %lums before unfreezing\n", args.waitMs);
@@ -69,6 +151,16 @@ int main(int argc, char* argv[])
     fprintf(stdout, "[injector] unfreezing\n");
     ResumeThread(pi.hThread);
 
+    if (!args.usePipe)
+    {
+        waitForPipe(args.pipeName, 15000);
+        if (!configureAuth(args.pipeName, token))
+        {
+            TerminateProcess(pi.hProcess, 1);
+            return 1;
+        }
+    }
+
     if (!args.pipeCommands.empty())
     {
         Sleep(300);
@@ -77,7 +169,7 @@ int main(int argc, char* argv[])
         {
             fprintf(stdout, "[injector] pipe-cmd: %s\n", cmd.c_str());
             std::string response;
-            if (sendPipeCommand(args.pipeName, cmd, response))
+            if (sendPipeCommand(args.pipeName, withAuth(cmd, token), response))
                 fprintf(stdout, "[injector] response: %s\n", response.c_str());
             else
                 fprintf(stderr, "[injector] pipe-cmd failed\n");

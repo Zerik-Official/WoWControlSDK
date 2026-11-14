@@ -24,6 +24,7 @@ add_library(WoWControlSDK SHARED
     core/native/Unit.cpp
     core/native/Player.cpp
     core/native/WorldInfo.cpp
+    core/native/LoadingScreen.cpp
     core/native/WorldReader.cpp
     core/native/GlueAPI.cpp
     core/native/CharacterReader.cpp
@@ -74,6 +75,8 @@ add_library(WoWControlSDK SHARED
     hooks/LoadingHooks.cpp
 
     ipc/CommandPipe.cpp
+    ipc/Auth.cpp
+    ipc/PipeSecurity.cpp
 
     rpc/handlers/control/ControlRpc.cpp
     rpc/handlers/event/EventRpc.cpp

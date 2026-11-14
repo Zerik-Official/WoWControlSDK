@@ -123,7 +123,7 @@ sequenceDiagram
 3. If the event is subscribed with `events.subscribe`, it is pushed to `\\.\pipe\WowGameEvent`.
 4. `StateCache` polls player, world and screen state on every frame.
 5. When the glue screen changes, `StateCache` pushes `client.screenChanged`.
-6. Loading hooks push `loading.startup`, `loading.progress` and `loading.finished`.
+6. Loading hooks push `loading.startup`, `loading.progress`, `loading.finished` and `loading.cancelled`.
 
 Events are also stored in a circular buffer that `events.getHistory` can read. The event pipe accepts one external client at a time and writes one JSON object per line.
 
@@ -150,7 +150,7 @@ Every hardcoded game address, function pointer and structure offset is defined a
 | `OffsetsConsole.h` | CVar functions |
 | `OffsetsFrame.h` | Render frame and D3D |
 | `OffsetsGroup.h` | Group and raid structures |
-| `OffsetsLoading.h` | Loading flag and progress |
+| `OffsetsLoading.h` | Loading screen state, progress and the `Map` / `LoadingScreens` tables |
 | `OffsetsLogin.h` | Authentication, logout and character list |
 | `OffsetsLua.h` | Lua state and signal event handler |
 | `OffsetsMap.h` | Map position conversion |
@@ -170,7 +170,7 @@ Events pushed to the event pipe fall into two groups:
 
 | Group | Events |
 | --- | --- |
-| SDK events, pushed automatically | `client.screenChanged`, `loading.startup`, `loading.progress`, `loading.finished` |
+| SDK events, pushed automatically | `client.screenChanged`, `loading.startup`, `loading.progress`, `loading.finished`, `loading.cancelled` |
 | WoW UI events, pushed after `events.subscribe` | `PLAYER_LOGIN`, `PLAYER_ENTERING_WORLD`, `UNIT_HEALTH`, `ZONE_CHANGED`, and any other event fired by `FrameScript_SignalEvent` |
 
 The event history is a circular buffer with a default of 256 entries. `events.getHistory`, `events.clearHistory` and `events.setMaxBuffer` manage it, and the same entries are written to the pipe when a client is connected.

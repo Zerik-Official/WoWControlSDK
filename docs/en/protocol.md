@@ -7,7 +7,7 @@ The SDK exposes every method through JSON-RPC 2.0 over two Windows named pipes. 
 | Pipe | Direction | Mode | Purpose |
 | --- | --- | --- | --- |
 | `\\.\pipe\WowGameCommand` | Duplex | Message | One JSON-RPC request and one JSON response per connection |
-| `\\.\pipe\WowGameEvent` | Server to client | Byte | Newline-delimited event stream, one client at a time |
+| `\\.\pipe\WowGameEvent` | Duplex | Byte | Authentication handshake, then a newline-delimited event stream, one client at a time |
 
 The command pipe reads one message of up to **4096 bytes**, dispatches it and writes the response. It then flushes the buffer and disconnects the client. This means:
 
@@ -16,7 +16,24 @@ The command pipe reads one message of up to **4096 bytes**, dispatches it and wr
 - Keep requests under 4096 bytes, including large Lua snippets.
 - Read the response before closing the handle.
 
-The event pipe is different. It is a long-lived connection, the SDK writes one JSON object per line and the client keeps reading until the pipe closes.
+The event pipe is different. It is a long-lived connection: the client authenticates first, then the SDK writes one JSON object per line and the client keeps reading until the pipe closes.
+
+## Authentication
+
+Since SDK 2.0 both pipes require a session token, and they only accept local connections from the Windows user that runs the game (remote clients are rejected and other users have no access).
+
+1. The launcher generates a random token of 32 to 128 hexadecimal characters for each game session.
+2. It passes the token to `WowInjector.exe` through standard input with `--token-stdin`, so it never appears in a command line.
+3. While the game is still frozen, the injector registers it with `auth.init`. The SDK accepts `auth.init` once, and only from the injector that started the game when it was launched that way.
+4. Every command carries the token in a top-level `auth` field. A missing or wrong token returns `-32001 Unauthorized`.
+5. An event client sends `{"auth":"<token>"}` followed by a newline as soon as it connects. The SDK answers with an `auth.ok` event and starts streaming, or with `auth.failed` and closes the connection. The handshake must arrive within 5 seconds.
+
+`--no-auth` registers `{"disabled": true}` instead, for development tools. Without the injector, the first client that calls `auth.init` configures authentication.
+
+| Method | Authentication | Description |
+| --- | --- | --- |
+| `auth.init` | Not required | Configure authentication once. Params: `{"token": "<hex>"}` or `{"disabled": true}`. Result: `{"ok": true, "state": "enabled"}` or `{"ok": false, "error": "<reason>"}`. |
+| `auth.status` | Not required | Result: `{"state": "pending" \| "enabled" \| "disabled"}`. |
 
 ## Request
 
@@ -39,6 +56,7 @@ Every request uses the JSON-RPC 2.0 envelope:
 | `id` | integer | Recommended | Request identifier echoed in the response. Use a new number for each request. |
 | `method` | string | Yes | Full method name, such as `client.ping` or `lua.evaluate`. |
 | `params` | object | No | Method parameters. Defaults to an empty object. |
+| `auth` | string | Yes, except `auth.*` | Session token, unless authentication is disabled. |
 
 A numeric `id` is echoed as-is. String identifiers are accepted by the parser but the response uses `0`, so use integers.
 
@@ -80,6 +98,7 @@ The dispatcher returns a JSON-RPC error object when the envelope itself is inval
 | `-32601` | Method not found | The method name is not registered. |
 | `-32602` | Invalid params | Reserved by the protocol definition; handlers validate their own parameters. |
 | `-32603` | Internal error | Reserved by the protocol definition. |
+| `-32001` | Unauthorized | The `auth` token is missing or wrong, or authentication is not configured yet. |
 
 ### Method errors
 
@@ -211,13 +230,15 @@ import win32file
 
 pipe = win32file.CreateFile(
     r"\\.\pipe\WowGameEvent",
-    win32file.GENERIC_READ,
+    win32file.GENERIC_READ | win32file.GENERIC_WRITE,
     0,
     None,
     win32file.OPEN_EXISTING,
     0,
     None,
 )
+
+win32file.WriteFile(pipe, (json.dumps({"auth": TOKEN}) + "\n").encode("utf-8"))
 
 buffer = ""
 while True:

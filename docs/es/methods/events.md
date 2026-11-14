@@ -7,7 +7,7 @@ Los eventos se dividen en dos grupos:
 | Grupo | Entrega | Ejemplos |
 | --- | --- | --- |
 | Eventos de la UI de WoW | Se envían solo después de `events.subscribe` | `PLAYER_LOGIN`, `PLAYER_ENTERING_WORLD`, `UNIT_HEALTH`, `ZONE_CHANGED` |
-| Eventos del SDK | Se envían automáticamente | `client.screenChanged`, `loading.startup`, `loading.progress`, `loading.finished` |
+| Eventos del SDK | Se envían automáticamente | `client.screenChanged`, `loading.startup`, `loading.progress`, `loading.finished`, `loading.cancelled` |
 
 Todo evento que llega al pipe de eventos también se guarda en el búfer de historial.
 
@@ -212,15 +212,25 @@ Ninguno.
 | Evento | Descripción | Argumentos |
 | --- | --- | --- |
 | `client.screenChanged` | La pantalla glue cambió | `{"old": <int>, "new": <int>}`, donde `0` es desconocido, `1` es login, `2` es selección de personajes y `3` es mundo |
-| `loading.startup` | Apareció una pantalla de carga | `{}` |
+| `loading.startup` | Apareció una pantalla de carga | `{"mapId": <int>, "background": <objeto o null>}` |
 | `loading.progress` | Actualización del progreso de carga | `{"progress": <float>}` entre `0.0` y `1.0` |
-| `loading.finished` | La carga terminó y se entró en el mundo | `{}` |
+| `loading.finished` | La carga terminó y se entró en el mundo | `{"mapId": <int>}` |
+| `loading.cancelled` | La pantalla de carga se cerró sin entrar en el mundo en 3 segundos | `{"mapId": <int>}` |
 
-Los eventos de carga se sondean desde memoria en lugar de engancharse desde Lua, y `loading.progress` se emite como máximo una vez cada 100 milisegundos.
+`background` describe la imagen de la pantalla de carga según `LoadingScreens.dbc`, o es `null` cuando el mapa no tiene una propia y se usa la imagen genérica `Interface\Glues\loading`:
+
+| Campo | Tipo | Descripción |
+| --- | --- | --- |
+| `id` | integer | Id de la fila en `LoadingScreens.dbc` |
+| `name` | string | Nombre interno de la pantalla de carga |
+| `file` | string | Ruta de la imagen `.blp`, por ejemplo `Interface\Glues\LoadingScreens\LoadScreenNorthrend.blp` |
+| `hasWideScreen` | boolean | Si existe una variante `Wide`; el cliente la muestra en resoluciones panorámicas |
+
+Los eventos de carga se sondean desde memoria una vez por frame en lugar de engancharse desde Lua, y `loading.progress` se emite como máximo una vez cada 100 milisegundos. Una pantalla de carga solo se informa mientras existe la barra de carga del cliente, por lo que la pantalla que se dibuja y se destruye en el mismo frame al salir a la lista de personajes no genera eventos.
 
 ## Transmisión de eventos en vivo
 
-Conéctate a `\\.\pipe\WowGameEvent` para recibir eventos como JSON delimitado por saltos de línea. El pipe acepta un cliente a la vez y permanece abierto hasta que el cliente se desconecta.
+Conéctate a `\\.\pipe\WowGameEvent` para recibir eventos como JSON delimitado por saltos de línea. El pipe acepta un cliente a la vez y permanece abierto hasta que el cliente se desconecta. Envía primero el saludo de autenticación; el SDK responde con `auth.ok` o `auth.failed` (consulta [autenticación](../protocol.md#autenticacion)). Con `--no-auth` no hace falta el saludo.
 
 ```python
 import json
@@ -229,7 +239,7 @@ import win32file
 
 pipe = win32file.CreateFile(
     r"\\.\pipe\WowGameEvent",
-    win32file.GENERIC_READ,
+    win32file.GENERIC_READ | win32file.GENERIC_WRITE,
     0,
     None,
     win32file.OPEN_EXISTING,
@@ -238,6 +248,7 @@ pipe = win32file.CreateFile(
 )
 
 try:
+    win32file.WriteFile(pipe, (json.dumps({"auth": TOKEN}) + "\n").encode("utf-8"))
     buffer = ""
     while True:
         _, data = win32file.ReadFile(pipe, 65536)

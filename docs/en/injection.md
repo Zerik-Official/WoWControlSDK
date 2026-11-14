@@ -24,14 +24,15 @@ sequenceDiagram
 2. **Inject the DLL.** The injector allocates memory in the target process, writes the DLL path and calls `LoadLibrary` through `CreateRemoteThread`.
 3. **Initialize the SDK.** `DllMain` starts a dedicated thread that initializes log capture, Detours hooks, the Lua engine, the runtime, the command pipe and the event pipe.
 4. **Wait for the pipe.** The game remains frozen while the injector waits up to 15 seconds for `\\.\pipe\WowGameCommand` to accept a connection.
-5. **Resume the game.** Once the pipe is ready, the injector resumes the main thread and the game runs normally.
+5. **Configure authentication.** The injector registers the session token (or `--no-auth`) with `auth.init` while the game is still frozen. If the SDK rejects it, the game is terminated.
+6. **Resume the game.** The injector resumes the main thread and the game runs normally.
 
 This order removes the race between the first game frame and hook installation, and it prevents missed startup events.
 
 ## Usage
 
 ```bash
-WowInjector.exe --wow "C:\World of Warcraft\Wow.exe" --dll "bin\release\WoWControlSDK.dll"
+echo %ZFORGE_TOKEN% | WowInjector.exe --wow "C:\World of Warcraft\Wow.exe" --dll "bin\release\WoWControlSDK.dll" --token-stdin
 ```
 
 ### Arguments
@@ -40,12 +41,14 @@ WowInjector.exe --wow "C:\World of Warcraft\Wow.exe" --dll "bin\release\WoWContr
 | --- | --- |
 | `--wow <path>` | Path to `Wow.exe`. Required. |
 | `--dll <path>` | Path to `WoWControlSDK.dll`. Required. |
+| `--token-stdin` | Read the session token (32 to 128 hexadecimal characters) from standard input. Required unless `--no-auth` is used. |
+| `--no-auth` | Disable authentication. Intended for development tools only. |
 | `--pipe <name>` | Named pipe to wait for before unfreezing. Defaults to `WowGameCommand`. |
 | `--no-pipe` | Unfreeze after `--wait` milliseconds instead of waiting for the pipe. |
 | `--wait <ms>` | Milliseconds to wait when `--no-pipe` is active. Defaults to `500`. |
 | `--kill` | Kill an existing `Wow.exe` process before launching. |
 | `--wow-args <str>` | Extra arguments passed to `Wow.exe`. |
-| `--pipe-cmd <json>` | Send a JSON-RPC command after the pipe is ready. Repeatable. |
+| `--pipe-cmd <json>` | Send a JSON-RPC command after the pipe is ready. Repeatable. The session token is added to each command automatically. |
 
 ### Example with options
 
@@ -56,6 +59,7 @@ WowInjector.exe ^
     --wow "C:\World of Warcraft\Wow.exe" ^
     --dll "C:\WoWControlSDK\bin\release\WoWControlSDK.dll" ^
     --kill ^
+    --no-auth ^
     --pipe-cmd "{\"jsonrpc\":\"2.0\",\"method\":\"dll.toggleConsole\",\"id\":1}"
 ```
 
@@ -70,6 +74,7 @@ Any DLL injector can be used, such as [Cheat Engine](https://www.cheatengine.org
 - Hooks attach during the next frame.
 - The command pipe becomes available shortly after injection.
 - Events fired between game start and injection are missed.
+- The first client that calls `auth.init` configures authentication.
 
 The SDK itself does not depend on the included injector. The injector only automates the launch, injection and pipe synchronization.
 
