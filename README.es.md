@@ -1,10 +1,10 @@
 <h1 align="center">WoWControlSDK</h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/C++17-24292F?style=for-the-badge&logo=cplusplus">
-  <img src="https://img.shields.io/badge/CMake-24292F?style=for-the-badge&logo=cmake">
-  <img src="https://img.shields.io/badge/Python-24292F?style=for-the-badge&logo=python">
-  <img src="https://img.shields.io/badge/Windows-24292F?style=for-the-badge&logo=windows">
+  <img src="https://img.shields.io/badge/C++17-111111?style=for-the-badge&logo=cplusplus">
+  <img src="https://img.shields.io/badge/CMake-111111?style=for-the-badge&logo=cmake">
+  <img src="https://img.shields.io/badge/Python-111111?style=for-the-badge&logo=python">
+  <img src="https://img.shields.io/badge/Windows-111111?style=for-the-badge&logo=windows">
 </p>
 
 <p align="center">
@@ -15,221 +15,168 @@
 </p>
 
 <p align="center">
-  <img src=".github/images/preview.png" alt="WoWControlSDK Preview"/>
+  <img src=".github/images/preview.png" alt="WoWControlSDK preview"/>
 </p>
 
 <p align="center">
-  <a href="README.md">View in English</a>
+  <strong>Español</strong> | <a href="./README.md">English</a>
 </p>
 
 > [!CAUTION]
-> Este SDK **no** está enfocado en hacking, trampas o bots. Es una herramienta para integración legítima — launchers, overlays de stream, Discord rich presence, automatización de interfaz, y usos similares. Aunque está claro que la mayoría de métodos benefician el uso de bots. **Recuerda jugar siempre de manera honesta.** El autor no se hace responsable por suspensiones de cuenta o baneos resultantes del mal uso de este software.
+> WoWControlSDK no es una herramienta de hacking, trampas o bots. Está pensado para integraciones legítimas como launchers, overlays de stream, Discord Rich Presence y automatización de interfaz. Muchos de sus métodos también pueden facilitar el botting, así que úsalo de forma responsable. El autor no se hace responsable de suspensiones o baneos causados por un mal uso.
 
-SDK liviano inyectable que expone métodos internos de **World of Warcraft 3.3.5a** a través de una interfaz **JSON-RPC 2.0** limpia sobre Named Pipes de Windows. Comunicate con WoW desde **cualquier lenguaje** — Python, JavaScript, C#, Rust — enviando comandos JSON a `\\.\pipe\WowGameCommand`.
+WoWControlSDK es una DLL inyectable ligera y un SDK para **World of Warcraft 3.3.5a (build 12340)**. Expone los métodos internos del juego mediante **JSON-RPC 2.0** sobre named pipes de Windows, de modo que launchers, overlays, herramientas de automatización y otras aplicaciones externas pueden leer el estado del juego y controlar el cliente desde cualquier lenguaje.
 
-Este proyecto nace de la necesidad de extraer información en tiempo real de WoW (pantalla actual, datos del personaje, estado del mapa, etc.) para un próximo launcher — aunque quizás con demasiadas funcionalidades para lo que realmente necesito para un RichPresence. La API Lua de WoW es muy limitante: nada de peticiones HTTP, nada de lectura de archivos en tiempo real, no puedes comunicarte con el exterior. La idea se inspiró en [wow-discord-rpc](https://github.com/AipNooBest/wow-discord-rpc), un proyecto genial y muy ingenioso que codifica datos en píxeles y los lee desde la pantalla para alimentar el Rich Presence de Discord — fue lo que me inspiró a crear este SDK. WoWControlSDK toma un enfoque más directo: una DLL inyectable liviana con una interfaz RPC limpia.
+La DLL se ejecuta dentro de `Wow.exe`. Un cliente se conecta a `\\.\pipe\WowGameCommand`, envía una petición JSON-RPC y recibe una respuesta JSON. Un segundo pipe, `\\.\pipe\WowGameEvent`, transmite eventos como cambios de pantalla, progreso de carga y eventos UI de WoW suscritos.
 
-Esta es aún una versión temprana y verde. Con el tiempo y a medida que tenga más tiempo libre, iré añadiendo nuevas funcionalidades, eventos, comandos y mejoras — sobre todo a la arquitectura, que fue creciendo con el tiempo y siento que ahora mismo es algo rara.
+## Qué ofrece
 
----
-
-## Documentación
-
-Explora la estructura de documentación en [`docs/`](./docs/README.es.md) para arquitectura, guía de inyección y referencias detalladas de métodos RPC.
-
-## Funcionalidades
-
-- **Ejecución Lua** — Ejecuta Lua arbitrario en el VM de WoW (`lua.evaluate` con retorno tipado, `lua.execute` fire-and-forget)
-- **Globales Lua** — Lee/escribe variables globales, crea namespaces de tablas
-- **Consultas de unidades** — Obtén salud, poder, posición, rotación, raza, clase, nivel, GUID, target, nombre, auras (fantasma, muerte, combate, lanzando, etc.) para `player`, `target`, `focus`, `mouseover`, `partyN`, `raidN`
-- **Grupo/Raid** — Lista de miembros, resumen de combate, GUID del líder, cacheado por rendimiento
-- **Estado del mundo** — ¿Está en mundo?, ¿en combate?, ID de zona/mapa
-- **Jugador local** — XP, XP máximo, AFK, DND, bajo agua, detección de fantasma
-- **Thread-Safe** — Operaciones Lua usan `lua_pcall` con `errfunc=0` (seguro desde el pipe thread)
-- **Autenticación** — Inicia sesión en WoW con usuario/contraseña, selecciona reino, entra al mundo, cierra sesión, sal del juego
-- **Aceptación EULA/TOS** — Automatiza la aceptación de licencias y términos de servicio
-- **Lista de reinos** — Consulta y establece listas de reinos personalizadas
-- **Detección de pantalla** — Detecta la pantalla actual del juego (login, selección de personaje, carga, mundo, etc.)
-- **Gestión de personajes** — Lista y refresca los personajes del reino
-- **Sistema de eventos** — Suscríbete a eventos del juego (cambios de pantalla, estado del mundo) recibidos en tiempo real por el pipe
+| Área | Métodos y comportamiento |
+| --- | --- |
+| Lua | `lua.execute`, `lua.evaluate`, `lua.getGlobal`, `lua.setGlobal`, `lua.createNamespace` |
+| Unidades | Salud, poder, posición, rotación, raza, clase, nivel, GUID, objetivo y flags de estado para `player`, `target`, `focus`, `mouseover`, `partyN`, `raidN` y GUIDs |
+| Grupo y raid | Lista de miembros, resumen de combate y GUID del líder, reconstruidos solo cuando cambia la composición |
+| Jugador y mundo | Estado cacheado del jugador, experiencia, AFK, DND, bajo el agua, mapa y zona |
+| Control del cliente | Login, selección de reino, lista de personajes, entrar al mundo, cerrar sesión, salir y aceptación de EULA y TOS |
+| Estado de pantalla | Pantalla glue actual, estado de login y diagnóstico de autenticación de bajo nivel |
+| Eventos | Suscripción a eventos UI de WoW y streaming por el pipe de eventos, con búfer circular de historial |
+| Ventana | Mostrar, ocultar, minimizar, maximizar, enfocar, mover, redimensionar, opacidad, siempre visible, título, icono y parpadeo de la barra de tareas |
+| Diagnóstico | Consola superpuesta en el juego, logs capturados e información de la DLL |
 
 ## Arquitectura
 
+```mermaid
+flowchart LR
+    app["Tu aplicación<br/>Python, JavaScript, C#, Rust"]
+    dll["WoWControlSDK.dll<br/>inyectada en Wow.exe"]
+    wow["World of Warcraft 3.3.5a<br/>build 12340"]
+
+    app -- "petición JSON-RPC 2.0<br/>named pipe WowGameCommand" --> dll
+    dll -- "respuesta JSON" --> app
+    dll -. "eventos<br/>named pipe WowGameEvent" .-> app
+    dll <--> wow
 ```
-┌─────────────┐     JSON-RPC 2.0      ┌──────────────────┐
-│  Tu App     │ ◄──── named pipe ──── │  WoWControlSDK   │
-│ (Python/JS/  │     \\.\pipe\         │  (DLL inyectada)  │
-│  C#/etc.)   │   WowGameCommand      │                   │
-└─────────────┘                       └────────┬─────────┘
-                                               │
-                                    ┌──────────┴──────────┐
-                                    │  World of Warcraft   │
-                                    │    3.3.5a cliente    │
-                                    └─────────────────────┘
-```
 
-Todo el acceso a memoria del juego está aislado en la capa `core/`. La capa `rpc/` solo maneja serialización JSON — ni direcciones crudas ni lecturas de memoria.
+Todo el acceso a la memoria del juego está aislado en la capa `core/`. La capa `rpc/` solo parsea y serializa JSON; nunca lee memoria ni usa direcciones crudas. Consulta la [documentación de arquitectura](docs/es/architecture.md) para el modelo completo de capas.
 
-## Dependencias
+## Requisitos
 
-| Dependencia | Versión | Propósito |
-|---|---|---|
-| [Microsoft Detours](https://github.com/microsoft/Detours) | v4.0.1 | Hooking de APIs (inyección DLL, detours de funciones) |
-| Windows SDK | 10.0+ | Named Pipes, gestión de procesos |
-| CMake | 3.20+ | Sistema de compilación |
-| Visual Studio | 2022 | Compilador C++17 |
+| Herramienta | Versión | Uso |
+| --- | --- | --- |
+| Windows | 10 u 11, x64 | SDK e inyector |
+| Visual Studio | 2022 con la carga de trabajo Desarrollo de escritorio con C++ | Compilador C++17 |
+| CMake | 3.20 o posterior | Sistema de compilación |
+| Git | 2.40 o posterior | Control de versiones |
+| Python | 3.10 o posterior | Herramienta CLI y documentación |
+| pywin32 | Última versión | Herramienta CLI |
+
+Solo se soporta **WoW 3.3.5a (build 12340)**. Se recomienda un cliente limpio y sin modificaciones; los clientes ligeramente modificados también pueden funcionar.
 
 ## Compilación
-
-### Requisitos
-- Visual Studio 2022 con la carga de trabajo "Desarrollo de escritorio con C++"
-- CMake 3.20+
-
-### Pasos
 
 ```bash
 git clone https://github.com/Zerik-Official/WoWControlSDK.git
 cd WoWControlSDK
 
-cmake -B build
+cmake -B build -A Win32
 cmake --build build --config Release
 ```
 
-Salida:
-- `bin/release/WoWControlSDK.dll` — El SDK inyectable
-- `bin/release/WowInjector.exe` — El inyector
+La compilación genera dos archivos:
 
-## Uso
+| Archivo | Propósito |
+| --- | --- |
+| `bin/release/WoWControlSDK.dll` | El SDK que se inyecta en el juego |
+| `bin/release/WowInjector.exe` | El inyector congelar-sincronizar incluido |
 
-### Inyector
+## Inyección
 
 ```bash
 WowInjector.exe --wow "C:\World of Warcraft\Wow.exe" --dll "bin\release\WoWControlSDK.dll"
 ```
 
-> [!TIP]
-> El inyector incluido es recomendado — congela el proceso Wow.exe durante la inyección para que la DLL esté completamente inicializada antes de que el juego arranque. Sin embargo, puedes usar cualquier inyector de tu preferencia, como [Cheat Engine](https://www.cheatengine.org/).
+El inyector inicia `Wow.exe` suspendido, carga la DLL y espera hasta 15 segundos a que exista `\\.\pipe\WowGameCommand` antes de reanudar el juego. Esto garantiza que los hooks y los servidores de pipe estén listos antes del primer frame. Se puede usar cualquier otro inyector de DLL, pero en ese caso el SDK se inicializa de forma asíncrona.
 
-**Parámetros:**
+## Enviar una petición
 
-| Argumento | Descripción |
-|---|---|
-| `--wow <path>` | Ruta a `Wow.exe` |
-| `--dll <path>` | Ruta a `WoWControlSDK.dll` |
-| `--pipe <name>` | Pipe named a esperar antes de descongelar (por defecto: `WowGameCommand`) |
-| `--no-pipe` | Descongela después de `--wait` ms en vez de esperar el pipe |
-| `--wait <ms>` | Milisegundos a esperar cuando `--no-pipe` está activo (por defecto: 500) |
-| `--kill` | Mata el proceso de WoW existente antes de lanzar |
-| `--wow-args <str>` | Argumentos extra para WoW.exe |
-| `--pipe-cmd <json>` | Envía un comando JSON-RPC después de que el pipe esté listo (repetible) |
+El pipe de comandos atiende una petición por conexión: conectar, escribir el objeto JSON, leer la respuesta y cerrar el handle. El siguiente ejemplo de Python requiere `pip install pywin32`:
 
-### Herramienta CLI de prueba
+```python
+import json
 
-Un CLI interactivo en Python está disponible en `tests/wowsdk_cli.py` con menús para ejecución Lua, consultas de unidades, inspección de grupo y más. Úsalo como referencia o punto de partida para tu propia integración.
+import win32file
 
-**Dependencias:**
 
-```bash
-pip install pywin32
+def rpc(method, params=None, request_id=1):
+    pipe = win32file.CreateFile(
+        r"\\.\pipe\WowGameCommand",
+        win32file.GENERIC_READ | win32file.GENERIC_WRITE,
+        0,
+        None,
+        win32file.OPEN_EXISTING,
+        0,
+        None,
+    )
+    try:
+        request = {
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "method": method,
+            "params": params or {},
+        }
+        win32file.WriteFile(pipe, json.dumps(request).encode("utf-8"))
+        _, data = win32file.ReadFile(pipe, 65536)
+        return json.loads(data.decode("utf-8").rstrip("\x00"))
+    finally:
+        win32file.CloseHandle(pipe)
+
+
+print(rpc("unit.get", {"token": "player"}))
 ```
 
-**Uso:**
-
-```bash
-python tests/wowsdk_cli.py
-```
-
-### Protocolo RPC
-
-Envía peticiones JSON-RPC 2.0 al named pipe `\\.\pipe\WowGameCommand`:
+Una petición y su respuesta tienen este aspecto:
 
 ```json
 {"jsonrpc": "2.0", "id": 1, "method": "unit.get", "params": {"token": "player"}}
 ```
 
-**Respuesta:**
 ```json
-{"id": 1, "jsonrpc": "2.0", "result": {"exists": true, "health": 25000, "maxHealth": 25000, "name": "PlayerName", "position": {"x": 1234.5, "y": 2345.6, "z": 300.1}, "rotation": 5.23, "dead": false, "ghost": false, ...}}
+{"jsonrpc": "2.0", "id": 1, "result": {"exists": true, "health": 25000, "maxHealth": 25000, "name": "PlayerName", "position": {"x": 1234.5, "y": 2345.6, "z": 300.1}, "dead": false}}
 ```
 
-**Desde cualquier lenguaje:**
-
-<details>
-<summary>Python</summary>
-
-```python
-import win32pipe, win32file, json
-
-pipe = win32file.CreateFile(
-    r"\\.\pipe\WowGameCommand",
-    win32file.GENERIC_READ | win32file.GENERIC_WRITE,
-    0, None, win32file.OPEN_EXISTING, 0, None
-)
-
-def rpc(method, params={}):
-    req = json.dumps({"jsonrpc": "2.0", "id": 1, "method": method, "params": params})
-    win32file.WriteFile(pipe, (req + "\n").encode())
-    _, data = win32file.ReadFile(pipe, 65536)
-    return json.loads(data.decode())
-
-print(rpc("unit.get", {"token": "player"}))
-```
-</details>
-
-<details>
-<summary>C#</summary>
-
-```csharp
-using System.IO.Pipes;
-
-var pipe = new NamedPipeClientStream(".", "WowGameCommand", PipeDirection.InOut);
-pipe.Connect();
-var writer = new StreamWriter(pipe) { AutoFlush = true };
-var reader = new StreamReader(pipe);
-
-writer.WriteLine("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"lua.evaluate\",\"params\":{\"code\":\"return UnitName(\\\"player\\\")\"}}");
-var response = reader.ReadLine();
-Console.WriteLine(response);
-```
-</details>
-
-### Métodos RPC principales
-
-> Hay muchos más métodos disponibles. Estos son los más usados.
+## Métodos habituales
 
 | Método | Descripción |
-|---|---|
-| `lua.execute` | Ejecuta Lua (fire-and-forget) |
-| `lua.evaluate` | Ejecuta Lua con retorno tipado |
-| `lua.getGlobal` / `lua.setGlobal` / `lua.createNamespace` | Operaciones de globales Lua |
-| `unit.get` / `unit.state` / `unit.position` | Consultas de datos de unidad |
-| `unit.mapPosition` | Posición normalizada en el mapa **(solo party/raid)** |
-| `group.get` / `group.summary` | Información de grupo/raid |
-| `client.login` / `client.enterWorld` / `client.logout` / `client.quit` | Autenticación y control de sesión |
-| `client.getScreen` / `client.getDebugState` | Detección de pantalla y estado debug |
-| `client.getRealmlist` / `client.setRealmlist` | Gestión de lista de reinos |
-| `client.getCharacters` / `client.refreshCharacters` | Lista de personajes |
-| `client.acceptAll` / `client.acceptEULA` / `client.acceptTOS` | Automatización EULA/TOS |
-| `client.ping` | Health check de conexión |
-| `world.getState` | Estado del mundo/zona |
-| `object.exists` / `object.getType` / `object.isUnit` / `object.isPlayer` | Inspección de objetos |
-| `events.subscribe` / `events.unsubscribe` / `events.list` | Sistema de eventos — soporta eventos nativos de Lua (PLAYER_LOGIN, PLAYER_ENTERING_WORLD, etc.) |
-| `dll.toggleConsole` / `dll.getInfo` / `dll.getLogs` / `dll.setLogConfig` | Gestión de la DLL |
-| `window.restore` / `window.maximize` / `window.focus` / `window.getPosition` | Gestión de la ventana de WoW |
+| --- | --- |
+| `lua.execute` / `lua.evaluate` | Ejecuta Lua con o sin valor de retorno tipado |
+| `unit.get` / `unit.state` / `unit.position` | Instantánea completa, flags de estado o posición en el mundo |
+| `unit.mapPosition` | Posición normalizada en el mapa, solo para miembros de grupo o raid |
+| `group.get` / `group.combatSummary` | Lista del grupo o raid y resumen de combate |
+| `player.getState` / `world.getState` | Estado cacheado del jugador y del mundo |
+| `client.login` / `client.enterWorld` | Autenticación, selección de reino y entrada al mundo |
+| `client.getScreen` / `client.getCharacters` | Detección de pantalla y lista de personajes |
+| `events.subscribe` / `events.getHistory` | Suscripción a eventos de WoW y lectura del historial |
+| `dll.getInfo` / `dll.getLogs` | Diagnóstico de la DLL y logs capturados |
+| `window.getInfo` / `window.setBounds` | Inspección y control del diseño de la ventana |
 
-> [!NOTE]
-> Existen muchos más métodos disponibles. Consulta la documentación completa en [`docs/`](./docs/README.es.md).
+La referencia completa, con parámetros, campos de respuesta y ejemplos de cada método, está en la [documentación de métodos](docs/es/methods/index.md).
 
----
+## Documentación
 
-> [!WARNING]
-> Solo se soporta **WoW 3.3.5a (build 12340)**. Se recomienda un cliente limpio y sin modificaciones, aunque es posible que funcione en uno ligeramente modificado.
+La documentación se publica en <https://zerik-official.github.io/WoWControlSDK/docs/> y se compila con MkDocs Material en inglés y español. El código fuente está en [`docs/`](docs/README.md).
 
-## Feedback
+Para servirla en local:
 
-¿Encontraste un error? ¿Tienes una sugerencia? Abre un [issue](https://github.com/Zerik-Official/WoWControlSDK/issues) en GitHub, o escríbeme a [Discord](https://discord.com/users/738137581295763576).
+```bash
+pip install -r requirements-docs.txt
+mkdocs serve
+```
 
-El proyecto también está indexado en [DeepWiki](https://deepwiki.com/Zerik-Official/WoWControlSDK) — puedes hacerle preguntas sobre el código para respuestas rápidas. Se actualiza cada 7 días.
+El proyecto también está indexado en [DeepWiki](https://deepwiki.com/Zerik-Official/WoWControlSDK), que se actualiza cada 7 días.
+
+## Comentarios
+
+¿Encontraste un error o tienes una sugerencia? Abre un [issue](https://github.com/Zerik-Official/WoWControlSDK/issues) en GitHub o escribe por [Discord](https://discord.com/users/738137581295763576).
 
 ## Licencia
 
