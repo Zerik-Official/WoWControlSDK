@@ -1,4 +1,6 @@
 #include "EventPipe.h"
+#include "ipc/Auth.h"
+#include "ipc/PipeSecurity.h"
 #include "utils/json/Json.h"
 #include "utils/CircularBuffer.h"
 #include <Windows.h>
@@ -71,15 +73,84 @@ namespace Runtime
             return 0;
         }
 
+        static constexpr DWORD HANDSHAKE_TIMEOUT_MS = 5000;
+        static constexpr size_t HANDSHAKE_MAX_BYTES = 512;
+
+        static bool ReadHandshakeLine(HANDLE h, std::string& line)
+        {
+            ULONGLONG deadline = GetTickCount64() + HANDSHAKE_TIMEOUT_MS;
+            while (GetTickCount64() < deadline && line.size() < HANDSHAKE_MAX_BYTES)
+            {
+                DWORD available = 0;
+                if (!PeekNamedPipe(h, nullptr, 0, nullptr, &available, nullptr))
+                    return false;
+
+                if (available == 0)
+                {
+                    Sleep(10);
+                    continue;
+                }
+
+                char c = 0;
+                DWORD read = 0;
+                if (!ReadFile(h, &c, 1, &read, nullptr) || read == 0)
+                    return false;
+                if (c == '\n')
+                    return true;
+                line.push_back(c);
+            }
+            return false;
+        }
+
+        static void WriteControlEvent(HANDLE h, const char* eventName, const char* error)
+        {
+            SDK::Json wire;
+            wire["event"] = eventName;
+            wire["args"]  = SDK::Json::object();
+            if (error)
+                wire["args"]["error"] = error;
+            wire["time"]  = static_cast<int64_t>(GetTickCount64());
+            std::string msg = wire.dump() + "\n";
+            DWORD written = 0;
+            WriteFile(h, msg.c_str(), (DWORD)msg.size(), &written, nullptr);
+        }
+
+        static bool Authenticate(HANDLE h)
+        {
+            if (Auth::state() == Auth::State::Disabled)
+                return true;
+
+            std::string line;
+            if (!ReadHandshakeLine(h, line))
+            {
+                WriteControlEvent(h, "auth.failed", "missing handshake");
+                return false;
+            }
+
+            SDK::Json message = SDK::Json::parse(line, nullptr, false);
+            std::string token;
+            if (message.is_object() && message.contains("auth") && message["auth"].is_string())
+                token = message["auth"].get<std::string>();
+
+            if (!Auth::verify(token))
+            {
+                WriteControlEvent(h, "auth.failed", "unauthorized");
+                return false;
+            }
+
+            WriteControlEvent(h, "auth.ok", nullptr);
+            return true;
+        }
+
         static DWORD WINAPI PipeAcceptThread(LPVOID)
         {
             while (s_running)
             {
                 HANDLE h = CreateNamedPipeA(
                     PIPE_NAME,
-                    PIPE_ACCESS_OUTBOUND,
-                    PIPE_TYPE_BYTE | PIPE_WAIT,
-                    1, 65536, 0, 0, nullptr
+                    PIPE_ACCESS_DUPLEX,
+                    PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT | PipeSecurity::PIPE_FLAGS,
+                    1, 65536, 4096, 0, PipeSecurity::attributes()
                 );
 
                 if (h == INVALID_HANDLE_VALUE) { Sleep(500); continue; }
@@ -89,6 +160,14 @@ namespace Runtime
                     : (GetLastError() == ERROR_PIPE_CONNECTED);
 
                 if (!connected) { CloseHandle(h); continue; }
+
+                if (!Authenticate(h))
+                {
+                    printf("[EventPipe] Client rejected: authentication failed\n");
+                    DisconnectNamedPipe(h);
+                    CloseHandle(h);
+                    continue;
+                }
 
                 printf("[EventPipe] Client connected\n");
                 ResetEvent(s_disconnEvent);
