@@ -72,8 +72,8 @@ Todo el acceso a la memoria del juego está aislado en la capa `core/`. La capa 
 | Visual Studio | 2022 con la carga de trabajo Desarrollo de escritorio con C++ | Compilador C++17 |
 | CMake | 3.20 o posterior | Sistema de compilación |
 | Git | 2.40 o posterior | Control de versiones |
-| Python | 3.10 o posterior | Herramienta CLI y documentación |
-| pywin32 | Última versión | Herramienta CLI |
+| Python | 3.10 o posterior | Cliente de escritorio y documentación |
+| customtkinter y pywin32 | Ver `requirements.txt` | Cliente de escritorio |
 
 Solo se soporta **WoW 3.3.5a (build 12340)**. Se recomienda un cliente limpio y sin modificaciones; los clientes ligeramente modificados también pueden funcionar.
 
@@ -183,6 +183,18 @@ Para recibir eventos, conéctate a `\\.\pipe\WowGameEvent` y envía primero `{"a
 | `window.getInfo` / `window.setBounds` | Inspección y control del diseño de la ventana |
 
 La referencia completa, con parámetros, campos de respuesta y ejemplos de cada método, está en la [documentación de métodos](https://zerik-official.github.io/WoWControlSDK/docs/es/methods/).
+
+## Cliente de escritorio
+
+WoWControl Client llama a todos los métodos desde formularios generados, lanza el juego con un token de sesión y muestra los eventos en vivo. Cada versión incluye `WoWControlClient-<versión>.zip`, listo para usar con los binarios del SDK dentro. Para ejecutarlo desde el código:
+
+```bash
+pip install -r requirements.txt
+cd tools
+python -m wowsdk_client
+```
+
+Consulta la [documentación del cliente de escritorio](https://zerik-official.github.io/WoWControlSDK/docs/es/operations/cli/) para la ventana, los ajustes y cómo compilarlo.
 
 ## Documentación
 
