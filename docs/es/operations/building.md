@@ -72,4 +72,4 @@ El flujo `CI` se ejecuta en cada pull request y push a `dev` y `main`. Compila l
 
 El flujo `Build and Release` se ejecuta con cada etiqueta `v*`. Configura CMake, compila la configuración Release, verifica las salidas esperadas y empaqueta la versión. Consulta [Versiones](releases.md) para la lista de artefactos y el manifiesto.
 
-No hay una suite de pruebas unitarias en el repositorio. La validación es manual: compilar la DLL, inyectarla en el cliente soportado y ejercitar los métodos con la [herramienta CLI](cli.md).
+No hay una suite de pruebas unitarias en el repositorio. La validación es manual: compilar la DLL, inyectarla en el cliente soportado y ejercitar los métodos con el [cliente de escritorio](cli.md).
