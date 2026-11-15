@@ -1,75 +1,98 @@
-# CLI tool
+# Desktop client
 
-The repository includes `tests/wowsdk_cli.py`, an interactive Python client that exercises every RPC domain. It is useful for manual testing, for inspecting responses and as a reference for a custom integration.
+WoWControl Client is a desktop application for calling every SDK method and watching its events. It starts the game with the injector and a session token, builds a form for each method, shows the JSON response and keeps a history of calls. It is useful for manual testing, for inspecting responses and as a reference for a custom integration.
 
-## Requirements
+![WoWControl Client showing the world.getState response](../assets/client/client-response.png)
+
+## Download
+
+Every release includes `WoWControlClient-<version>.zip` next to the SDK package. Extract it anywhere and run `WoWControlClient.exe`. The folder already contains `binaries/WoWControlSDK.dll` and `binaries/WowInjector.exe`, so only the path of `Wow.exe` has to be set.
+
+The client is built as a folder (`WoWControlClient.exe` plus `_internal/`) instead of a single executable, so it starts quickly and is not unpacked to a temporary folder on every run. Keep the whole folder together.
+
+## Run from source
 
 | Tool | Version | Purpose |
 | --- | --- | --- |
-| Python | 3.10 or later | Runs the CLI |
-| pywin32 | Latest | Named pipe access on Windows |
+| Python | 3.10 or later | Runs the client |
+| customtkinter | 6.0.0 | Interface |
+| pywin32 | 312 | Named pipe access |
 
 ```bash
-pip install pywin32
+pip install -r requirements.txt
+cd tools
+python -m wowsdk_client
 ```
 
-## Configuration
+From source the client uses `bin/release/WoWControlSDK.dll` and `bin/release/WowInjector.exe` of the repository when they exist.
 
-The top of `tests/wowsdk_cli.py` defines the paths used by its launch and injection actions:
-
-```python
-RPC_PIPE   = r"\\.\pipe\WowGameCommand"
-EVENT_PIPE = r"\\.\pipe\WowGameEvent"
-
-WOW_PATH  = r"D:\Juegos\World Of Warcraft\Wow.exe"
-DLL_PATH  = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "bin", "release", "WoWControlSDK.dll"))
-INJECTOR  = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "bin", "release", "WowInjector.exe"))
-```
-
-Adjust `WOW_PATH` before using the launch options. `DLL_PATH` and `INJECTOR` already resolve to the Release output. The CLI launches the game with `--no-auth`, so its requests and event listener need no token.
-
-## Run
+## Build
 
 ```bash
-python tests/wowsdk_cli.py
+pip install -r requirements-build.txt
+pyinstaller --noconfirm --clean --windowed --onedir --name WoWControlClient --paths tools --collect-data customtkinter --distpath dist --workpath build/pyinstaller --specpath build/pyinstaller tools/run_client.py
 ```
 
-The CLI checks whether the command pipe is reachable and prints the menu. Each action sends one request, prints the raw JSON response and returns to the menu.
+The client is written to `dist/WoWControlClient/`. `--windowed` hides the console window and `--onedir` keeps the folder layout. The CI workflow runs the same command on every pull request and uploads the folder as an artifact.
 
-## Menu
+## Window
 
-| Section | Actions |
+| Area | Content |
 | --- | --- |
-| Auth | Login, accept EULA, TOS, termination, scanning and contest agreements, accept all, get and refresh characters, enter world, logout, quit, get and set realmlist |
-| Player | Player state, health, position and target |
-| Unit | `unit.get`, `unit.state`, `unit.position` |
-| Object | `object.*` inspection |
-| World and group | `world.getState`, `group.get`, `group.combatSummary` |
-| Events | List, subscribe, subscribe defaults, unsubscribe or clear, view history, clear history, set buffer, check hook readiness and listen live |
-| Window | Every `window.*` method, including `setIcon` and `restoreIcon` |
-| Lua | `lua.execute`, `lua.evaluate`, `lua.getGlobal`, `lua.setGlobal` and `lua.createNamespace` |
+| Header | SDK status (whether the command pipe exists), session token state, **Settings** and **Launch WoW** |
+| Sidebar | Every method grouped by domain, with a search box that matches names and descriptions |
+| Form | The selected method with one input per parameter: text, password, number, switch, list, Lua code or JSON. Required parameters are marked with `*` |
+| Response | The JSON response with colors, the call status and the time it took |
+| History | The last 100 calls; selecting one shows its request and response |
+| Events | Live view of the event pipe with a name filter, pause and clear |
+| Activity | Injector output, event pipe status and client messages |
 
-## Client behavior
+![client.login form and the Activity tab after launching the game](../assets/client/client-activity.png)
 
-`send()` opens a new command pipe connection for every request, writes the JSON object, reads the response and closes the handle. This matches the one-request-per-connection behavior of `\\.\pipe\WowGameCommand`.
+Press **Send** or `Ctrl+Enter` to send the request. Calls run on a worker thread, so slow methods such as `client.login` or `client.enterWorld` do not freeze the window. **Copy request** copies the JSON request with the token replaced by a placeholder. `client.quit` asks for confirmation.
 
-```python
-def send(method, params={}):
-    req = {"jsonrpc": "2.0", "method": method, "params": params, "id": next_id()}
-    h = win32file.CreateFile(RPC_PIPE, win32file.GENERIC_READ | win32file.GENERIC_WRITE, 0, None, win32file.OPEN_EXISTING, 0, None)
-    win32file.WriteFile(h, json.dumps(req).encode("utf-8"))
-    _, data = win32file.ReadFile(h, 65536)
-    win32file.CloseHandle(h)
-    return json.loads(data.decode("utf-8").rstrip("\x00"))
-```
+## Settings
 
-If the pipe is unavailable, `send()` returns `{"error": "<Windows error>"}` instead of raising.
+| Setting | Description |
+| --- | --- |
+| Wow.exe | Path of the game executable |
+| SDK DLL and Injector | Paths of `WoWControlSDK.dll` and `WowInjector.exe`. Empty uses the bundled or built ones |
+| Use a session token | Launch with `--token-stdin` and a new token for each session (recommended). When off, the client launches with `--no-auth` |
+| Close running Wow.exe before launching | Passes `--kill` to the injector |
+| Open the in-game SDK console | Sends `dll.toggleConsole` once the SDK is ready |
+| Show captured logs in the console | Sends `dll.setLogConfig` with `showInConsole` |
+| Wow.exe arguments | Passed with `--wow-args`; `-console` by default |
+| Token | Token used for requests and the event pipe. Paste one to control a game started elsewhere |
+| Appearance | Dark, light or system theme |
 
-## Live event listener
+![Settings dialog](../assets/client/client-settings.png)
 
-**Events → Listen live** connects to `\\.\pipe\WowGameEvent` and prints each event as it arrives. The listener reads a byte stream, splits it on newlines and parses each line as JSON.
+Settings are stored in `%APPDATA%\WoWControlClient\settings.json`. The session token is kept in memory only and is never written to disk.
 
-The event pipe accepts one client at a time. Close other listeners before starting this option.
+## Launching the game
+
+**Launch WoW** generates a 64-character hexadecimal token, starts the injector without a console window and writes the token to its standard input, so the token never appears on a command line. The injector output, including the game process id, appears in **Activity**. Every request then carries the token in its `auth` field.
+
+## Live events
+
+**Events → Connect** opens `\\.\pipe\WowGameEvent`, sends the authentication handshake and lists each event with its time, name and arguments. The filter matches event names, for example `trade.` or `UNIT_`.
+
+![Events tab with social, trade and queue events](../assets/client/client-events.png)
+
+The event pipe accepts one client at a time. If another program, such as a launcher, is connected, the client reports that the pipe is busy.
 
 !!! tip
-    Subscribe to the events you need before opening the listener. SDK events such as `client.screenChanged` and the loading events are always streamed, but WoW UI events only appear after `events.subscribe`.
+    SDK events such as `client.screenChanged`, `loading.*`, `group.inviteReceived` or `trade.requested` are always streamed. WoW UI events only appear after `events.subscribe`.
+
+## Adding methods
+
+The client builds every form from `tools/wowsdk_client/catalog.py`. To support a new SDK method, add a `Method` entry with its parameters to the matching `Domain`; no interface code is needed.
+
+| Module | Responsibility |
+| --- | --- |
+| `catalog.py` | Methods, parameters and their input types |
+| `transport.py` | One JSON-RPC request per command pipe connection, with the `auth` field |
+| `events.py` | Event pipe reader on a worker thread |
+| `launcher.py` | Injector command line, token generation and output forwarding |
+| `settings.py` | Settings file and bundled binary lookup |
+| `ui/` | Window, sidebar, method form, JSON view, events panel and settings dialog |
