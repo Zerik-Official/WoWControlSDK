@@ -42,6 +42,8 @@ __pycache__/
 *.pyc
 *.pyo
 .pytest_cache/
+dist/
+*.spec
 
 # =========================
 # Dependencies build artifacts (Detours, etc.)
