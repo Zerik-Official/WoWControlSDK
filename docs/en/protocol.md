@@ -129,15 +129,21 @@ Always inspect `result` before reading its fields. A response without a top-leve
 
 ## Method catalog
 
-The SDK registers 67 methods across ten domains.
+The SDK registers 90 methods across sixteen domains.
 
 | Domain | Methods | Page |
 | --- | --- | --- |
 | `lua.*` | 5 | [lua.*](methods/lua.md) |
 | `unit.*` | 4 | [unit.*](methods/unit.md) |
-| `group.*` | 2 | [group.*](methods/group.md) |
+| `group.*` | 5 | [group.*](methods/group.md) |
 | `player.*` | 4 | [player.*](methods/player.md) |
 | `world.*` | 1 | [world.*](methods/world.md) |
+| `friends.*` | 1 | [friends.*](methods/friends.md) |
+| `summon.*` | 3 | [summon.*](methods/summon.md) |
+| `lfg.*` | 4 | [lfg.*](methods/lfg.md) |
+| `trade.*` | 6 | [trade.*](methods/trade.md) |
+| `duel.*` | 3 | [duel.*](methods/duel.md) |
+| `battlefield.*` | 3 | [battlefield.*](methods/battlefield.md) |
 | `object.*` | 4 | [object.*](methods/object.md) |
 | `client.*` | 17 | [client.*](methods/client.md) |
 | `events.*` | 8 | [events.*](methods/events.md) |

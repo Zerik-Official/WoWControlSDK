@@ -3,6 +3,7 @@
 #include "EventHooks.h"
 #include "offsets/OffsetsLua.h"
 #include "runtime/events/EventPipe.h"
+#include "runtime/events/GameEventBridge.h"
 #include "utils/json/Json.h"
 #include <string>
 #include <vector>
@@ -114,10 +115,16 @@ static void __cdecl SignalEventHandler_hook(int eventID, const char* format, int
                    && (s_subscriptions.find(eventName) != s_subscriptions.end());
     ReleaseSRWLockShared(&s_lock);
 
-    if (subscribed)
+    bool bridged = !eventName.empty() && Runtime::GameEventBridge::Handles(eventName);
+
+    if (subscribed || bridged)
     {
         SDK::Json args = BuildArgsJson(format, varargsPtr);
-        Runtime::EventPipe::PushEvent(eventName.c_str(), args, static_cast<uint64_t>(GetTickCount64()));
+        uint64_t now = static_cast<uint64_t>(GetTickCount64());
+        if (subscribed)
+            Runtime::EventPipe::PushEvent(eventName.c_str(), args, now);
+        if (bridged)
+            Runtime::GameEventBridge::OnGameEvent(eventName, args, now);
     }
 
     SignalEventHandler_orig(eventID, format, varargsPtr);
@@ -191,6 +198,23 @@ void GetSubscriptions(std::vector<std::string>& out)
     for (const auto& s : s_subscriptions)
         out.push_back(s);
     ReleaseSRWLockShared(&s_lock);
+}
+
+int GetEventId(const char* eventName)
+{
+    if (!eventName) return -1;
+    int id = -1;
+    AcquireSRWLockShared(&s_lock);
+    for (const auto& entry : s_eventIdToName)
+    {
+        if (entry.second == eventName)
+        {
+            id = entry.first;
+            break;
+        }
+    }
+    ReleaseSRWLockShared(&s_lock);
+    return id;
 }
 
 }

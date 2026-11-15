@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/types/GUID.h"
+#include "core/api/WorldAPI.h"
 #include "runtime/state/GlueState.h"
 #include <string>
 #include <mutex>
@@ -45,6 +46,8 @@ namespace Runtime
         int         continentId = 0;
         std::string zoneName;
         std::string subZoneName;
+        int         mapAreaId = 0;
+        CoreAPI::InstanceInfo instance;
         bool        inWorld = false;
         bool        loading = true;
         bool        valid = false;

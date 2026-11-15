@@ -7,7 +7,7 @@ Events fall into two groups:
 | Group | Delivery | Examples |
 | --- | --- | --- |
 | WoW UI events | Pushed only after `events.subscribe` | `PLAYER_LOGIN`, `PLAYER_ENTERING_WORLD`, `UNIT_HEALTH`, `ZONE_CHANGED` |
-| SDK events | Pushed automatically | `client.screenChanged`, `loading.startup`, `loading.progress`, `loading.finished`, `loading.cancelled` |
+| SDK events | Pushed automatically | `client.screenChanged`, `loading.*`, `friends.*`, `group.invite*`, `summon.*`, `lfg.*`, `trade.*`, `duel.*`, `battlefield.*`, `chat.whisperReceived` |
 
 Every event that reaches the event pipe is also stored in the history buffer.
 
@@ -216,6 +216,29 @@ None.
 | `loading.progress` | Loading progress update | `{"progress": <float>}` between `0.0` and `1.0` |
 | `loading.finished` | Loading completed and the world was entered | `{"mapId": <int>}` |
 | `loading.cancelled` | The loading screen closed without entering the world within 3 seconds | `{"mapId": <int>}` |
+| `friends.online` | A friend connected | [Friend object](friends.md#friendslist) |
+| `friends.offline` | A friend disconnected | [Friend object](friends.md#friendslist) |
+| `friends.statusChanged` | An online friend became AFK or DND, or stopped being | [Friend object](friends.md#friendslist) |
+| `group.inviteReceived` | Someone invited you to a group | `{"inviterName": <string>}` |
+| `group.inviteClosed` | The invitation ended | `{"inviterName", "reason", "roles"}`; `reason` is `"accepted"`, `"declined"`, `"cancelled"` (the inviter withdrew it or it expired) or `"joined"`; `roles` are the [roles](group.md#roles) sent when accepting |
+| `summon.requested` | Someone summons you | [Summon object](summon.md#summonget) without `canTeleport` |
+| `summon.closed` | The summon was answered or cancelled | Summon object plus `reason`: `"accepted"`, `"declined"` or `"cancelled"` |
+| `lfg.proposalShown` | The Dungeon Finder found a group | [Proposal object](lfg.md#lfggetproposal) |
+| `lfg.proposalUpdated` | A member answered the proposal | Proposal object |
+| `lfg.proposalFailed` | Someone declined or the proposal expired | Proposal object (usually `{"exists": false}`) |
+| `lfg.proposalSucceeded` | Everyone accepted | Proposal object |
+| `trade.requested` | Someone wants to trade with you | `{"requesterName": <string>}` |
+| `trade.requestClosed` | The request ended | `{"requesterName", "reason"}`; `reason` is `"accepted"`, `"declined"`, `"cancelled"` or `"closed"` |
+| `trade.opened` | The trade window opened | [Trade object](trade.md#tradeget) |
+| `trade.updated` | Items, money or accept states changed | Trade object plus `change`: `"update"`, `"accept"`, `"playerItem"`, `"targetItem"` or `"money"` |
+| `trade.closed` | The trade window closed | `{"bothAccepted": <bool>}`; `true` means both players had accepted, so the trade most likely completed |
+| `duel.requested` | Someone challenged you to a duel | [Duel object](duel.md#duelget) |
+| `duel.accepted` | You accepted the duel | Duel object plus `reason: "accepted"` |
+| `duel.closed` | The request or the duel ended | Duel object plus `reason`: `"declined"`, `"cancelled"`, `"forfeited"` or `"finished"` |
+| `duel.boundsChanged` | You left or re-entered the duel area | `{"inBounds": <bool>}` |
+| `battlefield.statusChanged` | A queue changed status | [Queue object](battlefield.md#battlefieldgetqueues) plus `previousStatusId` |
+| `battlefield.ready` | A battleground or arena is ready to enter | Queue object |
+| `chat.whisperReceived` | You received a whisper | `{"battleNet", "text", "author", "language", "status", "lineId", "guid", "presenceId", "args"}`; `status` is `"AFK"`, `"DND"`, `"GM"` or empty, `presenceId` is only set for Battle.net whispers and `args` holds the raw event arguments |
 
 `background` describes the loading screen image from `LoadingScreens.dbc`, or is `null` when the map has none and the generic `Interface\Glues\loading` image is used:
 
@@ -225,6 +248,8 @@ None.
 | `name` | string | Internal name of the loading screen |
 | `file` | string | Path of the `.blp` image, for example `Interface\Glues\LoadingScreens\LoadScreenNorthrend.blp` |
 | `hasWideScreen` | boolean | Whether a `Wide` variant exists; the client shows it on wide resolutions |
+
+Social, trade, duel, queue and whisper events are built from the matching WoW events (`PARTY_INVITE_REQUEST`, `CONFIRM_SUMMON`, `LFG_PROPOSAL_SHOW`, `FRIENDLIST_UPDATE`, `TRADE_*`, `DUEL_*`, `UPDATE_BATTLEFIELD_STATUS`, `CHAT_MSG_WHISPER`…) without subscribing to them, and their data is read from memory. Answers given with the game's own buttons are also reported, because the SDK follows the native functions behind those buttons. Friend events only compare entries already known in the same session, so logging in does not report every online friend. When the SDK closes a game dialog after answering for you, the WoW event it uses for that is not reported as a new SDK event.
 
 Loading events are polled from memory once per frame rather than hooked from Lua, and `loading.progress` is emitted at most once every 100 milliseconds. A loading screen is reported only while the client's loading bar exists, so the screen drawn and destroyed in the same frame when logging out to the character list does not produce events.
 
@@ -261,4 +286,4 @@ finally:
     win32file.CloseHandle(pipe)
 ```
 
-The [CLI tool](../operations/cli.md) exposes the same stream through **Events → Listen live**.
+The [desktop client](../operations/cli.md) shows the same stream in its **Events** tab.

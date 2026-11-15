@@ -84,7 +84,7 @@ nav:
       - unit.*: methods/unit.md
   - Operations:
       - Building: operations/building.md
-      - CLI tool: operations/cli.md
+      - Desktop client: operations/cli.md
       - Releases: operations/releases.md
       - Documentation site: operations/documentation.md
   - Glossary: glossary.md

@@ -11,6 +11,7 @@
 #include "control/ControlRpc.h"
 #include "event/EventRpc.h"
 #include "window/WindowRpc.h"
+#include "social/SocialRpc.h"
 
 namespace Rpc
 {
@@ -28,5 +29,6 @@ namespace Rpc
         registerControlMethods(registry);
         registerEventMethods(registry);
         RPC::Window::registerWindowMethods(registry);
+        registerSocialMethods(registry);
     }
 }

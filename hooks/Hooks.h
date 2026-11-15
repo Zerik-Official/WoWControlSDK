@@ -7,6 +7,7 @@
 #include "hooks/GlueHooks.h"
 #include "hooks/ConsoleHooks.h"
 #include "hooks/LoadingHooks.h"
+#include "hooks/SocialHooks.h"
 
 namespace Hooks
 {

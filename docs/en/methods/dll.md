@@ -50,7 +50,7 @@ None.
   "jsonrpc": "2.0",
   "id": 1,
   "result": {
-    "version": "2.0.0",
+    "version": "2.1.0",
     "uptimeMs": 123456,
     "console": true,
     "consoleVisible": false,

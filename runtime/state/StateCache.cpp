@@ -58,6 +58,8 @@ namespace Runtime
         e.continentId  = CoreAPI::World::GetContinentId();
         e.zoneName     = CoreAPI::World::GetZoneName();
         e.subZoneName  = CoreAPI::World::GetSubZoneName();
+        e.mapAreaId    = CoreAPI::World::GetLuaMapId();
+        e.instance     = CoreAPI::World::GetInstanceInfo();
         e.inWorld      = CoreAPI::World::IsInWorld();
         e.loading      = CoreAPI::World::IsOnLoadingScreen();
         e.valid        = true;

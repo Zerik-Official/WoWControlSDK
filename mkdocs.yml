@@ -55,7 +55,7 @@ plugins:
             Methods: Métodos
             Operations: Operación
             Building: Compilación
-            CLI tool: Herramienta CLI
+            Desktop client: Cliente de escritorio
             Releases: Versiones
             Documentation site: Sitio de documentación
             Glossary: Glosario
@@ -73,6 +73,12 @@ nav:
       - group.*: methods/group.md
       - player.*: methods/player.md
       - world.*: methods/world.md
+      - friends.*: methods/friends.md
+      - summon.*: methods/summon.md
+      - lfg.*: methods/lfg.md
+      - trade.*: methods/trade.md
+      - duel.*: methods/duel.md
+      - battlefield.*: methods/battlefield.md
       - object.*: methods/object.md
       - client.*: methods/client.md
       - events.*: methods/events.md
@@ -80,7 +86,7 @@ nav:
       - window.*: methods/window.md
   - Operations:
       - Building: operations/building.md
-      - CLI tool: operations/cli.md
+      - Desktop client: operations/cli.md
       - Releases: operations/releases.md
       - Documentation site: operations/documentation.md
   - Glossary: glossary.md

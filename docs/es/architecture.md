@@ -164,7 +164,7 @@ El sistema tiene dos capas independientes.
 
 **EventBus** (`runtime/events/EventBus.h`) es el bus de publicación y suscripción en proceso. `StateCache` lo usa para emitir eventos como `player.healthChanged` y `world.zoneChanged`. Hoy ningún componente interno se suscribe a esos eventos; el bus queda disponible para uso futuro dentro del proceso.
 
-**EventPipe** (`runtime/events/EventPipe.h`) es el flujo externo en `\\.\pipe\WowGameEvent`. `StateCache` escribe `client.screenChanged` y `LoadingHooks` escribe los eventos de carga. Los eventos UI de WoW suscritos los escribe `EventHooks`. El pipe funciona en modo byte y separa los mensajes con un salto de línea.
+**EventPipe** (`runtime/events/EventPipe.h`) es el flujo externo en `\\.\pipe\WowGameEvent`. `StateCache` escribe `client.screenChanged` y `LoadingHooks` escribe los eventos de carga. Los eventos UI de WoW suscritos los escribe `EventHooks`. `EventHooks` también entrega los eventos sociales, de comercio, de duelo, de colas y de susurros a `runtime/events/GameEventBridge`, que lee los datos relacionados a través de `core/api/` y escribe los eventos `friends.*`, `group.invite*`, `summon.*`, `lfg.*`, `trade.*`, `duel.*`, `battlefield.*` y `chat.whisperReceived`. `hooks/SocialHooks` intercepta las funciones nativas que hay detrás de los botones de invitación, invocación, comercio y duelo, así que también se informan las respuestas dadas en el juego. El pipe funciona en modo byte y separa los mensajes con un salto de línea.
 
 Los eventos que llegan al pipe se dividen en dos grupos:
 
@@ -177,4 +177,4 @@ El historial es un búfer circular de 256 entradas por defecto. `events.getHisto
 
 ## Caché de estado
 
-`runtime/state/StateCache` actualiza el estado del jugador, el mundo y la pantalla una vez por frame. Los dominios `player.*` y `world.*` leen esa caché en lugar de encolar una petición en el hilo del juego, por lo que responden rápido y con el mismo coste independientemente de la carga del juego. Los datos de grupo usan una caché basada en checksum y solo se reconstruyen cuando cambia la composición del grupo.
+`runtime/state/StateCache` actualiza el estado del jugador, el mundo y la pantalla una vez por frame. Los dominios `player.*` y `world.*` leen esa caché en lugar de encolar una petición en el hilo del juego, por lo que responden rápido y con el mismo coste independientemente de la carga del juego. Los datos de grupo se leen de las tablas de grupo del cliente en el hilo del juego en cada llamada, así que siempre reflejan los últimos valores enviados por el servidor.

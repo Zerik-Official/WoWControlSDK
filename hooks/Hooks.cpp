@@ -7,4 +7,5 @@ void Hooks::initialize()
     Hooks::Console::Initialize();
     Hooks::Events::Initialize();
     Hooks::Loading::Initialize();
+    Hooks::Social::Initialize();
 }

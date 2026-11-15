@@ -72,4 +72,4 @@ The `CI` workflow runs on every pull request and push to `dev` and `main`. It co
 
 The `Build and Release` workflow runs on every `v*` tag. It configures CMake, builds the Release configuration, verifies the expected outputs and packages the release. See [Releases](releases.md) for the artifact list and the manifest.
 
-There is no unit test suite in the repository. Validation is manual: build the DLL, inject it into the supported client and exercise the methods through the [CLI tool](cli.md).
+There is no unit test suite in the repository. Validation is manual: build the DLL, inject it into the supported client and exercise the methods through the [desktop client](cli.md).
