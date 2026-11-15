@@ -22,10 +22,11 @@ sequenceDiagram
     Dev->>CI: push tag v1.0.0
     CI->>CI: cmake -B build -A Win32
     CI->>CI: cmake --build build --config Release
-    CI->>CI: verify DLL, injector, CLI, requirements and license
+    CI->>CI: pyinstaller --windowed --onedir (desktop client)
+    CI->>CI: verify DLL, injector, client and license
     CI->>CI: compute SHA-256 and size for each binary
     CI->>CI: write manifest.json
-    CI->>CI: create WoWControlSDK-v1.0.0.zip
+    CI->>CI: create WoWControlSDK-v1.0.0.zip and WoWControlClient-v1.0.0.zip
     CI->>GH: publish release with generated notes
 ```
 
@@ -33,13 +34,14 @@ sequenceDiagram
 | --- | --- |
 | Configure | Runs `cmake -B build -A Win32` |
 | Build | Runs `cmake --build build --config Release` |
-| Verify | Fails if `bin/release/WoWControlSDK.dll`, `bin/release/WowInjector.exe`, `tests/wowsdk_cli.py`, `requirements.txt` or `LICENSE` is missing |
+| Client | Installs `requirements-build.txt` and builds the [desktop client](cli.md) with PyInstaller, without a console and as a folder (`--windowed --onedir`) |
+| Verify | Fails if `bin/release/WoWControlSDK.dll`, `bin/release/WowInjector.exe`, `dist/WoWControlClient/WoWControlClient.exe` or `LICENSE` is missing |
 | Manifest | Computes the SHA-256 hash and byte size of the DLL and the injector |
-| Package | Creates `release/WoWControlSDK-<version>/` and compresses it to `WoWControlSDK-<version>.zip` |
-| Publish | Creates the GitHub Release with generated notes and uploads the zip and `manifest.json` |
+| Package | Creates `WoWControlSDK-<version>.zip` with the binaries and `WoWControlClient-<version>.zip` with the client and a copy of the binaries |
+| Publish | Creates the GitHub Release with generated notes and uploads both zips and `manifest.json` |
 
 !!! note
-    The verify step expects `requirements.txt` at the repository root. A release fails if that file is missing. Keep it in sync with the Python dependencies of the CLI.
+    The SDK package only holds what a launcher needs. The client ships in its own zip so applications that download the SDK do not download the client too.
 
 ## Package contents
 
@@ -48,10 +50,18 @@ WoWControlSDK-<version>/
 ├── binaries/
 │   ├── WoWControlSDK.dll
 │   └── WowInjector.exe
-├── wowsdk_cli.py
-├── requirements.txt
 ├── LICENSE
 └── manifest.json
+```
+
+```text
+WoWControlClient-<version>/
+├── WoWControlClient.exe
+├── _internal/
+├── binaries/
+│   ├── WoWControlSDK.dll
+│   └── WowInjector.exe
+└── LICENSE
 ```
 
 ## Manifest
