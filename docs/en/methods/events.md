@@ -286,4 +286,4 @@ finally:
     win32file.CloseHandle(pipe)
 ```
 
-The [CLI tool](../operations/cli.md) exposes the same stream through **Events → Listen live**.
+The [desktop client](../operations/cli.md) shows the same stream in its **Events** tab.

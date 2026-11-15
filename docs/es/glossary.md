@@ -74,5 +74,5 @@
 **Manifiesto**
 :   Archivo `manifest.json` generado para una versión. Registra la versión del esquema, la etiqueta, el commit y el hash SHA-256 y el tamaño de cada binario.
 
-**Herramienta CLI**
-:   Cliente interactivo de Python en `tests/wowsdk_cli.py`. Prueba todos los dominios RPC e incluye un listener de eventos en vivo.
+**Cliente de escritorio**
+:   WoWControl Client, la aplicación de customtkinter en `tools/wowsdk_client/`. Llama a todos los métodos RPC desde formularios generados, lanza el juego con un token de sesión y muestra los eventos en vivo. Las versiones lo publican como `WoWControlClient-<versión>.zip`.

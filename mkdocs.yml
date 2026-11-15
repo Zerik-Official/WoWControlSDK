@@ -55,7 +55,7 @@ plugins:
             Methods: Métodos
             Operations: Operación
             Building: Compilación
-            CLI tool: Herramienta CLI
+            Desktop client: Cliente de escritorio
             Releases: Versiones
             Documentation site: Sitio de documentación
             Glossary: Glosario
@@ -86,7 +86,7 @@ nav:
       - window.*: methods/window.md
   - Operations:
       - Building: operations/building.md
-      - CLI tool: operations/cli.md
+      - Desktop client: operations/cli.md
       - Releases: operations/releases.md
       - Documentation site: operations/documentation.md
   - Glossary: glossary.md

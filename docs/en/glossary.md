@@ -74,5 +74,5 @@
 **Manifest**
 :   The `manifest.json` file generated for a release. It records the schema version, the tag, the commit and the SHA-256 hash and size of each binary.
 
-**CLI tool**
-:   The interactive Python client at `tests/wowsdk_cli.py`. It exercises every RPC domain and includes a live event listener.
+**Desktop client**
+:   WoWControl Client, the customtkinter application in `tools/wowsdk_client/`. It calls every RPC method from generated forms, launches the game with a session token and shows live events. Releases ship it as `WoWControlClient-<version>.zip`.

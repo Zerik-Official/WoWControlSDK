@@ -286,4 +286,4 @@ finally:
     win32file.CloseHandle(pipe)
 ```
 
-La [herramienta CLI](../operations/cli.md) expone la misma secuencia mediante **Events → Listen live**.
+El [cliente de escritorio](../operations/cli.md) muestra la misma secuencia en su pestaña **Events**.

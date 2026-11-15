@@ -105,15 +105,17 @@ print(rpc("client.getScreen"))
 !!! note
     Los métodos Lua y de unidades requieren la pantalla adecuada. `lua.*`, `unit.*`, `group.*`, `player.*` y `world.*` normalmente necesitan que el jugador esté dentro del mundo. `client.login` requiere la pantalla de login y `client.enterWorld` requiere la selección de personajes.
 
-## Usar la herramienta CLI
+## Usar el cliente de escritorio
 
-El repositorio incluye un CLI interactivo de Python para probar todos los dominios:
+El repositorio incluye un cliente de escritorio para probar todos los dominios. Descarga `WoWControlClient-<versión>.zip` de una versión, o ejecútalo desde el código:
 
 ```bash
-python tests/wowsdk_cli.py
+pip install -r requirements.txt
+cd tools
+python -m wowsdk_client
 ```
 
-La herramienta requiere `pywin32` y lee `WOW_PATH`, `DLL_PATH` e `INJECTOR` de la cabecera de `tests/wowsdk_cli.py`. Ajusta esas rutas antes de usar las opciones de lanzamiento e inyección. Consulta [Herramienta CLI](operations/cli.md) para el menú y el listener de eventos en vivo.
+Indica la ruta de `Wow.exe` en **Settings** y pulsa **Launch WoW**: el cliente inicia el juego con un token de sesión y lo usa en cada petición. Consulta [Cliente de escritorio](operations/cli.md) para la ventana, los ajustes y la vista de eventos en vivo.
 
 ## Servir la documentación
 

@@ -12,7 +12,7 @@ Technical documentation is available in English and Spanish. It is also publishe
 | [Injection](en/injection.md) | Freeze-sync injector, arguments and alternative injectors |
 | [RPC protocol](en/protocol.md) | Named pipes, JSON-RPC envelope, errors and client examples |
 | [Methods](en/methods/index.md) | Every RPC domain and method with parameters and responses |
-| [Operations](en/operations/building.md) | Building, CLI tool, releases and the documentation site |
+| [Operations](en/operations/building.md) | Building, desktop client, releases and the documentation site |
 | [Glossary](en/glossary.md) | Transport, game and engineering terms |
 
 ## Español
@@ -25,7 +25,7 @@ Technical documentation is available in English and Spanish. It is also publishe
 | [Inyección](es/injection.md) | Inyector congelar-sincronizar, argumentos e inyectores alternativos |
 | [Protocolo RPC](es/protocol.md) | Named pipes, sobre JSON-RPC, errores y ejemplos de cliente |
 | [Métodos](es/methods/index.md) | Cada dominio y método RPC con parámetros y respuestas |
-| [Operación](es/operations/building.md) | Compilación, herramienta CLI, versiones y sitio de documentación |
+| [Operación](es/operations/building.md) | Compilación, cliente de escritorio, versiones y sitio de documentación |
 | [Glosario](es/glossary.md) | Términos de transporte, del juego y de ingeniería |
 
 ## Local preview

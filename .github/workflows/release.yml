@@ -22,14 +22,30 @@ jobs:
       - name: Build Release
         run: cmake --build build --config Release
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-build.txt
+
+      - name: Install client and build dependencies
+        run: pip install -r requirements-build.txt
+
+      - name: Build the client without a console, as a folder
+        run: >
+          pyinstaller --noconfirm --clean --windowed --onedir
+          --name WoWControlClient --paths tools --collect-data customtkinter
+          --distpath dist --workpath build/pyinstaller --specpath build/pyinstaller
+          tools/run_client.py
+
       - name: Verify build outputs
         shell: pwsh
         run: |
           $files = @(
             "bin/release/WoWControlSDK.dll",
             "bin/release/WowInjector.exe",
-            "tests/wowsdk_cli.py",
-            "requirements.txt",
+            "dist/WoWControlClient/WoWControlClient.exe",
             "LICENSE"
           )
 
@@ -73,7 +89,7 @@ jobs:
             ConvertTo-Json -Depth 5 |
             Set-Content manifest.json -Encoding UTF8
 
-      - name: Create release package
+      - name: Create SDK package
         shell: pwsh
         run: |
           $version = "${{ github.ref_name }}"
@@ -83,9 +99,6 @@ jobs:
 
           Copy-Item "bin/release/WoWControlSDK.dll" "$package/binaries/"
           Copy-Item "bin/release/WowInjector.exe" "$package/binaries/"
-
-          Copy-Item "tests/wowsdk_cli.py" "$package/wowsdk_cli.py"
-          Copy-Item "requirements.txt" "$package/"
           Copy-Item "LICENSE" "$package/"
           Copy-Item "manifest.json" "$package/"
 
@@ -93,10 +106,29 @@ jobs:
             -Path $package `
             -DestinationPath "WoWControlSDK-$version.zip"
 
+      - name: Create client package
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}"
+          $package = "release/WoWControlClient-$version"
+
+          New-Item -ItemType Directory -Force -Path $package | Out-Null
+          Copy-Item "dist/WoWControlClient/*" $package -Recurse
+
+          New-Item -ItemType Directory -Force -Path "$package/binaries" | Out-Null
+          Copy-Item "bin/release/WoWControlSDK.dll" "$package/binaries/"
+          Copy-Item "bin/release/WowInjector.exe" "$package/binaries/"
+          Copy-Item "LICENSE" "$package/"
+
+          Compress-Archive `
+            -Path $package `
+            -DestinationPath "WoWControlClient-$version.zip"
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
           files: |
             WoWControlSDK-${{ github.ref_name }}.zip
+            WoWControlClient-${{ github.ref_name }}.zip
             manifest.json

@@ -47,7 +47,7 @@ The DLL runs inside `Wow.exe`. A client connects to `\\.\pipe\WowGameCommand`, s
 **Operations**
 
 - [Building](operations/building.md): requirements, CMake targets and output layout.
-- [CLI tool](operations/cli.md): the interactive Python CLI and the live event listener.
+- [Desktop client](operations/cli.md): the desktop application to call every method and watch live events.
 - [Releases](operations/releases.md): tags, artifacts, manifest and GitHub Releases.
 - [Documentation site](operations/documentation.md): MkDocs, translations, validation and deployment.
 
