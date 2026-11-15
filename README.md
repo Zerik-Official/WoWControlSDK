@@ -72,8 +72,8 @@ All game memory access is isolated in the `core/` layer. The `rpc/` layer parses
 | Visual Studio | 2022 with the Desktop development with C++ workload | C++17 compiler |
 | CMake | 3.20 or later | Build system |
 | Git | 2.40 or later | Source control |
-| Python | 3.10 or later | CLI test tool and documentation |
-| pywin32 | Latest | CLI test tool |
+| Python | 3.10 or later | Desktop client and documentation |
+| customtkinter and pywin32 | See `requirements.txt` | Desktop client |
 
 Only **WoW 3.3.5a (build 12340)** is supported. A clean, unmodified client is recommended; lightly modified clients may also work.
 
@@ -183,6 +183,18 @@ To receive events, connect to `\\.\pipe\WowGameEvent` and first send `{"auth":"<
 | `window.getInfo` / `window.setBounds` | Window inspection and layout control |
 
 The full reference, with parameters, response fields and examples for every method, is in the [methods documentation](https://zerik-official.github.io/WoWControlSDK/docs/methods/).
+
+## Desktop client
+
+WoWControl Client calls every method from generated forms, launches the game with a session token and shows live events. Each release includes `WoWControlClient-<version>.zip`, ready to run with the SDK binaries inside. To run it from source:
+
+```bash
+pip install -r requirements.txt
+cd tools
+python -m wowsdk_client
+```
+
+See the [desktop client documentation](https://zerik-official.github.io/WoWControlSDK/docs/operations/cli/) for the window, the settings and how to build it.
 
 ## Documentation
 
