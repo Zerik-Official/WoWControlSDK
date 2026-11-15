@@ -22,10 +22,11 @@ sequenceDiagram
     Dev->>CI: push etiqueta v1.0.0
     CI->>CI: cmake -B build -A Win32
     CI->>CI: cmake --build build --config Release
-    CI->>CI: verificar DLL, inyector, CLI, requisitos y licencia
+    CI->>CI: pyinstaller --windowed --onedir (cliente de escritorio)
+    CI->>CI: verificar DLL, inyector, cliente y licencia
     CI->>CI: calcular SHA-256 y tamaño de cada binario
     CI->>CI: escribir manifest.json
-    CI->>CI: crear WoWControlSDK-v1.0.0.zip
+    CI->>CI: crear WoWControlSDK-v1.0.0.zip y WoWControlClient-v1.0.0.zip
     CI->>GH: publicar versión con notas generadas
 ```
 
@@ -33,25 +34,34 @@ sequenceDiagram
 | --- | --- |
 | Configurar | Ejecuta `cmake -B build -A Win32` |
 | Compilar | Ejecuta `cmake --build build --config Release` |
-| Verificar | Falla si falta `bin/release/WoWControlSDK.dll`, `bin/release/WowInjector.exe`, `tests/wowsdk_cli.py`, `requirements.txt` o `LICENSE` |
+| Cliente | Instala `requirements-build.txt` y compila el [cliente de escritorio](cli.md) con PyInstaller, sin consola y como carpeta (`--windowed --onedir`) |
+| Verificar | Falla si falta `bin/release/WoWControlSDK.dll`, `bin/release/WowInjector.exe`, `dist/WoWControlClient/WoWControlClient.exe` o `LICENSE` |
 | Manifiesto | Calcula el hash SHA-256 y el tamaño en bytes de la DLL y del inyector |
-| Empaquetar | Crea `release/WoWControlSDK-<version>/` y lo comprime en `WoWControlSDK-<version>.zip` |
-| Publicar | Crea la versión de GitHub con notas generadas y sube el zip y `manifest.json` |
+| Empaquetar | Crea `WoWControlSDK-<version>.zip` con los binarios y `WoWControlClient-<version>.zip` con el cliente y una copia de los binarios |
+| Publicar | Crea la versión de GitHub con notas generadas y sube los dos zip y `manifest.json` |
 
 !!! note
-    El paso de verificación espera `requirements.txt` en la raíz del repositorio. La versión falla si ese archivo no existe. Mantenlo sincronizado con las dependencias de Python del CLI.
+    El paquete del SDK solo contiene lo que necesita un launcher. El cliente se publica en un zip aparte para que las aplicaciones que descargan el SDK no bajen también el cliente.
 
-## Contenido del paquete
+## Contenido de los paquetes
 
 ```text
 WoWControlSDK-<version>/
 ├── binaries/
 │   ├── WoWControlSDK.dll
 │   └── WowInjector.exe
-├── wowsdk_cli.py
-├── requirements.txt
 ├── LICENSE
 └── manifest.json
+```
+
+```text
+WoWControlClient-<version>/
+├── WoWControlClient.exe
+├── _internal/
+├── binaries/
+│   ├── WoWControlSDK.dll
+│   └── WowInjector.exe
+└── LICENSE
 ```
 
 ## Manifiesto
