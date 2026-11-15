@@ -47,7 +47,7 @@ La DLL se ejecuta dentro de `Wow.exe`. Un cliente se conecta a `\\.\pipe\WowGame
 **Operación**
 
 - [Compilación](operations/building.md): requisitos, objetivos de CMake y estructura de salida.
-- [Herramienta CLI](operations/cli.md): el CLI interactivo de Python y el listener de eventos en vivo.
+- [Cliente de escritorio](operations/cli.md): la aplicación de escritorio para llamar a todos los métodos y ver los eventos en vivo.
 - [Versiones](operations/releases.md): etiquetas, artefactos, manifiesto y GitHub Releases.
 - [Sitio de documentación](operations/documentation.md): MkDocs, traducciones, validación y despliegue.
 
