@@ -138,7 +138,7 @@ Los eventos también se guardan en un búfer circular que `events.getHistory` pu
 | Ejecución de handlers RPC | Algunos handlers encolan trabajo en el hilo del juego mediante `Hooks::Frame::Post`; otros bloquean el hilo RPC mientras sondean. |
 
 !!! note
-    Las operaciones Lua (`lua.evaluate` y `lua.execute`) usan `lua_pcall` con `errfunc=0` y son seguras desde el hilo RPC. Las operaciones que cambian estado, como login, logout y entrar al mundo, se encolan en el hilo del juego para evitar condiciones de carrera.
+    Todos los métodos `lua.*` se ejecutan en el hilo del juego: el hilo RPC pasa la llamada al siguiente frame y espera su resultado. Las operaciones que cambian estado, como login, logout y entrar al mundo, se encolan en el hilo del juego para evitar condiciones de carrera.
 
 ## Aislamiento de offsets
 
