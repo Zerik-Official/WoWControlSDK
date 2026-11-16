@@ -13,7 +13,9 @@ DANGER = "#d9534f"
 MUTED = ("#6b6b6b", "#9a9a9a")
 SURFACE = ("#ececec", "#1f1f23")
 SURFACE_ALT = ("#e2e2e2", "#26262b")
-SIDEBAR_WIDTH = 260
+TEXT = ("#1a1a1a", "#e6e6e6")
+ON_ACCENT = "#1a1a1a"
+SIDEBAR_WIDTH = 340
 
 JSON_COLORS: dict[str, str] = {
     "key": "#7fb8e6",
