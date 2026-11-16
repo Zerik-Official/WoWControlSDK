@@ -73,33 +73,34 @@ class SettingsDialog(ctk.CTkToplevel):
         self._kill = self._switch(body, 6, "Close running Wow.exe before launching", settings.kill_existing)
         self._console = self._switch(body, 7, "Open the in-game SDK console", settings.open_console)
         self._logs = self._switch(body, 8, "Show captured logs in the console", settings.show_logs_in_console)
-        ctk.CTkLabel(body, text="Wow.exe arguments", anchor="w").grid(row=9, column=0, sticky="w", pady=4)
+        self._hidden = self._switch(body, 9, "Start the game hidden (window.show reveals it)", settings.start_hidden)
+        ctk.CTkLabel(body, text="Wow.exe arguments", anchor="w").grid(row=10, column=0, sticky="w", pady=4)
         self._args = ctk.CTkEntry(body)
         self._args.insert(0, settings.wow_args)
-        self._args.grid(row=9, column=1, columnspan=2, sticky="ew", pady=4)
+        self._args.grid(row=10, column=1, columnspan=2, sticky="ew", pady=4)
 
         ctk.CTkLabel(body, text="Session", font=theme.title(15), anchor="w").grid(
-            row=10, column=0, columnspan=3, sticky="w", pady=(16, 6))
-        ctk.CTkLabel(body, text="Token", anchor="w").grid(row=11, column=0, sticky="w", pady=4)
+            row=11, column=0, columnspan=3, sticky="w", pady=(16, 6))
+        ctk.CTkLabel(body, text="Token", anchor="w").grid(row=12, column=0, sticky="w", pady=4)
         self._token = ctk.CTkEntry(body, show="\u2022", placeholder_text="Empty when the SDK runs with --no-auth")
         if token:
             self._token.insert(0, token)
-        self._token.grid(row=11, column=1, columnspan=2, sticky="ew", pady=4)
+        self._token.grid(row=12, column=1, columnspan=2, sticky="ew", pady=4)
         ctk.CTkLabel(
             body, text="Launching from this client creates a new token. Paste one here to control a game "
                        "started elsewhere. The token is never saved to disk.",
             font=theme.small(), text_color=theme.MUTED, anchor="w", justify="left", wraplength=520,
-        ).grid(row=12, column=0, columnspan=3, sticky="w")
+        ).grid(row=13, column=0, columnspan=3, sticky="w")
 
-        ctk.CTkLabel(body, text="Appearance", anchor="w").grid(row=13, column=0, sticky="w", pady=(16, 4))
+        ctk.CTkLabel(body, text="Appearance", anchor="w").grid(row=14, column=0, sticky="w", pady=(16, 4))
         self._appearance = ctk.CTkSegmentedButton(body, values=["dark", "light", "system"],
                                                   selected_color=theme.ACCENT,
                                                   selected_hover_color=theme.ACCENT_HOVER)
         self._appearance.set(settings.appearance)
-        self._appearance.grid(row=13, column=1, sticky="w", pady=(16, 4))
+        self._appearance.grid(row=14, column=1, sticky="w", pady=(16, 4))
 
         buttons = ctk.CTkFrame(body, fg_color="transparent")
-        buttons.grid(row=14, column=0, columnspan=3, sticky="e", pady=(20, 0))
+        buttons.grid(row=15, column=0, columnspan=3, sticky="e", pady=(20, 0))
         ctk.CTkButton(buttons, text="Cancel", width=90, fg_color=theme.SURFACE_ALT, hover_color=theme.SURFACE,
                       text_color=("#1a1a1a", "#e6e6e6"), command=self.destroy).pack(side="left", padx=(0, 8))
         ctk.CTkButton(buttons, text="Save", width=90, fg_color=theme.ACCENT, hover_color=theme.ACCENT_HOVER,
@@ -130,6 +131,7 @@ class SettingsDialog(ctk.CTkToplevel):
             wow_args=self._args.get().strip(),
             open_console=bool(self._console.get()),
             show_logs_in_console=bool(self._logs.get()),
+            start_hidden=bool(self._hidden.get()),
             appearance=self._appearance.get(),
         )
         token = self._token.get().strip() or None
