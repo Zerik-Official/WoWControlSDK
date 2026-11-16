@@ -35,7 +35,7 @@ jobs:
       - name: Build the client without a console, as a folder
         run: >
           pyinstaller --noconfirm --clean --windowed --onedir
-          --name WoWControlClient --paths tools --collect-data customtkinter
+          --name WoWControlClient --paths tools --collect-data customtkinter --collect-data wowsdk_client
           --distpath dist --workpath build/pyinstaller --specpath build/pyinstaller
           tools/run_client.py
 
