@@ -6,9 +6,13 @@
 #include "runtime/state/GlueState.h"
 #include "core/api/PlayerAPI.h"
 #include "core/api/WorldAPI.h"
+#include "core/native/NetClient.h"
+#include "core/native/Performance.h"
 
 namespace Runtime
 {
+    static constexpr uint64_t PERFORMANCE_INTERVAL_MS = 500;
+
     void StateCache::setEventBus(EventBus* bus)
     {
         m_eventBus = bus;
@@ -66,6 +70,21 @@ namespace Runtime
         return e;
     }
 
+    PerformanceCacheEntry StateCache::readPerformance(bool inWorld) const
+    {
+        PerformanceCacheEntry e;
+        e.framerate = WoW::Performance::GetFramerate();
+
+        WoW::Net::NetStats stats;
+        e.connected = inWorld && WoW::Net::GetNetStats(stats);
+        e.latencyMs = stats.latencyMs;
+        e.bandwidthIn = stats.bandwidthIn;
+        e.bandwidthOut = stats.bandwidthOut;
+        e.updatedMs = GetTickCount64();
+        e.valid = true;
+        return e;
+    }
+
     void StateCache::update()
     {
         PlayerCacheEntry prevPlayer;
@@ -80,10 +99,15 @@ namespace Runtime
         PlayerCacheEntry freshPlayer = readPlayer();
         WorldCacheEntry  freshWorld  = readWorld();
 
+        bool refreshPerformance = GetTickCount64() - m_performance.updatedMs >= PERFORMANCE_INTERVAL_MS;
+        PerformanceCacheEntry freshPerformance = refreshPerformance ? readPerformance(freshWorld.inWorld) : PerformanceCacheEntry{};
+
         {
             std::lock_guard<std::mutex> lock(m_mutex);
             m_player = freshPlayer;
             m_world  = freshWorld;
+            if (refreshPerformance)
+                m_performance = freshPerformance;
         }
 
         if (!m_eventBus) return;
@@ -153,6 +177,13 @@ namespace Runtime
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         out = m_world;
+        return out.valid;
+    }
+
+    bool StateCache::getPerformance(PerformanceCacheEntry& out) const
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        out = m_performance;
         return out.valid;
     }
 }
