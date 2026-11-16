@@ -51,7 +51,7 @@ The DLL runs inside `Wow.exe`. A client connects to `\\.\pipe\WowGameCommand`, s
 | Events | WoW UI event subscriptions plus SDK events for loading screens, social activity, trades, duels and queues, all streamed over the event pipe with a circular history buffer |
 | Security | Pipes restricted to local connections from the Windows user that runs the game, and a per-session token on every request |
 | Window | Show, hide, minimize, maximize, focus, move, resize, opacity, top-most, title, icon, taskbar flash and hidden starts for headless launches |
-| Diagnostics | In-game console overlay, captured game logs and DLL information |
+| Diagnostics | Latency, FPS, addon memory, crash reports with the game's error log, Lua errors, in-game console overlay, captured game logs and DLL information |
 
 ## Architecture
 
