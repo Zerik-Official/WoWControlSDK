@@ -20,6 +20,26 @@ namespace Offsets
         constexpr uintptr_t AUTH_RESULT        = 0x2F50;
         constexpr uintptr_t ERROR_FLAG         = 0x2F44;
         constexpr uintptr_t AUTH_STATUS        = 0x2F4C;
+        constexpr uintptr_t GET_NET_STATS      = 0x006320D0;
+    }
+
+    namespace Performance
+    {
+        constexpr uintptr_t GET_FRAMERATE      = 0x0077F440;
+    }
+
+    namespace Addons
+    {
+        constexpr uintptr_t COUNT              = 0x00C24948;
+        constexpr uintptr_t NAMES              = 0x00C2494C;
+        constexpr uintptr_t GET_TAINT_KEY      = 0x005F7410;
+    }
+
+    namespace Errors
+    {
+        constexpr uintptr_t REGISTER_HANDLER   = 0x00771B80;
+        constexpr uintptr_t GET_LOG_PATH       = 0x00771960;
+        constexpr uintptr_t EXCEPTION_POINTERS = 0x00CADBDC;
     }
 
     namespace Realm
