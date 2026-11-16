@@ -379,6 +379,78 @@
       }
     },
     {
+      "name": "lua.loadScript",
+      "description": {
+        "en": "Load a Lua script as a virtual addon with its own SDK object; it runs again after /reload.",
+        "es": "Carga un script Lua como un addon virtual con su propio objeto SDK; se vuelve a ejecutar tras /reload."
+      },
+      "params": [
+        {
+          "name": "name",
+          "type": "string",
+          "description": {
+            "en": "Script name, shown as @name",
+            "es": "Nombre del script, se muestra como @nombre"
+          },
+          "required": true,
+          "default": "MyTool"
+        },
+        {
+          "name": "code",
+          "type": "text",
+          "description": {
+            "en": "Lua code; it receives (name, ns) like an addon file",
+            "es": "Código Lua; recibe (name, ns) como un archivo de addon"
+          },
+          "required": true,
+          "default": "local name, ns = ...\nlocal frame = CreateFrame(\"Frame\")\nframe:RegisterEvent(\"PLAYER_TARGET_CHANGED\")\nframe:SetScript(\"OnEvent\", function()\n    ns.SDK.Emit(\"tool.target\", UnitName(\"target\"))\nend)"
+        },
+        {
+          "name": "persist",
+          "type": "boolean",
+          "description": {
+            "en": "Run it again after every /reload",
+            "es": "Volver a ejecutarlo tras cada /reload"
+          },
+          "default": true
+        },
+        {
+          "name": "replace",
+          "type": "boolean",
+          "description": {
+            "en": "Unload a script with the same name first",
+            "es": "Descargar antes un script con el mismo nombre"
+          },
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "lua.unloadScript",
+      "description": {
+        "en": "Unload a script and remove the frames, hooks, globals and slash commands it created.",
+        "es": "Descarga un script y quita los frames, hooks, globales y comandos de barra que creó."
+      },
+      "params": [
+        {
+          "name": "name",
+          "type": "string",
+          "description": {
+            "en": "Script name",
+            "es": "Nombre del script"
+          },
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "lua.getScripts",
+      "description": {
+        "en": "Loaded and pending scripts with the resources they created.",
+        "es": "Scripts cargados y pendientes con los recursos que crearon."
+      }
+    },
+    {
       "name": "lua.setBlockedNotice",
       "description": {
         "en": "Show or hide the game notice when the SDK is blocked.",
