@@ -15,6 +15,9 @@ import pywintypes
 import win32file
 import win32pipe
 
+# Project imports
+from .i18n import tr
+
 EVENT_PIPE = r"\\.\pipe\WowGameEvent"
 
 ERROR_FILE_NOT_FOUND = 2
@@ -85,24 +88,26 @@ class EventStream:
             handle = self._open()
         except pywintypes.error as exc:
             if exc.winerror == ERROR_FILE_NOT_FOUND:
-                self._status("The event pipe does not exist: is the game running with the SDK?")
+                self._status(tr("events.missing"))
             elif exc.winerror == ERROR_PIPE_BUSY:
-                self._status("The event pipe is busy: another client (for example the launcher) is connected")
+                self._status(tr("events.busy"))
+            elif exc.winerror == ERROR_ACCESS_DENIED:
+                self._status(tr("events.access_denied"))
             else:
-                self._status(f"Could not open the event pipe: {exc.strerror}")
+                self._status(tr("events.open_failed", error=exc.strerror))
             self.messages.put(StreamMessage("stopped", ""))
             return
 
         try:
             if token:
                 win32file.WriteFile(handle, (json.dumps({"auth": token}) + "\n").encode("utf-8"))
-            self._status("Connected to the event pipe")
+            self._status(tr("events.connected"))
             self._read_loop(handle)
         except pywintypes.error as exc:
             if exc.winerror in (ERROR_BROKEN_PIPE, ERROR_PIPE_NOT_CONNECTED):
-                self._status("The event pipe was closed")
+                self._status(tr("events.closed"))
             else:
-                self._status(f"Event pipe error: {exc.strerror}")
+                self._status(tr("events.error", error=exc.strerror))
         finally:
             win32file.CloseHandle(handle)
             self.messages.put(StreamMessage("stopped", ""))
@@ -121,7 +126,7 @@ class EventStream:
                 line = line.strip()
                 if line:
                     self._emit(line)
-        self._status("Disconnected from the event pipe")
+        self._status(tr("events.disconnected"))
 
     def _emit(self, line: str) -> None:
         try:
@@ -132,7 +137,7 @@ class EventStream:
         if isinstance(parsed, dict):
             name = str(parsed.get("event", ""))
             if name == "auth.failed":
-                self._status("The SDK rejected the session token")
+                self._status(tr("events.auth_failed"))
             self.messages.put(StreamMessage("event", name, parsed))
         else:
             self.messages.put(StreamMessage("raw", line))
