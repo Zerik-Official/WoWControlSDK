@@ -48,6 +48,7 @@ class Settings:
     show_logs_in_console: bool = False
     start_hidden: bool = False
     appearance: str = "dark"
+    language: str = ""
 
     def resolved_dll(self) -> str:
         """Configured DLL path, or the bundled one."""
