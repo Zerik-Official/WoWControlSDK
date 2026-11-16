@@ -10,6 +10,7 @@ Ejecutan código, llaman funciones, leen y escriben valores, vigilan llamadas y 
 | Tamaño de la petición | El pipe de comandos lee como máximo 4096 bytes por petición, así que el código Lua debe caber en ese límite. Pon el código más grande en un addon y llámalo con `lua.call`. |
 | Errores | Una llamada fallida devuelve `{"ok": false, "error": "..."}`. Los errores de Lua también incluyen `stack` con la traza de la pila de Lua. |
 | Acciones bloqueadas | Cuando el juego bloquea una función protegida, la llamada devuelve `ok: false` con una lista `blocked`. Consulta [Taint y modo seguro](#taint-y-modo-seguro). |
+| Errores de scripts | Los errores de cualquier script Lua del juego o de un addon se envían al pipe de eventos como [`lua.error`](events.md#cargas-utiles-de-los-eventos-del-sdk), aunque haya instalado un addon de errores como BugGrabber. |
 | Recarga | `/reload` y cerrar sesión crean una Lua VM nueva. Las refs y los hooks se pierden y hay que crearlos de nuevo. |
 
 ## Taint y modo seguro
