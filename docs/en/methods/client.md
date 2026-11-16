@@ -58,6 +58,137 @@ None.
 !!! warning
     The fields are raw memory values that depend on the client build. Use this method for diagnosis, not for application logic.
 
+## client.getNetStats
+
+Returns the latency and bandwidth that the game measures for its server connection, the same values as `GetNetStats()` in Lua. The SDK reads them from the game's network client every 500 milliseconds and answers from that cache, so the call is cheap.
+
+### Parameters
+
+None.
+
+### Response
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `connected` | boolean | `true` in the world; outside the world the other values are `0` |
+| `latencyMs` | integer | Average round trip time to the server in milliseconds |
+| `bandwidthIn` | number | Incoming bandwidth in KB/s |
+| `bandwidthOut` | number | Outgoing bandwidth in KB/s |
+| `ageMs` | integer | Milliseconds since the values were read |
+
+```json
+{"connected": true, "latencyMs": 48, "bandwidthIn": 2.418, "bandwidthOut": 0.351, "ageMs": 212}
+```
+
+!!! note
+    The game averages the latency of its last messages, so the value changes slowly. Polling more often than once per second gives no extra information.
+
+## client.getFramerate
+
+Returns the frames per second, averaged by the game over its last 30 frames, the same value as `GetFramerate()` in Lua. It uses the same 500 millisecond cache as `client.getNetStats`.
+
+### Parameters
+
+None.
+
+### Response
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `fps` | number | Frames per second, with one decimal |
+| `ageMs` | integer | Milliseconds since the value was read |
+
+```json
+{"fps": 59.8, "ageMs": 140}
+```
+
+## client.getAddonMemory
+
+Returns the memory used by each loaded addon and by the whole Lua VM, the same values as `GetAddOnMemoryUsage()` and `collectgarbage("count")`. The call runs on the game thread.
+
+Measuring the memory walks every Lua object, which can take a few milliseconds with many addons. The SDK measures at most once per second; a call made sooner answers with the last measurement, and `ageMs` tells how old it is.
+
+### Parameters
+
+None.
+
+### Response
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `addons` | array | Addons that use memory, largest first, as `{"name", "kilobytes"}` |
+| `addonsKilobytes` | number | Sum of the addons |
+| `totalKilobytes` | number | Memory of the whole Lua VM, including Blizzard's interface |
+| `ageMs` | integer | Milliseconds since the measurement |
+
+```json
+{
+  "addons": [
+    {"name": "Questie", "kilobytes": 18452.6},
+    {"name": "DBM-Core", "kilobytes": 6210.3}
+  ],
+  "addonsKilobytes": 24662.9,
+  "totalKilobytes": 31877.2,
+  "ageMs": 0
+}
+```
+
+Addons that are not loaded do not appear.
+
+## client.getLastCrash
+
+Returns the last fatal error of the game, such as `ERROR #132 (0x85100084) Fatal Exception`, with the log the game wrote to its `Errors` folder.
+
+The SDK registers a handler in the game's own error reporting. It runs after the game writes the log and before it shows the error window, so the data is ready while the window is open. The same data is sent to the event pipe as [`client.crashed`](events.md#sdk-event-payloads).
+
+### Parameters
+
+None.
+
+### Response
+
+Without errors in this session:
+
+```json
+{"crashed": false}
+```
+
+After an error:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `crashed` | boolean | `true` |
+| `kind` | string | `"crash"` for an exception, `"error"` for other fatal errors |
+| `errorNumber` | integer | The number the game shows, for example `132` |
+| `code` | string | Full error code, for example `"0x85100084"` |
+| `title` | string | Error title, for example `"Fatal Exception"` |
+| `description` | string | Short description, such as the exception and its address |
+| `details` | string | Longer explanation written by the game |
+| `exception` | object or `null` | `{"code", "address", "module", "offset"}` of the exception; `null` for other errors |
+| `logPath` | string or `null` | Path of the log in the `Errors` folder |
+| `log` | string or `null` | Contents of the log, up to 64 KB |
+| `logTruncated` | boolean | Present and `true` when the log was longer than 64 KB |
+| `time` | integer | Milliseconds since Windows started |
+
+```json
+{
+  "crashed": true,
+  "kind": "crash",
+  "errorNumber": 132,
+  "code": "0x85100084",
+  "title": "Fatal Exception",
+  "description": "0x00000004 (ACCESS_VIOLATION) at 0023:00000004",
+  "details": "The instruction at \"0x00000004\" referenced memory at \"0x00000004\".",
+  "exception": {"code": "0xC0000005", "address": "0x00000004"},
+  "logPath": "C:\\Games\\World of Warcraft\\Errors\\2026-11-16 17-05-12.txt",
+  "log": "==============================================================================\r\nWorld of WarCraft: Retail Build ...",
+  "time": 5183920
+}
+```
+
+!!! note
+    A crash can leave the game unable to answer. A launcher should also read the newest file in the `Errors` folder after the game process ends, in case neither the event nor this method could be delivered.
+
 ## client.login
 
 Performs a complete login sequence. It optionally sets the realm list and realm name CVars, sends the credentials and waits for the login result.
