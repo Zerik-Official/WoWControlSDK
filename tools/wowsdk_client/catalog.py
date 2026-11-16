@@ -169,6 +169,23 @@ DOMAINS: tuple[Domain, ...] = (
         Method("battlefield.acceptPort", "Enter the battleground or arena.", (_index(),)),
         Method("battlefield.leaveQueue", "Leave a queue or decline its invitation.", (_index(),)),
     )),
+    Domain("chat", "Chat", (
+        Method("chat.send", "Send a message on a chat channel.", (
+            Param("channel", ParamType.CHOICE, "Chat channel", required=True, default="WHISPER",
+                  choices=("WHISPER", "SAY", "YELL", "EMOTE", "PARTY", "RAID", "RAID_WARNING", "BATTLEGROUND",
+                           "GUILD", "OFFICER", "CHANNEL", "BN_WHISPER")),
+            Param("target", ParamType.STRING,
+                  "Character name for WHISPER, channel number or name for CHANNEL, presence ID for BN_WHISPER"),
+            Param("text", ParamType.STRING, "Message, up to 255 bytes", required=True),
+            Param("language", ParamType.INTEGER, "Languages.dbc ID; empty uses the character's default language"),
+        )),
+        Method("chat.reply", "Reply to the last whisper, or to a specific one.", (
+            Param("text", ParamType.STRING, "Message", required=True),
+            Param("lineId", ParamType.INTEGER, "Reply to the whisper with this line ID"),
+            Param("guid", ParamType.STRING, "Reply to the last whisper from this sender GUID"),
+        )),
+        Method("chat.getRecentWhispers", "Whispers chat.reply can answer."),
+    )),
     Domain("events", "Events", (
         Method("events.subscribe", "Subscribe to WoW UI events.", (
             Param("events", ParamType.STRING_LIST, "Event names separated by commas", required=True,
@@ -212,6 +229,9 @@ DOMAINS: tuple[Domain, ...] = (
         Method("window.getHandle", "Window handle."),
         Method("window.show", "Show the window."),
         Method("window.hide", "Hide the window."),
+        Method("window.setStartHidden", "Keep the game window hidden until window.show.", (
+            Param("hidden", ParamType.BOOLEAN, "Keep the window hidden", required=True, default=True),
+        )),
         Method("window.minimize", "Minimize the window."),
         Method("window.restore", "Restore the window."),
         Method("window.maximize", "Maximize the window."),
