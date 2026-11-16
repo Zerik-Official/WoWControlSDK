@@ -47,6 +47,7 @@ echo %ZFORGE_TOKEN% | WowInjector.exe --wow "C:\World of Warcraft\Wow.exe" --dll
 | `--no-pipe` | Descongela tras `--wait` milisegundos en lugar de esperar el pipe. |
 | `--wait <ms>` | Milisegundos a esperar cuando `--no-pipe` está activo. Por defecto, `500`. |
 | `--kill` | Mata un proceso `Wow.exe` existente antes de lanzar. |
+| `--hidden` | Mantiene oculta la ventana del juego hasta [`window.show`](methods/window.md#windowsetstarthidden), para lanzamientos headless. Se envía con el juego todavía congelado; no se puede combinar con `--no-pipe`. |
 | `--wow-args <str>` | Argumentos extra para `Wow.exe`. |
 | `--pipe-cmd <json>` | Envía un comando JSON-RPC cuando el pipe está listo. Repetible. El token de sesión se añade a cada comando automáticamente. |
 
