@@ -11,6 +11,7 @@ namespace Runtime
         std::string text;
         int         style;
         uint64_t    timestampMs;
+        uint64_t    sequence;
     };
 
     struct LogConfig
@@ -21,6 +22,8 @@ namespace Runtime
 
     namespace LogCapture
     {
+        constexpr int DEFAULT_MAX_ENTRIES = 1000;
+
         void    Initialize();
         void    Shutdown();
         void    SetConfig(int maxEntries, bool showInConsole);
