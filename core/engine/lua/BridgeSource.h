@@ -214,6 +214,57 @@ function bridge.grant(namespace, addon)
     return true
 end
 
+local errorWindow = 10
+local errorMemory = 200
+local errorSeen = {}
+local errorCount = 0
+local wrapping = false
+
+local function reportError(message)
+    local text = tostring(message)
+    local now = GetTime and GetTime() or 0
+    local last = errorSeen[text]
+    if last and now - last < errorWindow then
+        return
+    end
+    if not last then
+        errorCount = errorCount + 1
+        if errorCount > errorMemory then
+            errorSeen = {}
+            errorCount = 1
+        end
+    end
+    errorSeen[text] = now
+    local addon = string.match(text, "AddOns[\\/]([^\\/]+)[\\/]")
+    local stack = debugstack and debugstack(3) or nil
+    push("error", text, addon, stack)
+end
+
+local function wrapErrorHandler(handler)
+    if type(handler) ~= "function" or handler == bridge.errorWrapper then
+        return
+    end
+    local wrapper = function(message, ...)
+        pcall(reportError, message)
+        return handler(message, ...)
+    end
+    bridge.errorWrapper = wrapper
+    wrapping = true
+    seterrorhandler(wrapper)
+    wrapping = false
+end
+
+if type(seterrorhandler) == "function" and type(geterrorhandler) == "function" then
+    wrapErrorHandler(geterrorhandler())
+    if type(hooksecurefunc) == "function" then
+        hooksecurefunc("seterrorhandler", function(handler)
+            if not wrapping then
+                wrapErrorHandler(handler)
+            end
+        end)
+    end
+end
+
 return bridge
 )lua";
 
