@@ -19,7 +19,7 @@ Every RPC method belongs to a domain. Each domain has its own page with the para
 
 | Domain | Methods | Description |
 | --- | --- | --- |
-| [lua.*](lua.md) | 15 | Run Lua, call functions, read and write values, watch calls and manage the addon bridge |
+| [lua.*](lua.md) | 18 | Run Lua, call functions, read and write values, watch calls and manage the addon bridge |
 | [unit.*](unit.md) | 4 | Read health, power, position, rotation and state flags from a unit |
 | [group.*](group.md) | 5 | Read the party or raid roster, a combat summary and group invitations, and answer invitations |
 | [player.*](player.md) | 4 | Read cached player health, position, target and full state |
@@ -41,7 +41,7 @@ Every RPC method belongs to a domain. Each domain has its own page with the para
 
 | Domain | Methods |
 | --- | --- |
-| `lua` | `execute`, `evaluate`, `call`, `getGlobal`, `setGlobal`, `createNamespace`, `getRef`, `releaseRef`, `hook`, `unhook`, `getHooks`, `batch`, `setAllowedAddons`, `getAddons`, `setBlockedNotice` |
+| `lua` | `execute`, `evaluate`, `call`, `getGlobal`, `setGlobal`, `createNamespace`, `getRef`, `releaseRef`, `hook`, `unhook`, `getHooks`, `batch`, `setAllowedAddons`, `getAddons`, `loadScript`, `unloadScript`, `getScripts`, `setBlockedNotice` |
 | `unit` | `get`, `state`, `position`, `mapPosition` |
 | `group` | `get`, `combatSummary`, `getInvite`, `acceptInvite`, `declineInvite` |
 | `player` | `getHealth`, `getPosition`, `getTarget`, `getState` |

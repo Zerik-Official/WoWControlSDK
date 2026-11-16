@@ -46,6 +46,9 @@ namespace Runtime::AddonMemoryMonitor
         for (const auto& addon : fresh.addons)
             fresh.addonsKilobytes += addon.kilobytes;
 
+        for (const auto& [name, key] : LuaEngine::scriptMemoryKeys())
+            fresh.scripts.push_back({name, WoW::Addons::ReadKeyKilobytes(key)});
+
         fresh.totalKilobytes = readTotalKilobytes();
         fresh.updatedMs = now;
         fresh.valid = true;

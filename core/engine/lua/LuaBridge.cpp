@@ -19,6 +19,7 @@ static lua_State* s_failedState = nullptr;
 static ULONGLONG s_retryAt = 0;
 static std::optional<std::vector<std::string>> s_allowed;
 static std::vector<std::string> s_granted;
+static uint64_t s_generation = 0;
 
 static bool isAllowed(const std::string& addon)
 {
@@ -64,6 +65,7 @@ bool ensure(lua_State* L)
     {
         s_failedState = nullptr;
         s_granted.clear();
+        ++s_generation;
     }
     else
     {
@@ -89,6 +91,12 @@ void pushRef(lua_State* L, int ref)
 
 LuaEngine::LuaResult run(const char* function, const PushArgs& pushArgs, const LuaEngine::ReadLimits& limits, bool secure)
 {
+    return runAs(function, pushArgs, limits, secure ? nullptr : LuaTaint::sdkSource());
+}
+
+LuaEngine::LuaResult runAs(const char* function, const PushArgs& pushArgs, const LuaEngine::ReadLimits& limits,
+    const char* taint)
+{
     lua_State* L = LuaNative::state();
     if (!L)
         return LuaStack::failure("lua not initialized");
@@ -113,7 +121,7 @@ LuaEngine::LuaResult run(const char* function, const PushArgs& pushArgs, const L
     LuaBlocked::Capture capture;
     int status = 0;
     {
-        LuaTaint::Scope scope(secure);
+        LuaTaint::Scope scope(taint);
         status = LuaNative::pcall(L, nargs, -1, errorIndex);
     }
 
@@ -123,10 +131,51 @@ LuaEngine::LuaResult run(const char* function, const PushArgs& pushArgs, const L
     return result;
 }
 
+LuaEngine::LuaResult runChunk(const std::string& code, const std::string& chunkName, const char* function,
+    const std::string& argument, const char* taint)
+{
+    lua_State* L = LuaNative::state();
+    if (!L)
+        return LuaStack::failure("lua not initialized");
+    if (!ensure(L))
+        return LuaStack::failure("lua bridge unavailable");
+
+    int top = LuaNative::gettop(L);
+    if (!LuaNative::checkstack(L, 8))
+        return LuaStack::failure("lua stack is full");
+
+    pushField(L, "errorHandler");
+    int errorIndex = top + 1;
+    pushField(L, function);
+
+    std::string name = "=" + chunkName;
+    int status = LuaNative::loadbuffer(L, code.c_str(), code.size(), name.c_str());
+    if (status == 0)
+    {
+        LuaNative::pushstring(L, argument.c_str());
+        LuaTaint::Scope scope(taint);
+        status = LuaNative::pcall(L, 2, -1, errorIndex);
+    }
+
+    LuaEngine::LuaResult result = LuaStack::collect(L, status, errorIndex, LuaEngine::ReadLimits{2, 100});
+    LuaNative::settop(L, top);
+    return result;
+}
+
+uint64_t generation()
+{
+    return s_generation;
+}
+
+bool isAllowedName(const std::string& name)
+{
+    return isAllowed(name);
+}
+
 bool grantAddon(const char* addon)
 {
     lua_State* L = LuaNative::state();
-    if (!L || !addon || !*addon || !isAllowed(addon))
+    if (!L || !addon || !*addon || addon[0] == '@' || !isAllowed(addon))
         return false;
 
     int top = LuaNative::gettop(L);

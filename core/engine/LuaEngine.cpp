@@ -3,6 +3,7 @@
 #include "lua/LuaBridge.h"
 #include "lua/LuaNative.h"
 #include "lua/LuaPath.h"
+#include "lua/LuaScripts.h"
 #include "lua/LuaStack.h"
 #include "lua/LuaTaint.h"
 
@@ -196,6 +197,31 @@ bool showBlockedNotice()
 BridgeBatch drainBridge(const ReadLimits& limits)
 {
     return LuaBridge::drain(limits);
+}
+
+LuaResult loadScript(const std::string& name, const std::string& code, bool persist, bool replace, ScriptInfo& info)
+{
+    return LuaScripts::load(name, code, persist, replace, info);
+}
+
+LuaResult unloadScript(const std::string& name, ScriptResources& removed)
+{
+    return LuaScripts::unload(name, removed);
+}
+
+std::vector<ScriptInfo> listScripts()
+{
+    return LuaScripts::list();
+}
+
+std::vector<ScriptEvent> pollScripts()
+{
+    return LuaScripts::poll();
+}
+
+std::vector<std::pair<std::string, const void*>> scriptMemoryKeys()
+{
+    return LuaScripts::memoryKeys();
 }
 
 }

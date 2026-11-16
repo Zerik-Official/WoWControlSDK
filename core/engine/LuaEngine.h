@@ -1,6 +1,7 @@
 #pragma once
 #include "lua/LuaValue.h"
 #include <optional>
+#include <utility>
 #include <string>
 #include <vector>
 
@@ -37,5 +38,11 @@ void     setShowBlockedNotice(bool show);
 bool     showBlockedNotice();
 
 BridgeBatch drainBridge(const ReadLimits& limits);
+
+LuaResult loadScript(const std::string& name, const std::string& code, bool persist, bool replace, ScriptInfo& info);
+LuaResult unloadScript(const std::string& name, ScriptResources& removed);
+std::vector<ScriptInfo> listScripts();
+std::vector<ScriptEvent> pollScripts();
+std::vector<std::pair<std::string, const void*>> scriptMemoryKeys();
 
 }

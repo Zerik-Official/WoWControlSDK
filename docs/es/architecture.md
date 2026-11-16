@@ -90,7 +90,7 @@ sequenceDiagram
 ```
 
 1. El cliente se conecta a `\\.\pipe\WowGameCommand`.
-2. `ipc/CommandPipe` lee un mensaje de hasta 4096 bytes.
+2. `ipc/CommandPipe` lee un mensaje de hasta 1 MiB.
 3. `rpc/Dispatcher` valida el sobre y enruta la petición al handler registrado.
 4. El handler llama a una API de `core/`, lee la caché de `runtime/` o encola trabajo en el hilo del juego.
 5. `Dispatcher` envuelve el resultado del handler en una respuesta JSON-RPC.

@@ -40,4 +40,13 @@ namespace WoW::Addons
         }
         return true;
     }
+
+    double ReadKeyKilobytes(const void* key)
+    {
+        lua_State* L = LuaNative::state();
+        if (!L || !key) return 0.0;
+
+        auto getMemory = reinterpret_cast<GetMemoryFn>(Offsets::Lua::LUA_GET_ADDON_MEMORY);
+        return getMemory(L, key) / 1024.0;
+    }
 }

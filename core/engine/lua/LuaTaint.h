@@ -8,6 +8,7 @@ const char* sdkSource();
 class Scope {
 public:
     explicit Scope(bool secure);
+    explicit Scope(const char* source);
     ~Scope();
 
     Scope(const Scope&) = delete;

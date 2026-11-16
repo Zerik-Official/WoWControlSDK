@@ -7,7 +7,7 @@ Run code, call functions, read and write values, watch calls and manage the addo
 | Topic | Behavior |
 | --- | --- |
 | Thread | Every `lua.*` method runs on the game thread at the start of the next frame, so the response arrives after at most one frame. |
-| Request size | The command pipe reads at most 4096 bytes per request, so Lua code must fit in that limit. Put larger code in an addon and call it with `lua.call`. |
+| Request size | The command pipe accepts requests of up to 1 MiB, enough for long Lua code. Use [`lua.loadScript`](#lualoadscript) for code that must survive `/reload`. |
 | Errors | A failed call returns `{"ok": false, "error": "..."}`. Lua errors also carry `stack` with the Lua stack trace. |
 | Blocked actions | When the game blocks a protected function, the call returns `ok: false` with a `blocked` list. See [Taint and secure mode](#taint-and-secure-mode). |
 | Script errors | Errors raised by any Lua script of the game or an addon are sent to the event pipe as [`lua.error`](events.md#sdk-event-payloads), even when an error addon such as BugGrabber is installed. |
@@ -429,6 +429,79 @@ Lists the addons that received the `SDK` object and the current allowlist.
 | `granted` | array[string] | Addons that received the object since the last `/reload` |
 | `allowed` | array[string] or `null` | The allowlist, or `null` when every addon that opts in is allowed |
 
+## lua.loadScript
+
+Loads Lua code sent through the pipe as a virtual addon. The script receives its own `SDK` object, like an addon that declares `X-WoWControlSDK`, so it can send events, and everything it creates can be removed later with `lua.unloadScript`. Use it to deploy logic on demand without installing an addon folder or restarting the game. The [addon integration guide](../addons.md#scripts-without-an-addon-folder) explains how to write one.
+
+### Parameters
+
+| Name | Type | Required | Default | Description |
+| --- | --- | --- | --- | --- |
+| `name` | string | Yes | | 1 to 48 letters, digits, `_`, `-`, `.` or `/`. The script is called `@name` |
+| `code` | string | Yes | | Lua code. It receives `name, ns` like an addon file, with the SDK object in `ns.SDK` |
+| `persist` | boolean | No | `true` | Run the script again after every `/reload` |
+| `replace` | boolean | No | `true` | Unload a script with the same name first; `false` returns an error instead |
+
+### Response
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `ok` | boolean | `true` when the script ran or was stored |
+| `name` | string | Name of the script, with `@` |
+| `bytes` | integer | Size of the code |
+| `persist` | boolean | Whether it runs again after `/reload` |
+| `loaded` | boolean | Whether it is running now |
+| `pending` | boolean | `true` when it was stored to run once the world loads |
+| `resources` | object or `null` | `{"frames", "hooks", "globals", "slashCommands"}` created so far |
+
+### Example
+
+```json
+{"jsonrpc": "2.0", "id": 1, "method": "lua.loadScript", "params": {"name": "MyTool", "code": "local name, ns = ...\nlocal frame = CreateFrame('Frame')\nframe:RegisterEvent('PLAYER_TARGET_CHANGED')\nframe:SetScript('OnEvent', function() ns.SDK.Emit('tool.target', UnitName('target')) end)"}}
+```
+
+```json
+{"jsonrpc": "2.0", "id": 1, "result": {"ok": true, "name": "@MyTool", "bytes": 190, "persist": true, "loaded": true, "pending": false, "resources": {"frames": 1, "hooks": 0, "globals": 0, "slashCommands": 0}}}
+```
+
+- A script runs once the player is in the world, after `PLAYER_LOGIN`, so the interface and every addon are already loaded. Sent before that, for example from the login screen or during a loading screen, it is stored with `pending: true` and runs as soon as the player is in the world. A [`lua.script`](events.md#sdk-event-payloads) event reports the result.
+- A Lua error returns `ok: false` with `error` and `stack`, and everything the script created before the error is removed.
+- With an allowlist set by `lua.setAllowedAddons`, the list must include `@name`.
+- Persisted scripts live in the SDK's memory, not on disk: they survive `/reload` and logging out, but not closing the game.
+
+## lua.unloadScript
+
+Stops a script and removes what it created: its frames stop receiving events and scripts and are hidden, its hooks stop running, the globals it wrote get their previous value back and its slash commands disappear. Callbacks registered with `SDK.OnUnload` run first.
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | string | Yes | Script name, with or without `@` |
+
+### Response
+
+```json
+{"jsonrpc": "2.0", "id": 1, "result": {"ok": true, "name": "@MyTool", "removed": {"frames": 1, "hooks": 0, "globals": 0, "slashCommands": 0}}}
+```
+
+`removed` counts zero for a script that was pending. An unknown name returns `{"ok": false, "error": "script not found"}`.
+
+!!! note
+    WoW cannot delete frames. An unloaded frame stays hidden and silent, and its memory is freed at the next `/reload`.
+
+## lua.getScripts
+
+Lists the loaded and pending scripts.
+
+### Response
+
+```json
+{"jsonrpc": "2.0", "id": 1, "result": {"ok": true, "scripts": [{"name": "@MyTool", "bytes": 190, "persist": true, "loaded": true, "resources": {"frames": 1, "hooks": 0, "globals": 0, "slashCommands": 0}}]}}
+```
+
+`resources` is `null` for a script that is not running. The memory used by each script appears in [`client.getAddonMemory`](client.md#clientgetaddonmemory).
+
 ## lua.setBlockedNotice
 
 Chooses whether the game shows its notice when it blocks a protected function called by the SDK.
@@ -457,3 +530,5 @@ The notice is hidden by default. The response and the `lua.blocked` event report
 | `lua.getGlobal`, `lua.setGlobal`, `lua.createNamespace` | `name` was a global name | `name` is a [path](#paths); names that are not valid paths are rejected |
 | `lua.setGlobal` | Only booleans, numbers and strings | Any JSON value |
 | Thread | Pipe thread | Game thread, at the next frame |
+| Request size | 4096 bytes | 1 MiB |
+| Scripts | Only through an addon folder | [`lua.loadScript`](#lualoadscript), removable with `lua.unloadScript` |

@@ -19,6 +19,7 @@ add_library(WoWControlSDK SHARED
     core/engine/lua/LuaBridge.cpp
     core/engine/lua/LuaNative.cpp
     core/engine/lua/LuaPath.cpp
+    core/engine/lua/LuaScripts.cpp
     core/engine/lua/LuaStack.cpp
     core/engine/lua/LuaTaint.cpp
 

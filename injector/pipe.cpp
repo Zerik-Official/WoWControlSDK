@@ -42,15 +42,34 @@ bool waitForPipe(const char* pipeName, DWORD timeoutMs, HANDLE process)
     return false;
 }
 
+static HANDLE openPipe(const std::string& fullPath)
+{
+    constexpr int attempts = 20;
+    constexpr DWORD retryMs = 50;
+
+    for (int attempt = 0; attempt < attempts; ++attempt)
+    {
+        HANDLE h = CreateFileA(
+            fullPath.c_str(),
+            GENERIC_READ | GENERIC_WRITE,
+            0, nullptr, OPEN_EXISTING, 0, nullptr
+        );
+        if (h != INVALID_HANDLE_VALUE)
+            return h;
+
+        if (GetLastError() == ERROR_PIPE_BUSY)
+            WaitNamedPipeA(fullPath.c_str(), retryMs);
+        else
+            Sleep(retryMs);
+    }
+    return INVALID_HANDLE_VALUE;
+}
+
 bool sendPipeCommand(const char* pipeName, const std::string& json, std::string& responseOut)
 {
     std::string fullPath = std::string("\\\\.\\pipe\\") + pipeName;
 
-    HANDLE h = CreateFileA(
-        fullPath.c_str(),
-        GENERIC_READ | GENERIC_WRITE,
-        0, nullptr, OPEN_EXISTING, 0, nullptr
-    );
+    HANDLE h = openPipe(fullPath);
 
     if (h == INVALID_HANDLE_VALUE)
     {

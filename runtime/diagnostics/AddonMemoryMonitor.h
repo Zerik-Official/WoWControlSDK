@@ -9,6 +9,7 @@ namespace Runtime::AddonMemoryMonitor
     struct Report
     {
         std::vector<WoW::Addons::AddonUsage> addons;
+        std::vector<WoW::Addons::AddonUsage> scripts;
         double   addonsKilobytes = 0.0;
         double   totalKilobytes = 0.0;
         uint64_t updatedMs = 0;

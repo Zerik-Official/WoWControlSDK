@@ -12,4 +12,5 @@ namespace WoW::Addons
     };
 
     bool ReadMemoryUsage(std::vector<AddonUsage>& out);
+    double ReadKeyKilobytes(const void* key);
 }
