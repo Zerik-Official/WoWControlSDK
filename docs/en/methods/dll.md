@@ -55,7 +55,7 @@ None.
     "console": true,
     "consoleVisible": false,
     "logCount": 42,
-    "logMaxEntries": 256,
+    "logMaxEntries": 1000,
     "logShowInConsole": false
   }
 }
@@ -97,8 +97,10 @@ Configures log capture.
 
 | Name | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `maxEntries` | integer | No | `256` | Maximum number of buffered entries |
-| `showInConsole` | boolean | No | `false` | Echo captured logs to the in-game console |
+| `maxEntries` | integer | No | Current value, `1000` at start | Maximum number of buffered entries |
+| `showInConsole` | boolean | No | Current value, `false` at start | Echo captured logs to the in-game console |
+
+Omitted parameters keep their current value. When `showInConsole` turns on, or the console opens later, the buffered messages are printed first, so the messages from the game startup are not lost. The console is written from a separate thread, so printing never slows the game down.
 
 ### Response
 
