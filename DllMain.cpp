@@ -42,6 +42,7 @@ static void OnDetach()
     Hooks::Events::Shutdown();
     Hooks::Social::Shutdown();
     Hooks::WindowStart::Shutdown();
+    Hooks::Addons::Shutdown();
     Hooks::Frame::Shutdown();
     Hooks::Glue::Shutdown();
     LuaEngine::shutdown();
