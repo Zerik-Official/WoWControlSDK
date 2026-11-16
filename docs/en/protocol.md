@@ -9,11 +9,11 @@ The SDK exposes every method through JSON-RPC 2.0 over two Windows named pipes. 
 | `\\.\pipe\WowGameCommand` | Duplex | Message | One JSON-RPC request and one JSON response per connection |
 | `\\.\pipe\WowGameEvent` | Duplex | Byte | Authentication handshake, then a newline-delimited event stream, one client at a time |
 
-The command pipe reads one message of up to **4096 bytes**, dispatches it and writes the response. It then flushes the buffer and disconnects the client. This means:
+The command pipe reads one message of up to **1 MiB** (1,048,576 bytes), dispatches it and writes the response. It then flushes the buffer and disconnects the client. This means:
 
 - Open a new pipe handle for each request.
 - Write the whole JSON object in a single `WriteFile`.
-- Keep requests under 4096 bytes, including large Lua snippets.
+- Keep requests under 1 MiB. A larger request returns the JSON-RPC error `-32600` with `Request too large`.
 - Read the response before closing the handle.
 
 The event pipe is different. It is a long-lived connection: the client authenticates first, then the SDK writes one JSON object per line and the client keeps reading until the pipe closes.
@@ -131,11 +131,11 @@ Always inspect `result` before reading its fields. A response without a top-leve
 
 ## Method catalog
 
-The SDK registers 108 methods across seventeen domains.
+The SDK registers 111 methods across seventeen domains.
 
 | Domain | Methods | Page |
 | --- | --- | --- |
-| `lua.*` | 15 | [lua.*](methods/lua.md) |
+| `lua.*` | 18 | [lua.*](methods/lua.md) |
 | `unit.*` | 4 | [unit.*](methods/unit.md) |
 | `group.*` | 5 | [group.*](methods/group.md) |
 | `player.*` | 4 | [player.*](methods/player.md) |
