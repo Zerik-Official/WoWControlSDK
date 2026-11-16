@@ -7,7 +7,7 @@ Ejecutan código, llaman funciones, leen y escriben valores, vigilan llamadas y 
 | Tema | Comportamiento |
 | --- | --- |
 | Hilo | Todos los métodos `lua.*` se ejecutan en el hilo del juego al inicio del siguiente frame, así que la respuesta llega como mucho un frame después. |
-| Tamaño de la petición | El pipe de comandos lee como máximo 4096 bytes por petición, así que el código Lua debe caber en ese límite. Pon el código más grande en un addon y llámalo con `lua.call`. |
+| Tamaño de la petición | El pipe de comandos acepta peticiones de hasta 1 MiB, suficiente para código Lua largo. Usa [`lua.loadScript`](#lualoadscript) para el código que debe sobrevivir a `/reload`. |
 | Errores | Una llamada fallida devuelve `{"ok": false, "error": "..."}`. Los errores de Lua también incluyen `stack` con la traza de la pila de Lua. |
 | Acciones bloqueadas | Cuando el juego bloquea una función protegida, la llamada devuelve `ok: false` con una lista `blocked`. Consulta [Taint y modo seguro](#taint-y-modo-seguro). |
 | Errores de scripts | Los errores de cualquier script Lua del juego o de un addon se envían al pipe de eventos como [`lua.error`](events.md#cargas-utiles-de-los-eventos-del-sdk), aunque haya instalado un addon de errores como BugGrabber. |
@@ -429,6 +429,79 @@ Lista los addons que recibieron el objeto `SDK` y la lista de permitidos actual.
 | `granted` | array[string] | Addons que recibieron el objeto desde el último `/reload` |
 | `allowed` | array[string] o `null` | La lista de permitidos, o `null` cuando se permiten todos los addons que lo activan |
 
+## lua.loadScript
+
+Carga código Lua enviado por el pipe como un addon virtual. El script recibe su propio objeto `SDK`, igual que un addon que declara `X-WoWControlSDK`, así que puede enviar eventos, y todo lo que crea se puede quitar después con `lua.unloadScript`. Úsalo para desplegar lógica cuando haga falta, sin instalar una carpeta de addon ni reiniciar el juego. La [guía de integración con addons](../addons.md#scripts-sin-carpeta-de-addon) explica cómo escribir uno.
+
+### Parámetros
+
+| Nombre | Tipo | Obligatorio | Por defecto | Descripción |
+| --- | --- | --- | --- | --- |
+| `name` | string | Sí | | De 1 a 48 letras, dígitos, `_`, `-`, `.` o `/`. El script se llama `@name` |
+| `code` | string | Sí | | Código Lua. Recibe `name, ns` como un archivo de addon, con el objeto SDK en `ns.SDK` |
+| `persist` | boolean | No | `true` | Volver a ejecutar el script tras cada `/reload` |
+| `replace` | boolean | No | `true` | Descargar antes un script con el mismo nombre; con `false` devuelve un error |
+
+### Respuesta
+
+| Campo | Tipo | Descripción |
+| --- | --- | --- |
+| `ok` | boolean | `true` cuando el script se ejecutó o quedó guardado |
+| `name` | string | Nombre del script, con `@` |
+| `bytes` | integer | Tamaño del código |
+| `persist` | boolean | Si se vuelve a ejecutar tras `/reload` |
+| `loaded` | boolean | Si se está ejecutando ahora |
+| `pending` | boolean | `true` cuando quedó guardado para ejecutarse al cargar el mundo |
+| `resources` | object o `null` | `{"frames", "hooks", "globals", "slashCommands"}` creados hasta ahora |
+
+### Ejemplo
+
+```json
+{"jsonrpc": "2.0", "id": 1, "method": "lua.loadScript", "params": {"name": "MyTool", "code": "local name, ns = ...\nlocal frame = CreateFrame('Frame')\nframe:RegisterEvent('PLAYER_TARGET_CHANGED')\nframe:SetScript('OnEvent', function() ns.SDK.Emit('tool.target', UnitName('target')) end)"}}
+```
+
+```json
+{"jsonrpc": "2.0", "id": 1, "result": {"ok": true, "name": "@MyTool", "bytes": 190, "persist": true, "loaded": true, "pending": false, "resources": {"frames": 1, "hooks": 0, "globals": 0, "slashCommands": 0}}}
+```
+
+- Un script se ejecuta cuando el jugador ya está en el mundo, después de `PLAYER_LOGIN`, así que la interfaz y todos los addons ya están cargados. Si se envía antes, por ejemplo desde la pantalla de inicio de sesión o durante una pantalla de carga, se guarda con `pending: true` y se ejecuta en cuanto el jugador está en el mundo. Un evento [`lua.script`](events.md#cargas-utiles-de-los-eventos-del-sdk) informa del resultado.
+- Un error de Lua devuelve `ok: false` con `error` y `stack`, y se quita todo lo que el script creó antes del error.
+- Con una lista de permitidos configurada con `lua.setAllowedAddons`, la lista debe incluir `@name`.
+- Los scripts persistentes viven en la memoria del SDK, no en disco: sobreviven a `/reload` y al cierre de sesión, pero no al cierre del juego.
+
+## lua.unloadScript
+
+Detiene un script y quita lo que creó: sus frames dejan de recibir eventos y scripts y se ocultan, sus hooks dejan de ejecutarse, los globales que escribió recuperan su valor anterior y sus comandos de barra desaparecen. Primero se ejecutan las funciones registradas con `SDK.OnUnload`.
+
+### Parámetros
+
+| Nombre | Tipo | Obligatorio | Descripción |
+| --- | --- | --- | --- |
+| `name` | string | Sí | Nombre del script, con o sin `@` |
+
+### Respuesta
+
+```json
+{"jsonrpc": "2.0", "id": 1, "result": {"ok": true, "name": "@MyTool", "removed": {"frames": 1, "hooks": 0, "globals": 0, "slashCommands": 0}}}
+```
+
+`removed` cuenta cero para un script que estaba pendiente. Un nombre desconocido devuelve `{"ok": false, "error": "script not found"}`.
+
+!!! note
+    WoW no permite borrar frames. Un frame descargado queda oculto y sin actividad, y su memoria se libera en el siguiente `/reload`.
+
+## lua.getScripts
+
+Lista los scripts cargados y pendientes.
+
+### Respuesta
+
+```json
+{"jsonrpc": "2.0", "id": 1, "result": {"ok": true, "scripts": [{"name": "@MyTool", "bytes": 190, "persist": true, "loaded": true, "resources": {"frames": 1, "hooks": 0, "globals": 0, "slashCommands": 0}}]}}
+```
+
+`resources` es `null` para un script que no se está ejecutando. La memoria que usa cada script aparece en [`client.getAddonMemory`](client.md#clientgetaddonmemory).
+
 ## lua.setBlockedNotice
 
 Elige si el juego muestra su aviso cuando bloquea una función protegida llamada por el SDK.
@@ -457,3 +530,5 @@ El aviso está oculto por defecto. La respuesta y el evento `lua.blocked` inform
 | `lua.getGlobal`, `lua.setGlobal`, `lua.createNamespace` | `name` era el nombre de un global | `name` es una [ruta](#rutas); los nombres que no son rutas válidas se rechazan |
 | `lua.setGlobal` | Solo booleanos, números y strings | Cualquier valor JSON |
 | Hilo | Hilo del pipe | Hilo del juego, en el siguiente frame |
+| Tamaño de la petición | 4096 bytes | 1 MiB |
+| Scripts | Solo con una carpeta de addon | [`lua.loadScript`](#lualoadscript), que se pueden quitar con `lua.unloadScript` |
