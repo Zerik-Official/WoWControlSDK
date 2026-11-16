@@ -129,7 +129,7 @@ Inspecciona siempre `result` antes de leer sus campos. Que no haya un `error` de
 
 ## Catálogo de métodos
 
-El SDK registra 90 métodos en dieciséis dominios.
+El SDK registra 94 métodos en diecisiete dominios.
 
 | Dominio | Métodos | Página |
 | --- | --- | --- |
@@ -144,11 +144,12 @@ El SDK registra 90 métodos en dieciséis dominios.
 | `trade.*` | 6 | [trade.*](methods/trade.md) |
 | `duel.*` | 3 | [duel.*](methods/duel.md) |
 | `battlefield.*` | 3 | [battlefield.*](methods/battlefield.md) |
+| `chat.*` | 3 | [chat.*](methods/chat.md) |
 | `object.*` | 4 | [object.*](methods/object.md) |
 | `client.*` | 17 | [client.*](methods/client.md) |
 | `events.*` | 8 | [events.*](methods/events.md) |
 | `dll.*` | 4 | [dll.*](methods/dll.md) |
-| `window.*` | 18 | [window.*](methods/window.md) |
+| `window.*` | 19 | [window.*](methods/window.md) |
 
 La [introducción a los métodos](methods/index.md) explica las convenciones comunes y enumera todos los nombres.
 

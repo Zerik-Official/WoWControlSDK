@@ -1,5 +1,6 @@
 #include "WindowRpc.h"
 #include "runtime/window/WindowService.h"
+#include "hooks/WindowHooks.h"
 #include "rpc/MethodRegistry.h"
 #include "utils/json/Json.h"
 #include <string>
@@ -37,6 +38,7 @@ SDK::Json HandleGetInfo(const SDK::Json&)
         result["minimized"] = info->minimized;
         result["maximized"] = info->maximized;
         result["topMost"] = info->topMost;
+        result["startHidden"] = Hooks::WindowStart::IsStartHidden();
         result["bounds"]["x"] = info->x;
         result["bounds"]["y"] = info->y;
         result["bounds"]["width"] = info->width;
@@ -53,6 +55,17 @@ SDK::Json HandleShow(const SDK::Json&)
 {
     Runtime::Window::WindowService::Instance().Show();
     return SDK::okJson();
+}
+
+SDK::Json HandleSetStartHidden(const SDK::Json& params)
+{
+    if (!params.is_object() || !params.contains("hidden") || !params["hidden"].is_boolean())
+        return SDK::makeErrorJson("hidden must be a boolean");
+
+    Hooks::WindowStart::SetStartHidden(params["hidden"].get<bool>());
+    SDK::Json result = SDK::okJson();
+    result["startHidden"] = Hooks::WindowStart::IsStartHidden();
+    return result;
 }
 
 SDK::Json HandleHide(const SDK::Json&)
@@ -232,6 +245,7 @@ void registerWindowMethods(Runtime::MethodRegistry& registry)
     registry.registerMethod("window.getInfo", HandleGetInfo);
     registry.registerMethod("window.show", HandleShow);
     registry.registerMethod("window.hide", HandleHide);
+    registry.registerMethod("window.setStartHidden", HandleSetStartHidden);
     registry.registerMethod("window.minimize", HandleMinimize);
     registry.registerMethod("window.restore", HandleRestore);
     registry.registerMethod("window.maximize", HandleMaximize);

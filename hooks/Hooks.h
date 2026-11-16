@@ -8,6 +8,7 @@
 #include "hooks/ConsoleHooks.h"
 #include "hooks/LoadingHooks.h"
 #include "hooks/SocialHooks.h"
+#include "hooks/WindowHooks.h"
 
 namespace Hooks
 {

@@ -14,6 +14,7 @@ public:
     void writeU8(uint8_t value);
     void writeU32(uint32_t value);
     void writeU64(uint32_t low, uint32_t high);
+    void writeString(const char* value);
     void send();
 
 private:

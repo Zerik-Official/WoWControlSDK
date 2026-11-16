@@ -56,6 +56,21 @@ static std::string withAuth(const std::string& command, const std::string& token
     return result;
 }
 
+static bool startHidden(const char* pipeName, const std::string& token)
+{
+    std::string request = withAuth(
+        "{\"jsonrpc\":\"2.0\",\"method\":\"window.setStartHidden\",\"params\":{\"hidden\":true},\"id\":0}",
+        token);
+    std::string response;
+    if (sendPipeCommand(pipeName, request, response) && response.find("\"startHidden\":true") != std::string::npos)
+    {
+        fprintf(stdout, "[injector] window starts hidden\n");
+        return true;
+    }
+    fprintf(stderr, "[injector] window.setStartHidden failed: %s\n", response.c_str());
+    return false;
+}
+
 static bool configureAuth(const char* pipeName, const std::string& token)
 {
     std::string params = token.empty()
@@ -137,6 +152,11 @@ int main(int argc, char* argv[])
     {
         waitForPipe(args.pipeName, 15000);
         if (!configureAuth(args.pipeName, token))
+        {
+            TerminateProcess(pi.hProcess, 1);
+            return 1;
+        }
+        if (args.hidden && !startHidden(args.pipeName, token))
         {
             TerminateProcess(pi.hProcess, 1);
             return 1;

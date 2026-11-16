@@ -47,6 +47,8 @@ def build_command(settings: Settings, use_token: bool) -> list[str]:
     ]
     if settings.kill_existing:
         command.append("--kill")
+    if settings.start_hidden:
+        command.append("--hidden")
     if settings.wow_args.strip():
         command += ["--wow-args", settings.wow_args.strip()]
     if settings.open_console:

@@ -79,6 +79,7 @@ nav:
       - trade.*: methods/trade.md
       - duel.*: methods/duel.md
       - battlefield.*: methods/battlefield.md
+      - chat.*: methods/chat.md
       - object.*: methods/object.md
       - client.*: methods/client.md
       - events.*: methods/events.md

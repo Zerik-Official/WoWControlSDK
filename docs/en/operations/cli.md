@@ -61,6 +61,7 @@ Press **Send** or `Ctrl+Enter` to send the request. Calls run on a worker thread
 | Close running Wow.exe before launching | Passes `--kill` to the injector |
 | Open the in-game SDK console | Sends `dll.toggleConsole` once the SDK is ready |
 | Show captured logs in the console | Sends `dll.setLogConfig` with `showInConsole` |
+| Start the game hidden | Passes `--hidden` to the injector; send `window.show` to reveal the window |
 | Wow.exe arguments | Passed with `--wow-args`; `-console` by default |
 | Token | Token used for requests and the event pipe. Paste one to control a game started elsewhere |
 | Appearance | Dark, light or system theme |

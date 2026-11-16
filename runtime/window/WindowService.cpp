@@ -1,5 +1,6 @@
 #include "WindowService.h"
 #include "runtime/console/ConsoleManager.h"
+#include "hooks/WindowHooks.h"
 #include <Windows.h>
 #include <string>
 #include <algorithm>
@@ -157,11 +158,32 @@ std::optional<WindowInfo> WindowService::GetInfo() const
     return info;
 }
 
+static bool ReleaseStartHidden()
+{
+    if (!Hooks::WindowStart::IsStartHidden()) return false;
+    Hooks::WindowStart::Release();
+    return true;
+}
+
+static void RefreshLayout(HWND hwnd)
+{
+    RECT rect;
+    if (!GetWindowRect(hwnd, &rect)) return;
+    int width = rect.right - rect.left;
+    int height = rect.bottom - rect.top;
+    UINT flags = SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOMOVE | SWP_FRAMECHANGED;
+    SetWindowPos(hwnd, nullptr, 0, 0, width, height + 1, flags);
+    SetWindowPos(hwnd, nullptr, 0, 0, width, height, flags);
+}
+
 bool WindowService::Show()
 {
     auto hwnd = GetHandle();
     if (!hwnd) return false;
-    return ShowWindow(*hwnd, SW_SHOW) != FALSE;
+    bool released = ReleaseStartHidden();
+    bool shown = ShowWindow(*hwnd, SW_SHOW) != FALSE;
+    if (released) RefreshLayout(*hwnd);
+    return shown;
 }
 
 bool WindowService::Hide()
@@ -182,20 +204,31 @@ bool WindowService::Restore()
 {
     auto hwnd = GetHandle();
     if (!hwnd) return false;
-    return ShowWindow(*hwnd, SW_RESTORE) != FALSE;
+    bool released = ReleaseStartHidden();
+    bool shown = ShowWindow(*hwnd, SW_RESTORE) != FALSE;
+    if (released) RefreshLayout(*hwnd);
+    return shown;
 }
 
 bool WindowService::Maximize()
 {
     auto hwnd = GetHandle();
     if (!hwnd) return false;
-    return ShowWindow(*hwnd, SW_MAXIMIZE) != FALSE;
+    bool released = ReleaseStartHidden();
+    bool shown = ShowWindow(*hwnd, SW_MAXIMIZE) != FALSE;
+    if (released) RefreshLayout(*hwnd);
+    return shown;
 }
 
 bool WindowService::Focus()
 {
     auto hwnd = GetHandle();
     if (!hwnd) return false;
+    if (ReleaseStartHidden())
+    {
+        ShowWindow(*hwnd, SW_SHOW);
+        RefreshLayout(*hwnd);
+    }
 
     WINDOWPLACEMENT wp{sizeof(wp)};
     GetWindowPlacement(*hwnd, &wp);

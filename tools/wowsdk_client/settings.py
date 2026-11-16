@@ -46,6 +46,7 @@ class Settings:
     wow_args: str = "-console"
     open_console: bool = False
     show_logs_in_console: bool = False
+    start_hidden: bool = False
     appearance: str = "dark"
 
     def resolved_dll(self) -> str:

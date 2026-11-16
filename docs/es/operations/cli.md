@@ -61,6 +61,7 @@ Pulsa **Send** o `Ctrl+Enter` para enviar la petición. Las llamadas se ejecutan
 | Close running Wow.exe before launching | Pasa `--kill` al inyector |
 | Open the in-game SDK console | Envía `dll.toggleConsole` cuando el SDK está listo |
 | Show captured logs in the console | Envía `dll.setLogConfig` con `showInConsole` |
+| Start the game hidden | Pasa `--hidden` al inyector; envía `window.show` para mostrar la ventana |
 | Wow.exe arguments | Se pasan con `--wow-args`; `-console` por defecto |
 | Token | Token que se usa en las peticiones y en el pipe de eventos. Pega uno para controlar un juego iniciado desde otro programa |
 | Appearance | Tema oscuro, claro o del sistema |
