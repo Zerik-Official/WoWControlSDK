@@ -19,7 +19,7 @@ Cada método RPC pertenece a un dominio. Cada dominio tiene su propia página co
 
 | Dominio | Métodos | Descripción |
 | --- | --- | --- |
-| [lua.*](lua.md) | 15 | Ejecutar Lua, llamar funciones, leer y escribir valores, vigilar llamadas y gestionar el puente de addons |
+| [lua.*](lua.md) | 18 | Ejecutar Lua, llamar funciones, leer y escribir valores, vigilar llamadas y gestionar el puente de addons |
 | [unit.*](unit.md) | 4 | Leer salud, poder, posición, rotación y flags de estado de una unidad |
 | [group.*](group.md) | 5 | Leer la lista del grupo o raid, un resumen de combate y las invitaciones de grupo, y responder a las invitaciones |
 | [player.*](player.md) | 4 | Leer salud, posición, objetivo y estado completo cacheados del jugador |
@@ -41,7 +41,7 @@ Cada método RPC pertenece a un dominio. Cada dominio tiene su propia página co
 
 | Dominio | Métodos |
 | --- | --- |
-| `lua` | `execute`, `evaluate`, `call`, `getGlobal`, `setGlobal`, `createNamespace`, `getRef`, `releaseRef`, `hook`, `unhook`, `getHooks`, `batch`, `setAllowedAddons`, `getAddons`, `setBlockedNotice` |
+| `lua` | `execute`, `evaluate`, `call`, `getGlobal`, `setGlobal`, `createNamespace`, `getRef`, `releaseRef`, `hook`, `unhook`, `getHooks`, `batch`, `setAllowedAddons`, `getAddons`, `loadScript`, `unloadScript`, `getScripts`, `setBlockedNotice` |
 | `unit` | `get`, `state`, `position`, `mapPosition` |
 | `group` | `get`, `combatSummary`, `getInvite`, `acceptInvite`, `declineInvite` |
 | `player` | `getHealth`, `getPosition`, `getTarget`, `getState` |
