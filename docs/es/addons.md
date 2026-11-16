@@ -135,6 +135,70 @@ Las funciones que llama la aplicación se ejecutan contaminadas, igual que el pr
 | `/wcs types` | Envía un evento con todos los tipos de valor admitidos |
 | `/wcs flood` | Envía 300 eventos para mostrar el límite por frame y `lua.dropped` |
 
+## Scripts sin carpeta de addon
+
+Una aplicación también puede enviar código Lua por el pipe con [`lua.loadScript`](methods/lua.md#lualoadscript). El SDK lo ejecuta como un addon virtual llamado `@nombre`, con su propio objeto `SDK`, así que el usuario no tiene que copiar una carpeta en `Interface\AddOns` ni reiniciar el juego. Un script admite hasta 1 MiB de código, el límite de petición del pipe de comandos.
+
+| | Addon | Script |
+| --- | --- | --- |
+| Instalación | Una carpeta en `Interface\AddOns` con un `.toc` | `lua.loadScript` desde la aplicación |
+| Nombre | El nombre de la carpeta | `@nombre`; los nombres que empiezan por `@` están reservados para scripts |
+| Objeto `SDK` | `ns.SDK` | `ns.SDK`, con `SDK.script = true` |
+| Tras `/reload` | El juego lo vuelve a cargar | El SDK lo vuelve a ejecutar cuando `persist` es `true` |
+| SavedVariables, XML y plantillas de un `.toc` | Sí | No |
+| Se puede quitar sin `/reload` | No | Sí, con `lua.unloadScript` |
+
+Un script recibe los mismos argumentos que un archivo de addon:
+
+```lua
+local name, ns = ...
+local SDK = ns.SDK
+
+local frame = CreateFrame("Frame", "MyToolFrame", UIParent)
+frame:RegisterEvent("PLAYER_TARGET_CHANGED")
+frame:SetScript("OnEvent", function()
+    SDK.Emit("tool.target", UnitName("target"))
+end)
+
+SLASH_MYTOOL1 = "/mytool"
+SlashCmdList.MYTOOL = function(text)
+    SDK.Emit("tool.command", text)
+end
+
+SDK.OnUnload(function()
+    print(name .. " unloaded")
+end)
+```
+
+### Funciones extra del SDK para scripts
+
+| Función | Descripción |
+| --- | --- |
+| `SDK.OnUnload(function)` | Ejecuta la función cuando se descarga el script, antes de que el SDK quite sus recursos. La última registrada se ejecuta primero |
+| `SDK.HookScript(frame, handler, function)` | Igual que `frame:HookScript`, pero el hook deja de ejecutarse al descargar el script. Úsala con frames que el script no creó |
+| `SDK.IsActive()` | `false` cuando el script ya se descargó |
+
+Después de descargarlo, `SDK.Emit` lanza un error, así que los temporizadores o callbacks antiguos no pueden enviar eventos en nombre del script.
+
+### Qué quita la descarga
+
+El SDK ejecuta cada script en su propio entorno y registra lo que crea:
+
+| Recurso | Al descargar |
+| --- | --- |
+| Frames creados con `CreateFrame` y sus hijos | Se anulan sus eventos, se quitan sus handlers como `OnEvent` y `OnUpdate` y se ocultan; se borra el nombre global del frame |
+| Hooks creados con `hooksecurefunc` o `SDK.HookScript` | Dejan de ejecutarse |
+| Globales escritos por el script, incluidas funciones y nombres `SLASH_*` | Recuperan el valor que tenían antes del script |
+| Entradas añadidas a `SlashCmdList` | Se quitan, junto con la caché de comandos escritos del juego |
+
+El SDK no ve los cambios hechos a través de otras tablas, como campos nuevos en `StaticPopupDialogs`, `frame:HookScript` sobre un frame que el script no creó o `rawset(_G, ...)`. Deshazlos en una función de `SDK.OnUnload`.
+
+### Momento de ejecución y taint
+
+- El script se ejecuta cuando el jugador ya está en el mundo, después de `PLAYER_LOGIN`, también tras cada `/reload`. Ese evento ya se disparó cuando el script empieza, así que no lo esperes: la interfaz, los addons y los datos del jugador están listos.
+- Un script se ejecuta contaminado, con `@nombre` como origen, exactamente igual que un addon. Las funciones protegidas se bloquean y el aviso del juego nombra al script.
+- `client.getAddonMemory` informa de la memoria de cada script en ejecución en `scripts`.
+
 ## Seguridad
 
 - Trata cada argumento que llega desde la aplicación como datos no confiables. Comprueba su tipo y tamaño antes de usarlo.
