@@ -323,6 +323,85 @@ namespace Rpc
         return j;
     }
 
+    static bool boolParam(const Json& params, const char* name, bool fallback)
+    {
+        if (!params.contains(name) || !params[name].is_boolean())
+            return fallback;
+        return params[name].get<bool>();
+    }
+
+    static Json resourcesJson(const LuaEngine::ScriptResources& resources)
+    {
+        Json j;
+        j["frames"] = resources.frames;
+        j["hooks"] = resources.hooks;
+        j["globals"] = resources.globals;
+        j["slashCommands"] = resources.slashCommands;
+        return j;
+    }
+
+    static Json scriptJson(const LuaEngine::ScriptInfo& info)
+    {
+        Json j;
+        j["name"] = info.name;
+        j["bytes"] = info.bytes;
+        j["persist"] = info.persist;
+        j["loaded"] = info.loaded;
+        j["resources"] = info.loaded ? resourcesJson(info.resources) : Json();
+        return j;
+    }
+
+    static Json runLoadScript(const Json& params)
+    {
+        std::string name = stringParam(params, "name");
+        std::string code = stringParam(params, "code");
+        if (name.empty())
+            return errorJson("name is required");
+        if (code.empty())
+            return errorJson("code is required");
+
+        LuaEngine::ScriptInfo info;
+        LuaEngine::LuaResult result = LuaEngine::loadScript(name, code, boolParam(params, "persist", true),
+            boolParam(params, "replace", true), info);
+        if (!result.ok)
+            return resultToJson(result);
+
+        Json j = scriptJson(info);
+        j["ok"] = true;
+        j["pending"] = !info.loaded;
+        return j;
+    }
+
+    static Json runUnloadScript(const Json& params)
+    {
+        std::string name = stringParam(params, "name");
+        if (name.empty())
+            return errorJson("name is required");
+
+        LuaEngine::ScriptResources removed;
+        LuaEngine::LuaResult result = LuaEngine::unloadScript(name, removed);
+        if (!result.ok)
+            return resultToJson(result);
+
+        Json j;
+        j["ok"] = true;
+        j["name"] = name[0] == '@' ? name : "@" + name;
+        j["removed"] = resourcesJson(removed);
+        return j;
+    }
+
+    static Json runGetScripts(const Json&)
+    {
+        Json scripts = Json::array();
+        for (const auto& info : LuaEngine::listScripts())
+            scripts.push_back(scriptJson(info));
+
+        Json j;
+        j["ok"] = true;
+        j["scripts"] = scripts;
+        return j;
+    }
+
     static const std::unordered_map<std::string, LuaRunner>& runners()
     {
         static const std::unordered_map<std::string, LuaRunner> table = {
@@ -340,6 +419,9 @@ namespace Rpc
             {"lua.setAllowedAddons", runSetAllowedAddons},
             {"lua.getAddons", runGetAddons},
             {"lua.setBlockedNotice", runSetBlockedNotice},
+            {"lua.loadScript", runLoadScript},
+            {"lua.unloadScript", runUnloadScript},
+            {"lua.getScripts", runGetScripts},
         };
         return table;
     }
