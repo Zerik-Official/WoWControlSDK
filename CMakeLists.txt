@@ -44,6 +44,7 @@ add_library(WoWControlSDK SHARED
     core/api/TradeAPI.cpp
     core/api/DuelAPI.cpp
     core/api/BattlefieldAPI.cpp
+    core/api/ChatAPI.cpp
 
     core/resolvers/NameResolver.cpp
     core/resolvers/UnitResolver.cpp
@@ -85,6 +86,7 @@ add_library(WoWControlSDK SHARED
     hooks/EventHooks.cpp
     hooks/LoadingHooks.cpp
     hooks/SocialHooks.cpp
+    hooks/WindowHooks.cpp
 
     ipc/CommandPipe.cpp
     ipc/Auth.cpp
