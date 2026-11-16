@@ -60,4 +60,26 @@ struct BridgeBatch {
     uint32_t dropped = 0;
 };
 
+struct ScriptResources {
+    int frames = 0;
+    int hooks = 0;
+    int globals = 0;
+    int slashCommands = 0;
+};
+
+struct ScriptInfo {
+    std::string name;
+    size_t bytes = 0;
+    bool persist = true;
+    bool loaded = false;
+    ScriptResources resources;
+};
+
+struct ScriptEvent {
+    std::string name;
+    bool loaded = false;
+    std::string error;
+    std::string stack;
+};
+
 }
