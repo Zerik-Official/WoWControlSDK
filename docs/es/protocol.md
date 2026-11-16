@@ -46,7 +46,8 @@ Toda petición usa el sobre de JSON-RPC 2.0:
   "method": "unit.get",
   "params": {
     "token": "player"
-  }
+  },
+  "auth": "<session token>"
 }
 ```
 
@@ -123,17 +124,18 @@ Ejemplos habituales:
 | `player.*` | La caché del jugador está vacía | `{"error": "player not available"}` |
 | `world.getState` | La caché del mundo está vacía | `{"error": "world not available"}` |
 | `window.getInfo` | No se encuentra la ventana | `{"error": "Window not found"}` |
-| `lua.evaluate` | Lua lanzó un error | `{"ok": false, "error": "..."}` |
+| `lua.evaluate` | Lua lanzó un error | `{"ok": false, "error": "...", "stack": "..."}` |
+| `lua.execute` | El juego bloqueó una función protegida | `{"ok": false, "error": "blocked by the game: ...", "blocked": [...]}` |
 
 Inspecciona siempre `result` antes de leer sus campos. Que no haya un `error` de nivel superior solo significa que la petición era válida, no que la operación haya funcionado.
 
 ## Catálogo de métodos
 
-El SDK registra 94 métodos en diecisiete dominios.
+El SDK registra 104 métodos en diecisiete dominios.
 
 | Dominio | Métodos | Página |
 | --- | --- | --- |
-| `lua.*` | 5 | [lua.*](methods/lua.md) |
+| `lua.*` | 15 | [lua.*](methods/lua.md) |
 | `unit.*` | 4 | [unit.*](methods/unit.md) |
 | `group.*` | 5 | [group.*](methods/group.md) |
 | `player.*` | 4 | [player.*](methods/player.md) |
@@ -155,6 +157,8 @@ La [introducción a los métodos](methods/index.md) explica las convenciones com
 
 ## Ejemplos de cliente
 
+Todos los ejemplos envían el token de sesión en `auth`. Sustituye `<session token>` por el token que el launcher pasó al inyector, o quita el campo cuando el juego se inició con `--no-auth`.
+
 ### Python
 
 El helper abre una conexión nueva para cada petición, lo que coincide con el comportamiento de una petición por conexión:
@@ -162,7 +166,11 @@ El helper abre una conexión nueva para cada petición, lo que coincide con el c
 ```python
 import json
 
+import pywintypes
 import win32file
+
+TOKEN = "<session token>"
+ERROR_BROKEN_PIPE = 109
 
 
 def rpc(method, params=None, request_id=1):
@@ -181,9 +189,18 @@ def rpc(method, params=None, request_id=1):
             "id": request_id,
             "method": method,
             "params": params or {},
+            "auth": TOKEN,
         }
         win32file.WriteFile(pipe, json.dumps(request).encode("utf-8"))
-        _, data = win32file.ReadFile(pipe, 65536)
+        data = b""
+        while True:
+            try:
+                _, chunk = win32file.ReadFile(pipe, 65536)
+            except pywintypes.error as exc:
+                if exc.winerror == ERROR_BROKEN_PIPE:
+                    break
+                raise
+            data += chunk
         return json.loads(data.decode("utf-8").rstrip("\x00"))
     finally:
         win32file.CloseHandle(pipe)
@@ -202,6 +219,8 @@ using System.IO.Pipes;
 using System.Text;
 using System.Text.Json;
 
+const string Token = "<session token>";
+
 static string Rpc(string method, object? parameters = null, int id = 1)
 {
     using var pipe = new NamedPipeClientStream(".", "WowGameCommand", PipeDirection.InOut);
@@ -212,7 +231,8 @@ static string Rpc(string method, object? parameters = null, int id = 1)
         jsonrpc = "2.0",
         id,
         method,
-        @params = parameters ?? new { }
+        @params = parameters ?? new { },
+        auth = Token
     });
 
     var bytes = Encoding.UTF8.GetBytes(request);
@@ -234,6 +254,8 @@ El pipe de eventos permanece abierto y entrega un objeto por línea:
 import json
 
 import win32file
+
+TOKEN = "<session token>"
 
 pipe = win32file.CreateFile(
     r"\\.\pipe\WowGameEvent",
