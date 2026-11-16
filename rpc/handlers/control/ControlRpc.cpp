@@ -88,8 +88,9 @@ namespace Rpc
 
     static Json handleSetLogConfig(const Json& params)
     {
-        int maxEntries = params.value("maxEntries", 256);
-        bool showInConsole = params.value("showInConsole", false);
+        Runtime::LogConfig current = Runtime::LogCapture::GetConfig();
+        int maxEntries = params.value("maxEntries", current.maxEntries);
+        bool showInConsole = params.value("showInConsole", current.showInConsole);
 
         Runtime::LogCapture::SetConfig(maxEntries, showInConsole);
         Runtime::LogConfig lc = Runtime::LogCapture::GetConfig();
