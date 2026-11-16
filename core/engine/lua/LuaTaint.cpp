@@ -26,11 +26,16 @@ const char* sdkSource()
 }
 
 Scope::Scope(bool secure)
+    : Scope(secure ? nullptr : SDK_SOURCE)
+{
+}
+
+Scope::Scope(const char* taintSource)
     : m_previous(source())
 {
     ++depth();
     if (depth() != 0 && !locked())
-        source() = secure ? 0 : reinterpret_cast<uintptr_t>(SDK_SOURCE);
+        source() = reinterpret_cast<uintptr_t>(taintSource);
 }
 
 Scope::~Scope()
