@@ -1,0 +1,78 @@
+{
+  "name": "dll",
+  "title": {
+    "en": "DLL",
+    "es": "DLL"
+  },
+  "icon": "cpu",
+  "methods": [
+    {
+      "name": "dll.getInfo",
+      "description": {
+        "en": "DLL version, build and state.",
+        "es": "Versión, compilación y estado de la DLL."
+      }
+    },
+    {
+      "name": "dll.toggleConsole",
+      "description": {
+        "en": "Show or hide the in-game console.",
+        "es": "Muestra u oculta la consola del juego."
+      }
+    },
+    {
+      "name": "dll.getLogs",
+      "description": {
+        "en": "Captured game logs.",
+        "es": "Logs capturados del juego."
+      },
+      "params": [
+        {
+          "name": "offset",
+          "type": "integer",
+          "description": {
+            "en": "Position to start from",
+            "es": "Posición desde la que empezar"
+          },
+          "default": 0
+        },
+        {
+          "name": "count",
+          "type": "integer",
+          "description": {
+            "en": "Number of entries",
+            "es": "Número de entradas"
+          },
+          "default": 50
+        }
+      ]
+    },
+    {
+      "name": "dll.setLogConfig",
+      "description": {
+        "en": "Configure log capture.",
+        "es": "Configura la captura de logs."
+      },
+      "params": [
+        {
+          "name": "maxEntries",
+          "type": "integer",
+          "description": {
+            "en": "Maximum buffered entries",
+            "es": "Máximo de entradas guardadas"
+          },
+          "default": 1000
+        },
+        {
+          "name": "showInConsole",
+          "type": "boolean",
+          "description": {
+            "en": "Echo logs to the in-game console",
+            "es": "Mostrar los logs en la consola del juego"
+          },
+          "default": false
+        }
+      ]
+    }
+  ]
+}

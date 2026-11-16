@@ -51,7 +51,7 @@ La DLL se ejecuta dentro de `Wow.exe`. Un cliente se conecta a `\\.\pipe\WowGame
 | Eventos | Suscripción a eventos UI de WoW y eventos del SDK de pantallas de carga, actividad social, comercio, duelos y colas, todo por el pipe de eventos con búfer circular de historial |
 | Seguridad | Pipes limitados a conexiones locales del usuario de Windows que ejecuta el juego y un token de sesión en cada petición |
 | Ventana | Mostrar, ocultar, minimizar, maximizar, enfocar, mover, redimensionar, opacidad, siempre visible, título, icono, parpadeo de la barra de tareas y arranque oculto para lanzamientos headless |
-| Diagnóstico | Consola superpuesta en el juego, logs capturados e información de la DLL |
+| Diagnóstico | Latencia, FPS, memoria de addons, informes de crash con el log de error del juego, errores de Lua, consola superpuesta en el juego, logs capturados e información de la DLL |
 
 ## Arquitectura
 

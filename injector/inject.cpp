@@ -2,27 +2,30 @@
 #include <cstdio>
 #include <cstring>
 
-static void die(const char* msg)
+static bool fail(const char* msg)
 {
     DWORD err = GetLastError();
-    char buf[512];
+    char buf[512] = {};
     FormatMessageA(
         FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
         nullptr, err, 0, buf, sizeof(buf), nullptr
     );
     fprintf(stderr, "[injector] error: %s - %s (0x%08X)\n", msg, buf, err);
-    ExitProcess(1);
+    return false;
 }
 
-void injectDll(HANDLE hProcess, const char* dllPath)
+bool injectDll(HANDLE hProcess, const char* dllPath)
 {
     SIZE_T len = strlen(dllPath) + 1;
 
     LPVOID remote = VirtualAllocEx(hProcess, nullptr, len, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-    if (!remote) die("VirtualAllocEx");
+    if (!remote) return fail("VirtualAllocEx");
 
     if (!WriteProcessMemory(hProcess, remote, dllPath, len, nullptr))
-        die("WriteProcessMemory");
+    {
+        VirtualFreeEx(hProcess, remote, 0, MEM_RELEASE);
+        return fail("WriteProcessMemory");
+    }
 
     HMODULE k32 = GetModuleHandleA("kernel32.dll");
     FARPROC loadLib = GetProcAddress(k32, "LoadLibraryA");
@@ -32,7 +35,11 @@ void injectDll(HANDLE hProcess, const char* dllPath)
         (LPTHREAD_START_ROUTINE)loadLib,
         remote, 0, nullptr
     );
-    if (!hThread) die("CreateRemoteThread");
+    if (!hThread)
+    {
+        VirtualFreeEx(hProcess, remote, 0, MEM_RELEASE);
+        return fail("CreateRemoteThread");
+    }
 
     WaitForSingleObject(hThread, 15000);
 
@@ -43,7 +50,11 @@ void injectDll(HANDLE hProcess, const char* dllPath)
     VirtualFreeEx(hProcess, remote, 0, MEM_RELEASE);
 
     if (exitCode == 0)
-        die("LoadLibraryA return NULL - check the path of the DLL");
+    {
+        fprintf(stderr, "[injector] error: LoadLibraryA returned NULL - check the path of the DLL and that it is a 32-bit build\n");
+        return false;
+    }
 
     fprintf(stdout, "[injector] injected dll (base=0x%08X)\n", exitCode);
+    return true;
 }

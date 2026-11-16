@@ -1,0 +1,49 @@
+{
+  "name": "lfg",
+  "title": {
+    "en": "Dungeon Finder",
+    "es": "Buscador de mazmorras"
+  },
+  "icon": "castle",
+  "methods": [
+    {
+      "name": "lfg.getProposal",
+      "description": {
+        "en": "Active Dungeon Finder proposal.",
+        "es": "Propuesta activa del Buscador de mazmorras."
+      }
+    },
+    {
+      "name": "lfg.getDungeon",
+      "description": {
+        "en": "One row of LfgDungeons.dbc.",
+        "es": "Una fila de LfgDungeons.dbc."
+      },
+      "params": [
+        {
+          "name": "id",
+          "type": "integer",
+          "description": {
+            "en": "LfgDungeons.dbc ID",
+            "es": "ID de LfgDungeons.dbc"
+          },
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "lfg.acceptProposal",
+      "description": {
+        "en": "Enter the dungeon.",
+        "es": "Entra a la mazmorra."
+      }
+    },
+    {
+      "name": "lfg.rejectProposal",
+      "description": {
+        "en": "Leave the queue.",
+        "es": "Sale de la cola."
+      }
+    }
+  ]
+}

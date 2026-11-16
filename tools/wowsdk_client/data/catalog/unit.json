@@ -1,0 +1,82 @@
+{
+  "name": "unit",
+  "title": {
+    "en": "Units",
+    "es": "Unidades"
+  },
+  "icon": "crosshair",
+  "methods": [
+    {
+      "name": "unit.get",
+      "description": {
+        "en": "Full unit snapshot.",
+        "es": "Instantánea completa de la unidad."
+      },
+      "params": [
+        {
+          "name": "token",
+          "type": "string",
+          "description": {
+            "en": "Unit token: player, target, focus, mouseover, partyN, raidN or a GUID",
+            "es": "Token de unidad: player, target, focus, mouseover, partyN, raidN o un GUID"
+          },
+          "default": "player"
+        }
+      ]
+    },
+    {
+      "name": "unit.state",
+      "description": {
+        "en": "Unit state flags.",
+        "es": "Flags de estado de la unidad."
+      },
+      "params": [
+        {
+          "name": "token",
+          "type": "string",
+          "description": {
+            "en": "Unit token: player, target, focus, mouseover, partyN, raidN or a GUID",
+            "es": "Token de unidad: player, target, focus, mouseover, partyN, raidN o un GUID"
+          },
+          "default": "player"
+        }
+      ]
+    },
+    {
+      "name": "unit.position",
+      "description": {
+        "en": "Unit world position.",
+        "es": "Posición de la unidad en el mundo."
+      },
+      "params": [
+        {
+          "name": "token",
+          "type": "string",
+          "description": {
+            "en": "Unit token: player, target, focus, mouseover, partyN, raidN or a GUID",
+            "es": "Token de unidad: player, target, focus, mouseover, partyN, raidN o un GUID"
+          },
+          "default": "player"
+        }
+      ]
+    },
+    {
+      "name": "unit.mapPosition",
+      "description": {
+        "en": "Normalized map position of a party or raid member.",
+        "es": "Posición normalizada en el mapa de un miembro del grupo o la banda."
+      },
+      "params": [
+        {
+          "name": "token",
+          "type": "string",
+          "description": {
+            "en": "Unit token: partyN or raidN",
+            "es": "Token de unidad: partyN o raidN"
+          },
+          "default": "player"
+        }
+      ]
+    }
+  ]
+}

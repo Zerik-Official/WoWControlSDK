@@ -239,6 +239,8 @@ None.
 | `battlefield.statusChanged` | A queue changed status | [Queue object](battlefield.md#battlefieldgetqueues) plus `previousStatusId` |
 | `battlefield.ready` | A battleground or arena is ready to enter | Queue object |
 | `chat.whisperReceived` | You received a whisper | `{"battleNet", "text", "author", "language", "status", "lineId", "guid", "presenceId", "args"}`; `status` is `"AFK"`, `"DND"`, `"GM"` or empty, `presenceId` is only set for Battle.net whispers and `args` holds the raw event arguments |
+| `client.crashed` | The game hit a fatal error and is about to show its error window | Same object as [client.getLastCrash](client.md#clientgetlastcrash), including the log |
+| `lua.error` | A Lua script raised an error | `{"message", "addon", "stack"}`; `addon` is taken from the `Interface\AddOns\<Addon>\` path of the message and is `null` when there is none. The same message is sent at most once every 10 seconds |
 | `lua.custom` | An addon called `SDK.Emit` | `{"name", "addon", "args", "truncated"}`; `args` holds the [converted values](lua.md#values) and `truncated` is only present when a limit cut them. See [Addon integration](../addons.md) |
 | `lua.hooked` | A function watched with [`lua.hook`](lua.md#luahook) was called | `{"function", "args"}`; `function` is the hooked path |
 | `lua.dropped` | Addons emitted more than 256 events in one frame | `{"count": <int>}` with the number of discarded events |

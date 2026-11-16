@@ -1,0 +1,22 @@
+{
+  "domains": [
+    "client",
+    "player",
+    "world",
+    "unit",
+    "object",
+    "group",
+    "friends",
+    "summon",
+    "lfg",
+    "trade",
+    "duel",
+    "battlefield",
+    "chat",
+    "events",
+    "lua",
+    "window",
+    "dll",
+    "auth"
+  ]
+}

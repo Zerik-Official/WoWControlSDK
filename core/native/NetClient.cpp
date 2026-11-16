@@ -3,6 +3,8 @@
 
 namespace WoW::Net
 {
+    using GetNetStatsFn = void(__thiscall*)(void* client, float* bandwidthIn, float* bandwidthOut, uint32_t* latencyMs);
+
     uintptr_t GetClientPtr()
     {
         int* ptr = (int*)Offsets::NetClient::CLIENT_PTR;
@@ -28,5 +30,15 @@ namespace WoW::Net
         uintptr_t client = GetClientPtr();
         if (!client) return -1;
         return *(int*)(client + Offsets::NetClient::AUTH_STATUS);
+    }
+
+    bool GetNetStats(NetStats& out)
+    {
+        uintptr_t client = GetClientPtr();
+        if (!client) return false;
+
+        auto getNetStats = reinterpret_cast<GetNetStatsFn>(Offsets::NetClient::GET_NET_STATS);
+        getNetStats(reinterpret_cast<void*>(client), &out.bandwidthIn, &out.bandwidthOut, &out.latencyMs);
+        return true;
     }
 }

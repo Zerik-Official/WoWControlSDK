@@ -25,6 +25,9 @@ add_library(WoWControlSDK SHARED
     core/native/ObjectManager.cpp
     core/native/ClientState.cpp
     core/native/NetClient.cpp
+    core/native/Performance.cpp
+    core/native/AddonMemory.cpp
+    core/native/CrashReport.cpp
     core/native/RealmListReader.cpp
     core/native/WoWObject.cpp
     core/native/Unit.cpp
@@ -81,10 +84,14 @@ add_library(WoWControlSDK SHARED
     runtime/events/GameEventBridge.cpp
     runtime/events/LuaEventBridge.cpp
 
+    runtime/diagnostics/CrashMonitor.cpp
+    runtime/diagnostics/AddonMemoryMonitor.cpp
+
     runtime/window/WindowService.cpp
 
     hooks/Hooks.cpp
     hooks/AddonHooks.cpp
+    hooks/ErrorHooks.cpp
     hooks/lua/LuaHooks.cpp
     hooks/glue/GlueLoadHooks.cpp
     hooks/EndSceneHook.cpp

@@ -5,6 +5,7 @@
 #include "runtime/state/GlueState.h"
 #include <string>
 #include <mutex>
+#include <cstdint>
 
 namespace Runtime
 {
@@ -53,6 +54,17 @@ namespace Runtime
         bool        valid = false;
     };
 
+    struct PerformanceCacheEntry
+    {
+        float    framerate = 0.f;
+        bool     connected = false;
+        uint32_t latencyMs = 0;
+        float    bandwidthIn = 0.f;
+        float    bandwidthOut = 0.f;
+        uint64_t updatedMs = 0;
+        bool     valid = false;
+    };
+
     class StateCache
     {
     public:
@@ -61,15 +73,18 @@ namespace Runtime
 
         bool getPlayer(PlayerCacheEntry& out) const;
         bool getWorld(WorldCacheEntry& out) const;
+        bool getPerformance(PerformanceCacheEntry& out) const;
 
     private:
         PlayerCacheEntry m_player;
         WorldCacheEntry  m_world;
+        PerformanceCacheEntry m_performance;
         Screen           m_lastScreen = Screen::UNKNOWN;
         mutable std::mutex m_mutex;
         EventBus* m_eventBus = nullptr;
 
         PlayerCacheEntry readPlayer() const;
         WorldCacheEntry  readWorld()  const;
+        PerformanceCacheEntry readPerformance(bool inWorld) const;
     };
 }

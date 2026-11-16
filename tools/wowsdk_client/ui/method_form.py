@@ -10,10 +10,11 @@ from typing import Any, Callable
 import customtkinter as ctk
 
 # Project imports
-from ..catalog import Method, Param, ParamType
+from ..catalog import Method, Param, ParamType, find_domain
+from ..i18n import tr
 from . import theme
+from .icons import icon
 
-DEFAULT_CHOICE_LABEL = "(default)"
 
 
 class FormError(Exception):
@@ -46,10 +47,10 @@ class ParamField:
                 switch.select()
             return switch
         if param.type is ParamType.CHOICE:
-            values = [choice or DEFAULT_CHOICE_LABEL for choice in param.choices]
+            values = [choice or tr("form.default") for choice in param.choices]
             menu = ctk.CTkOptionMenu(self.frame, values=values, fg_color=theme.SURFACE_ALT,
                                      button_color=theme.ACCENT, button_hover_color=theme.ACCENT_HOVER)
-            menu.set(str(param.default) if param.default else DEFAULT_CHOICE_LABEL)
+            menu.set(str(param.default) if param.default else tr("form.default"))
             return menu
         if param.type is ParamType.TEXT:
             box = ctk.CTkTextbox(self.frame, height=140, font=theme.mono())
@@ -68,7 +69,7 @@ class ParamField:
             return self.widget.get("1.0", "end-1c")
         if self.param.type is ParamType.CHOICE:
             value = self.widget.get()
-            return "" if value == DEFAULT_CHOICE_LABEL else value
+            return "" if value == tr("form.default") else value
         return self.widget.get()
 
     def value(self) -> tuple[bool, Any]:
@@ -82,18 +83,18 @@ class ParamField:
             text = text.strip()
         if not text.strip():
             if param.required:
-                raise FormError(f"{param.name} is required")
+                raise FormError(tr("form.required", name=param.name))
             return False, None
 
         if param.type is ParamType.INTEGER:
             try:
                 return True, int(text)
             except ValueError as exc:
-                raise FormError(f"{param.name} must be an integer") from exc
+                raise FormError(tr("form.integer", name=param.name)) from exc
         if param.type is ParamType.STRING_LIST:
             items = [item.strip() for item in text.split(",") if item.strip()]
             if param.required and not items:
-                raise FormError(f"{param.name} needs at least one value")
+                raise FormError(tr("form.one_value", name=param.name))
             return True, items
         if param.type is ParamType.JSON:
             try:
@@ -117,9 +118,9 @@ class MethodForm(ctk.CTkScrollableFrame):
         self._fields: list[ParamField] = []
         self.method: Method | None = None
 
-        self._title = ctk.CTkLabel(self, text="Choose a method", font=theme.title(20), anchor="w")
+        self._title = ctk.CTkLabel(self, text=tr("form.choose"), font=theme.title(20), anchor="w")
         self._title.grid(row=0, column=0, sticky="w", pady=(0, 2))
-        self._description = ctk.CTkLabel(self, text="Pick a method on the left to build its request.",
+        self._description = ctk.CTkLabel(self, text=tr("form.choose_hint"),
                                          font=theme.small(13), text_color=theme.MUTED, anchor="w",
                                          justify="left", wraplength=560)
         self._description.grid(row=1, column=0, sticky="w", pady=(0, 12))
@@ -130,13 +131,15 @@ class MethodForm(ctk.CTkScrollableFrame):
     def show(self, method: Method) -> None:
         """Rebuild the form for a method."""
         self.method = method
-        self._title.configure(text=method.name)
+        domain = find_domain(method.domain)
+        self._title.configure(text=f"  {method.name}", compound="left",
+                              image=icon(domain.icon, theme.ACCENT, 22) if domain else None)
         self._description.configure(text=method.description)
         for child in self._fields_frame.winfo_children():
             child.destroy()
         self._fields = []
         if not method.params:
-            ctk.CTkLabel(self._fields_frame, text="This method has no parameters.",
+            ctk.CTkLabel(self._fields_frame, text=tr("form.no_params"),
                          font=theme.small(13), text_color=theme.MUTED, anchor="w").grid(row=0, column=0, sticky="w")
             return
         for row, param in enumerate(method.params):

@@ -55,7 +55,7 @@ Ninguno.
     "console": true,
     "consoleVisible": false,
     "logCount": 42,
-    "logMaxEntries": 256,
+    "logMaxEntries": 1000,
     "logShowInConsole": false
   }
 }
@@ -97,8 +97,10 @@ Configura la captura de logs.
 
 | Nombre | Tipo | Obligatorio | Por defecto | Descripción |
 | --- | --- | --- | --- | --- |
-| `maxEntries` | integer | No | `256` | Número máximo de entradas almacenadas |
-| `showInConsole` | boolean | No | `false` | Muestra los logs capturados en la consola del juego |
+| `maxEntries` | integer | No | Valor actual, `1000` al iniciar | Número máximo de entradas almacenadas |
+| `showInConsole` | boolean | No | Valor actual, `false` al iniciar | Muestra los logs capturados en la consola del juego |
+
+Los parámetros que no se envían mantienen su valor actual. Cuando `showInConsole` se activa, o la consola se abre más tarde, primero se muestran los mensajes guardados, así que no se pierden los mensajes del inicio del juego. La consola se escribe desde un hilo aparte, así que mostrar los logs nunca ralentiza el juego.
 
 ### Respuesta
 

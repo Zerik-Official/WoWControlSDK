@@ -173,7 +173,10 @@ std::vector<std::string> grantedAddons()
 static void readMessage(lua_State* L, int item, const LuaEngine::ReadLimits& limits, LuaEngine::BridgeMessage& message)
 {
     LuaNative::getfield(L, item, "kind");
-    message.kind = LuaStack::readString(L, -1) == "hook" ? LuaEngine::BridgeKind::Hook : LuaEngine::BridgeKind::Emit;
+    std::string kind = LuaStack::readString(L, -1);
+    message.kind = kind == "hook" ? LuaEngine::BridgeKind::Hook
+        : kind == "error" ? LuaEngine::BridgeKind::Error
+        : LuaEngine::BridgeKind::Emit;
     LuaNative::settop(L, item);
 
     LuaNative::getfield(L, item, "name");

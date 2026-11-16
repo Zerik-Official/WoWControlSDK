@@ -1,0 +1,74 @@
+{
+  "name": "group",
+  "title": {
+    "en": "Group",
+    "es": "Grupo"
+  },
+  "icon": "users",
+  "methods": [
+    {
+      "name": "group.get",
+      "description": {
+        "en": "Full party or raid roster, including members out of range.",
+        "es": "Lista completa del grupo o la banda, incluidos los miembros fuera de alcance."
+      }
+    },
+    {
+      "name": "group.combatSummary",
+      "description": {
+        "en": "Combat summary of the members in range.",
+        "es": "Resumen de combate de los miembros al alcance."
+      }
+    },
+    {
+      "name": "group.getInvite",
+      "description": {
+        "en": "Pending group invitation.",
+        "es": "Invitación de grupo pendiente."
+      }
+    },
+    {
+      "name": "group.acceptInvite",
+      "description": {
+        "en": "Accept the pending invitation with the selected roles.",
+        "es": "Acepta la invitación pendiente con los roles elegidos."
+      },
+      "params": [
+        {
+          "name": "tank",
+          "type": "boolean",
+          "description": {
+            "en": "Offer the tank role",
+            "es": "Ofrecer el rol de tanque"
+          },
+          "default": false
+        },
+        {
+          "name": "healer",
+          "type": "boolean",
+          "description": {
+            "en": "Offer the healer role",
+            "es": "Ofrecer el rol de sanador"
+          },
+          "default": false
+        },
+        {
+          "name": "damage",
+          "type": "boolean",
+          "description": {
+            "en": "Offer the damage role",
+            "es": "Ofrecer el rol de daño"
+          },
+          "default": false
+        }
+      ]
+    },
+    {
+      "name": "group.declineInvite",
+      "description": {
+        "en": "Decline the pending invitation.",
+        "es": "Rechaza la invitación pendiente."
+      }
+    }
+  ]
+}

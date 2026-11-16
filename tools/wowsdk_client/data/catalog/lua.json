@@ -1,0 +1,400 @@
+{
+  "name": "lua",
+  "title": {
+    "en": "Lua",
+    "es": "Lua"
+  },
+  "icon": "code",
+  "methods": [
+    {
+      "name": "lua.execute",
+      "description": {
+        "en": "Run Lua code without a return value.",
+        "es": "Ejecuta código Lua sin valor de retorno."
+      },
+      "params": [
+        {
+          "name": "code",
+          "type": "text",
+          "description": {
+            "en": "Lua source code",
+            "es": "Código fuente Lua"
+          },
+          "required": true
+        },
+        {
+          "name": "chunkName",
+          "type": "string",
+          "description": {
+            "en": "Name shown in errors",
+            "es": "Nombre que aparece en los errores"
+          }
+        },
+        {
+          "name": "secure",
+          "type": "boolean",
+          "description": {
+            "en": "Run without taint (dangerous)",
+            "es": "Ejecutar sin taint (peligroso)"
+          },
+          "default": false
+        }
+      ]
+    },
+    {
+      "name": "lua.evaluate",
+      "description": {
+        "en": "Run Lua code and return every value.",
+        "es": "Ejecuta código Lua y devuelve todos los valores."
+      },
+      "params": [
+        {
+          "name": "code",
+          "type": "text",
+          "description": {
+            "en": "Lua expression or code",
+            "es": "Expresión o código Lua"
+          },
+          "required": true,
+          "default": "return GetRealZoneText()"
+        },
+        {
+          "name": "chunkName",
+          "type": "string",
+          "description": {
+            "en": "Name shown in errors",
+            "es": "Nombre que aparece en los errores"
+          }
+        },
+        {
+          "name": "maxDepth",
+          "type": "integer",
+          "description": {
+            "en": "Table depth to convert",
+            "es": "Profundidad de tablas que se convierte"
+          },
+          "default": 4
+        },
+        {
+          "name": "maxEntries",
+          "type": "integer",
+          "description": {
+            "en": "Values to convert",
+            "es": "Valores que se convierten"
+          },
+          "default": 500
+        },
+        {
+          "name": "secure",
+          "type": "boolean",
+          "description": {
+            "en": "Run without taint (dangerous)",
+            "es": "Ejecutar sin taint (peligroso)"
+          },
+          "default": false
+        }
+      ]
+    },
+    {
+      "name": "lua.call",
+      "description": {
+        "en": "Call a Lua function by path or ref with JSON arguments.",
+        "es": "Llama una función de Lua por ruta o por ref con argumentos JSON."
+      },
+      "params": [
+        {
+          "name": "function",
+          "type": "string",
+          "description": {
+            "en": "Path such as GetItemInfo or ChatFrame1:GetName",
+            "es": "Ruta como GetItemInfo o ChatFrame1:GetName"
+          },
+          "default": "GetItemInfo"
+        },
+        {
+          "name": "args",
+          "type": "json",
+          "description": {
+            "en": "Arguments as a JSON array",
+            "es": "Argumentos como un array JSON"
+          },
+          "default": "[6948]"
+        },
+        {
+          "name": "ref",
+          "type": "integer",
+          "description": {
+            "en": "Ref to call instead of a path",
+            "es": "Ref que se llama en lugar de una ruta"
+          }
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "description": {
+            "en": "Method to call on the ref",
+            "es": "Método que se llama en la ref"
+          }
+        },
+        {
+          "name": "maxDepth",
+          "type": "integer",
+          "description": {
+            "en": "Table depth to convert",
+            "es": "Profundidad de tablas que se convierte"
+          },
+          "default": 4
+        },
+        {
+          "name": "maxEntries",
+          "type": "integer",
+          "description": {
+            "en": "Values to convert",
+            "es": "Valores que se convierten"
+          },
+          "default": 500
+        },
+        {
+          "name": "secure",
+          "type": "boolean",
+          "description": {
+            "en": "Run without taint (dangerous)",
+            "es": "Ejecutar sin taint (peligroso)"
+          },
+          "default": false
+        }
+      ]
+    },
+    {
+      "name": "lua.batch",
+      "description": {
+        "en": "Run several Lua operations in one game frame.",
+        "es": "Ejecuta varias operaciones Lua en un frame del juego."
+      },
+      "params": [
+        {
+          "name": "operations",
+          "type": "json",
+          "description": {
+            "en": "Array of {method, params}",
+            "es": "Array de {method, params}"
+          },
+          "required": true,
+          "default": "[{\"method\": \"lua.call\", \"params\": {\"function\": \"UnitName\", \"args\": [\"player\"]}}, {\"method\": \"lua.getGlobal\", \"params\": {\"name\": \"GetCVar\"}}]"
+        },
+        {
+          "name": "stopOnError",
+          "type": "boolean",
+          "description": {
+            "en": "Stop at the first failed operation",
+            "es": "Detenerse en la primera operación fallida"
+          },
+          "default": false
+        }
+      ]
+    },
+    {
+      "name": "lua.getGlobal",
+      "description": {
+        "en": "Read a value by path, tables included.",
+        "es": "Lee un valor por ruta, tablas incluidas."
+      },
+      "params": [
+        {
+          "name": "name",
+          "type": "string",
+          "description": {
+            "en": "Path such as UnitName or MyAddon.config",
+            "es": "Ruta como UnitName o MyAddon.config"
+          },
+          "required": true
+        },
+        {
+          "name": "maxDepth",
+          "type": "integer",
+          "description": {
+            "en": "Table depth to convert",
+            "es": "Profundidad de tablas que se convierte"
+          },
+          "default": 4
+        },
+        {
+          "name": "maxEntries",
+          "type": "integer",
+          "description": {
+            "en": "Values to convert",
+            "es": "Valores que se convierten"
+          },
+          "default": 500
+        }
+      ]
+    },
+    {
+      "name": "lua.setGlobal",
+      "description": {
+        "en": "Set a value by path, tables included.",
+        "es": "Escribe un valor por ruta, tablas incluidas."
+      },
+      "params": [
+        {
+          "name": "name",
+          "type": "string",
+          "description": {
+            "en": "Path such as MyAddon.config.volume",
+            "es": "Ruta como MyAddon.config.volume"
+          },
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": "json",
+          "description": {
+            "en": "Value as JSON, for example 42, true, \"text\" or {\"a\": 1}",
+            "es": "Valor como JSON, por ejemplo 42, true, \"texto\" o {\"a\": 1}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "lua.createNamespace",
+      "description": {
+        "en": "Create an empty table at a path.",
+        "es": "Crea una tabla vacía en una ruta."
+      },
+      "params": [
+        {
+          "name": "name",
+          "type": "string",
+          "description": {
+            "en": "Table path",
+            "es": "Ruta de la tabla"
+          },
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "lua.getRef",
+      "description": {
+        "en": "Keep a reference to a Lua value.",
+        "es": "Guarda una referencia a un valor de Lua."
+      },
+      "params": [
+        {
+          "name": "path",
+          "type": "string",
+          "description": {
+            "en": "Path such as PlayerFrame",
+            "es": "Ruta como PlayerFrame"
+          },
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "lua.releaseRef",
+      "description": {
+        "en": "Release a reference.",
+        "es": "Libera una referencia."
+      },
+      "params": [
+        {
+          "name": "ref",
+          "type": "integer",
+          "description": {
+            "en": "Ref id",
+            "es": "Id de la ref"
+          },
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "lua.hook",
+      "description": {
+        "en": "Stream calls to a Lua function as lua.hooked events.",
+        "es": "Envía las llamadas a una función de Lua como eventos lua.hooked."
+      },
+      "params": [
+        {
+          "name": "function",
+          "type": "string",
+          "description": {
+            "en": "Path such as AcceptQuest or StaticPopup1Button1:Click",
+            "es": "Ruta como AcceptQuest o StaticPopup1Button1:Click"
+          },
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "lua.unhook",
+      "description": {
+        "en": "Stop streaming calls to a hooked function.",
+        "es": "Deja de enviar las llamadas de una función vigilada."
+      },
+      "params": [
+        {
+          "name": "function",
+          "type": "string",
+          "description": {
+            "en": "Hooked path",
+            "es": "Ruta vigilada"
+          },
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "lua.getHooks",
+      "description": {
+        "en": "List active hooks.",
+        "es": "Lista los hooks activos."
+      }
+    },
+    {
+      "name": "lua.setAllowedAddons",
+      "description": {
+        "en": "Limit SDK access to these addons, or null for every addon that opts in.",
+        "es": "Limita el acceso al SDK a estos addons, o null para todos los addons que lo activan."
+      },
+      "params": [
+        {
+          "name": "addons",
+          "type": "json",
+          "description": {
+            "en": "JSON array of addon names or null",
+            "es": "Array JSON de nombres de addons o null"
+          },
+          "required": true,
+          "default": "null"
+        }
+      ]
+    },
+    {
+      "name": "lua.getAddons",
+      "description": {
+        "en": "Addons that received the SDK and the allow list.",
+        "es": "Addons que recibieron el SDK y la lista de permitidos."
+      }
+    },
+    {
+      "name": "lua.setBlockedNotice",
+      "description": {
+        "en": "Show or hide the game notice when the SDK is blocked.",
+        "es": "Muestra u oculta el aviso del juego cuando el SDK es bloqueado."
+      },
+      "params": [
+        {
+          "name": "show",
+          "type": "boolean",
+          "description": {
+            "en": "Show the game notice",
+            "es": "Mostrar el aviso del juego"
+          },
+          "default": false
+        }
+      ]
+    }
+  ]
+}

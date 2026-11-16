@@ -29,6 +29,18 @@ namespace Runtime
 
             for (const auto& message : batch.messages)
             {
+                if (message.kind == LuaEngine::BridgeKind::Error)
+                {
+                    SDK::Json data;
+                    data["message"] = message.name;
+                    data["addon"] = message.addon.empty() ? SDK::Json() : SDK::Json(message.addon);
+                    data["stack"] = !message.args.empty() && message.args[0].type == LuaEngine::LuaType::String
+                        ? SDK::Json(message.args[0].strVal)
+                        : SDK::Json();
+                    EventPipe::PushEvent("lua.error", sanitize(data), timeMs);
+                    continue;
+                }
+
                 SDK::Json data;
                 bool hooked = message.kind == LuaEngine::BridgeKind::Hook;
                 data[hooked ? "function" : "name"] = message.name;

@@ -131,7 +131,7 @@ Always inspect `result` before reading its fields. A response without a top-leve
 
 ## Method catalog
 
-The SDK registers 104 methods across seventeen domains.
+The SDK registers 108 methods across seventeen domains.
 
 | Domain | Methods | Page |
 | --- | --- | --- |
@@ -148,7 +148,7 @@ The SDK registers 104 methods across seventeen domains.
 | `battlefield.*` | 3 | [battlefield.*](methods/battlefield.md) |
 | `chat.*` | 3 | [chat.*](methods/chat.md) |
 | `object.*` | 4 | [object.*](methods/object.md) |
-| `client.*` | 17 | [client.*](methods/client.md) |
+| `client.*` | 21 | [client.*](methods/client.md) |
 | `events.*` | 8 | [events.*](methods/events.md) |
 | `dll.*` | 4 | [dll.*](methods/dll.md) |
 | `window.*` | 19 | [window.*](methods/window.md) |

@@ -23,7 +23,7 @@ sequenceDiagram
 1. **Lanzamiento suspendido.** `Wow.exe` arranca con `CREATE_SUSPENDED`, así que no se ejecuta código del juego.
 2. **Inyección de la DLL.** El inyector reserva memoria en el proceso destino, escribe la ruta de la DLL y llama a `LoadLibrary` mediante `CreateRemoteThread`.
 3. **Inicialización del SDK.** `DllMain` inicia un hilo dedicado que prepara la captura de logs, los hooks de Detours, el motor Lua, el runtime, el pipe de comandos y el pipe de eventos.
-4. **Espera del pipe.** El juego permanece congelado mientras el inyector espera hasta 15 segundos a que `\\.\pipe\WowGameCommand` acepte una conexión.
+4. **Espera del pipe.** El juego permanece congelado mientras el inyector espera hasta 15 segundos a que `\\.\pipe\WowGameCommand` acepte una conexión. Si el juego se cierra durante la espera, el inyector se detiene de inmediato.
 5. **Configuración de la autenticación.** El inyector registra el token de sesión (o `--no-auth`) con `auth.init` mientras el juego sigue congelado. Si el SDK lo rechaza, el juego se cierra.
 6. **Reanudación del juego.** El inyector reanuda el hilo principal y el juego continúa con normalidad.
 
@@ -130,6 +130,7 @@ Consulta [events.*](methods/events.md) para los eventos disponibles y el listene
 | Síntoma | Causa y solución |
 | --- | --- |
 | El inyector termina tras 15 segundos | El pipe nunca apareció. Comprueba la ruta de la DLL y que la DLL corresponda a la build del cliente. |
+| Cualquier error del inyector | El inyector cierra el juego que inició, así que un inicio fallido nunca deja un `Wow.exe` suspendido. |
 | El juego se queda suspendido | El inyector sigue esperando el pipe. Ejecuta con `--no-pipe --wait 1000` para omitir la espera y diagnosticar. |
 | `LoadLibrary` falla | Falta una dependencia de la DLL o la arquitectura del proceso no coincide. Compila con la configuración de CMake incluida. |
 | No llegan eventos | El pipe de eventos acepta un cliente. Desconecta otros listeners y suscríbete a los eventos necesarios. |

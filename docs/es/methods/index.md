@@ -32,7 +32,7 @@ Cada método RPC pertenece a un dominio. Cada dominio tiene su propia página co
 | [chat.*](chat.md) | 3 | Enviar chat en cualquier canal y responder a susurros |
 | [battlefield.*](battlefield.md) | 3 | Leer las colas de campos de batalla y arenas y responder a sus invitaciones |
 | [object.*](object.md) | 4 | Inspeccionar si una entidad existe y de qué tipo es |
-| [client.*](client.md) | 17 | Login, selección de reino, lista de personajes, estado de pantalla y automatización de EULA/TOS |
+| [client.*](client.md) | 21 | Login, selección de reino, lista de personajes, estado de pantalla, latencia, FPS, memoria de addons, informes de crash y automatización de EULA/TOS |
 | [events.*](events.md) | 8 | Suscribirse a eventos de WoW y gestionar el historial |
 | [dll.*](dll.md) | 4 | Controlar la consola y leer diagnóstico y logs del SDK |
 | [window.*](window.md) | 19 | Inspeccionar y controlar la ventana principal de WoW, incluido el arranque oculto |
@@ -54,7 +54,7 @@ Cada método RPC pertenece a un dominio. Cada dominio tiene su propia página co
 | `chat` | `send`, `reply`, `getRecentWhispers` |
 | `battlefield` | `getQueues`, `acceptPort`, `leaveQueue` |
 | `object` | `exists`, `getType`, `isUnit`, `isPlayer` |
-| `client` | `ping`, `getScreen`, `getDebugState`, `login`, `enterWorld`, `logout`, `quit`, `getCharacters`, `refreshCharacters`, `getRealmlist`, `setRealmlist`, `acceptEULA`, `acceptTOS`, `acceptTermination`, `acceptScanning`, `acceptContest`, `acceptAll` |
+| `client` | `ping`, `getScreen`, `getDebugState`, `getNetStats`, `getFramerate`, `getAddonMemory`, `getLastCrash`, `login`, `enterWorld`, `logout`, `quit`, `getCharacters`, `refreshCharacters`, `getRealmlist`, `setRealmlist`, `acceptEULA`, `acceptTOS`, `acceptTermination`, `acceptScanning`, `acceptContest`, `acceptAll` |
 | `events` | `subscribe`, `unsubscribe`, `list`, `clear`, `getHistory`, `clearHistory`, `setMaxBuffer`, `isReady` |
 | `dll` | `toggleConsole`, `getInfo`, `getLogs`, `setLogConfig` |
 | `window` | `getHandle`, `getInfo`, `show`, `hide`, `minimize`, `restore`, `maximize`, `focus`, `getPosition`, `setPosition`, `getSize`, `setSize`, `setBounds`, `setTitle`, `setTopMost`, `setOpacity`, `flashTaskbar`, `setIcon`, `setStartHidden` |
