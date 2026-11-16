@@ -19,6 +19,31 @@ namespace Lua
     constexpr uintptr_t LUA_ISNUMBER     = 0x0084DF20;
     constexpr uintptr_t LUA_TYPE         = 0x0084DEB0;
 
+    constexpr uintptr_t LUA_CHECKSTACK   = 0x0084DAB0;
+    constexpr uintptr_t LUA_REMOVE       = 0x0084DC50;
+    constexpr uintptr_t LUA_PUSHVALUE    = 0x0084DE50;
+    constexpr uintptr_t LUA_OBJLEN       = 0x0084E150;
+    constexpr uintptr_t LUA_TOPOINTER    = 0x0084E210;
+    constexpr uintptr_t LUA_PUSHNIL      = 0x0084E280;
+    constexpr uintptr_t LUA_PUSHNUMBER   = 0x0084E2A0;
+    constexpr uintptr_t LUA_PUSHSTRING   = 0x0084E350;
+    constexpr uintptr_t LUA_PUSHBOOLEAN  = 0x0084E4D0;
+    constexpr uintptr_t LUA_GETFIELD     = 0x0084E590;
+    constexpr uintptr_t LUA_RAWGETI      = 0x0084E670;
+    constexpr uintptr_t LUA_CREATETABLE  = 0x0084E6E0;
+    constexpr uintptr_t LUA_RAWSET       = 0x0084E970;
+    constexpr uintptr_t LUA_RAWSETI      = 0x0084EA00;
+    constexpr uintptr_t LUA_NEXT         = 0x0084EF50;
+
+    constexpr int REGISTRY_INDEX         = -10000;
+
+    constexpr uintptr_t TAINT_SOURCE     = 0x00D4139C;
+    constexpr uintptr_t TAINT_DEPTH      = 0x00D413A0;
+    constexpr uintptr_t TAINT_LOCKED     = 0x00D413A4;
+
+    constexpr uintptr_t FRAMEXML_LOAD_TOC     = 0x00814340;
+    constexpr uintptr_t ADDON_LOAD_TOC_RETURN = 0x005F821D;
+
     constexpr uintptr_t LUA_GETSTATE              = 0x00817DB0;
     constexpr uintptr_t LUA_PUSHCCLOSURE         = 0x0084E400;
     constexpr uintptr_t LUA_SETFIELD              = 0x0084E900;
