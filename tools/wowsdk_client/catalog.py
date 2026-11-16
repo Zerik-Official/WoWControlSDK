@@ -209,19 +209,62 @@ DOMAINS: tuple[Domain, ...] = (
     Domain("lua", "Lua", (
         Method("lua.execute", "Run Lua code without a return value.", (
             Param("code", ParamType.TEXT, "Lua source code", required=True),
+            Param("chunkName", ParamType.STRING, "Name shown in errors"),
+            Param("secure", ParamType.BOOLEAN, "Run without taint (dangerous)", default=False),
         )),
-        Method("lua.evaluate", "Run Lua code and return its result.", (
+        Method("lua.evaluate", "Run Lua code and return every value.", (
             Param("code", ParamType.TEXT, "Lua expression or code", required=True, default="return GetRealZoneText()"),
+            Param("chunkName", ParamType.STRING, "Name shown in errors"),
+            Param("maxDepth", ParamType.INTEGER, "Table depth to convert", default=4),
+            Param("maxEntries", ParamType.INTEGER, "Values to convert", default=500),
+            Param("secure", ParamType.BOOLEAN, "Run without taint (dangerous)", default=False),
         )),
-        Method("lua.getGlobal", "Read a Lua global.", (
-            Param("name", ParamType.STRING, "Global name", required=True),
+        Method("lua.call", "Call a Lua function by path or ref with JSON arguments.", (
+            Param("function", ParamType.STRING, "Path such as GetItemInfo or ChatFrame1:GetName", default="GetItemInfo"),
+            Param("args", ParamType.JSON, "Arguments as a JSON array", default="[6948]"),
+            Param("ref", ParamType.INTEGER, "Ref to call instead of a path"),
+            Param("method", ParamType.STRING, "Method to call on the ref"),
+            Param("maxDepth", ParamType.INTEGER, "Table depth to convert", default=4),
+            Param("maxEntries", ParamType.INTEGER, "Values to convert", default=500),
+            Param("secure", ParamType.BOOLEAN, "Run without taint (dangerous)", default=False),
         )),
-        Method("lua.setGlobal", "Set a Lua global to a boolean, number or string.", (
-            Param("name", ParamType.STRING, "Global name", required=True),
-            Param("value", ParamType.JSON, "Value as JSON, for example 42, true or \"text\""),
+        Method("lua.batch", "Run several Lua operations in one game frame.", (
+            Param("operations", ParamType.JSON, "Array of {method, params}", required=True,
+                  default='[{"method": "lua.call", "params": {"function": "UnitName", "args": ["player"]}}, '
+                          '{"method": "lua.getGlobal", "params": {"name": "GetCVar"}}]'),
+            Param("stopOnError", ParamType.BOOLEAN, "Stop at the first failed operation", default=False),
         )),
-        Method("lua.createNamespace", "Create a table global.", (
-            Param("name", ParamType.STRING, "Table name", required=True),
+        Method("lua.getGlobal", "Read a value by path, tables included.", (
+            Param("name", ParamType.STRING, "Path such as UnitName or MyAddon.config", required=True),
+            Param("maxDepth", ParamType.INTEGER, "Table depth to convert", default=4),
+            Param("maxEntries", ParamType.INTEGER, "Values to convert", default=500),
+        )),
+        Method("lua.setGlobal", "Set a value by path, tables included.", (
+            Param("name", ParamType.STRING, "Path such as MyAddon.config.volume", required=True),
+            Param("value", ParamType.JSON, "Value as JSON, for example 42, true, \"text\" or {\"a\": 1}"),
+        )),
+        Method("lua.createNamespace", "Create an empty table at a path.", (
+            Param("name", ParamType.STRING, "Table path", required=True),
+        )),
+        Method("lua.getRef", "Keep a reference to a Lua value.", (
+            Param("path", ParamType.STRING, "Path such as PlayerFrame", required=True),
+        )),
+        Method("lua.releaseRef", "Release a reference.", (
+            Param("ref", ParamType.INTEGER, "Ref id", required=True),
+        )),
+        Method("lua.hook", "Stream calls to a Lua function as lua.hooked events.", (
+            Param("function", ParamType.STRING, "Path such as AcceptQuest or StaticPopup1Button1:Click", required=True),
+        )),
+        Method("lua.unhook", "Stop streaming calls to a hooked function.", (
+            Param("function", ParamType.STRING, "Hooked path", required=True),
+        )),
+        Method("lua.getHooks", "List active hooks."),
+        Method("lua.setAllowedAddons", "Limit SDK access to these addons, or null for every addon that opts in.", (
+            Param("addons", ParamType.JSON, "JSON array of addon names or null", required=True, default="null"),
+        )),
+        Method("lua.getAddons", "Addons that received the SDK and the allow list."),
+        Method("lua.setBlockedNotice", "Show or hide the game notice when the SDK is blocked.", (
+            Param("show", ParamType.BOOLEAN, "Show the game notice", default=False),
         )),
     )),
     Domain("window", "Window", (
