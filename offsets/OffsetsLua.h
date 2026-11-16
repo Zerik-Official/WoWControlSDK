@@ -34,6 +34,8 @@ namespace Lua
     constexpr uintptr_t LUA_RAWSET       = 0x0084E970;
     constexpr uintptr_t LUA_RAWSETI      = 0x0084EA00;
     constexpr uintptr_t LUA_NEXT         = 0x0084EF50;
+    constexpr uintptr_t LUA_UPDATE_ADDON_MEMORY = 0x0084EE50;
+    constexpr uintptr_t LUA_GET_ADDON_MEMORY    = 0x0084EE60;
 
     constexpr int REGISTRY_INDEX         = -10000;
 
