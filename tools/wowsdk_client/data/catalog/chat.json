@@ -1,0 +1,109 @@
+{
+  "name": "chat",
+  "title": {
+    "en": "Chat",
+    "es": "Chat"
+  },
+  "icon": "message-square",
+  "methods": [
+    {
+      "name": "chat.send",
+      "description": {
+        "en": "Send a message on a chat channel.",
+        "es": "Envía un mensaje en un canal de chat."
+      },
+      "params": [
+        {
+          "name": "channel",
+          "type": "choice",
+          "description": {
+            "en": "Chat channel",
+            "es": "Canal de chat"
+          },
+          "required": true,
+          "default": "WHISPER",
+          "choices": [
+            "WHISPER",
+            "SAY",
+            "YELL",
+            "EMOTE",
+            "PARTY",
+            "RAID",
+            "RAID_WARNING",
+            "BATTLEGROUND",
+            "GUILD",
+            "OFFICER",
+            "CHANNEL",
+            "BN_WHISPER"
+          ]
+        },
+        {
+          "name": "target",
+          "type": "string",
+          "description": {
+            "en": "Character name for WHISPER, channel number or name for CHANNEL, presence ID for BN_WHISPER",
+            "es": "Nombre del personaje para WHISPER, número o nombre del canal para CHANNEL, presence ID para BN_WHISPER"
+          }
+        },
+        {
+          "name": "text",
+          "type": "string",
+          "description": {
+            "en": "Message, up to 255 bytes",
+            "es": "Mensaje, hasta 255 bytes"
+          },
+          "required": true
+        },
+        {
+          "name": "language",
+          "type": "integer",
+          "description": {
+            "en": "Languages.dbc ID; empty uses the character's default language",
+            "es": "ID de Languages.dbc; vacío usa el idioma por defecto del personaje"
+          }
+        }
+      ]
+    },
+    {
+      "name": "chat.reply",
+      "description": {
+        "en": "Reply to the last whisper, or to a specific one.",
+        "es": "Responde al último susurro o a uno concreto."
+      },
+      "params": [
+        {
+          "name": "text",
+          "type": "string",
+          "description": {
+            "en": "Message",
+            "es": "Mensaje"
+          },
+          "required": true
+        },
+        {
+          "name": "lineId",
+          "type": "integer",
+          "description": {
+            "en": "Reply to the whisper with this line ID",
+            "es": "Responde al susurro con este line ID"
+          }
+        },
+        {
+          "name": "guid",
+          "type": "string",
+          "description": {
+            "en": "Reply to the last whisper from this sender GUID",
+            "es": "Responde al último susurro de este GUID"
+          }
+        }
+      ]
+    },
+    {
+      "name": "chat.getRecentWhispers",
+      "description": {
+        "en": "Whispers chat.reply can answer.",
+        "es": "Susurros que chat.reply puede responder."
+      }
+    }
+  ]
+}

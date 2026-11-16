@@ -1,0 +1,38 @@
+{
+  "name": "player",
+  "title": {
+    "en": "Player",
+    "es": "Jugador"
+  },
+  "icon": "user",
+  "methods": [
+    {
+      "name": "player.getState",
+      "description": {
+        "en": "Full cached player state.",
+        "es": "Estado completo del jugador desde la caché."
+      }
+    },
+    {
+      "name": "player.getHealth",
+      "description": {
+        "en": "Cached health and power.",
+        "es": "Vida y poder desde la caché."
+      }
+    },
+    {
+      "name": "player.getPosition",
+      "description": {
+        "en": "Cached world position and rotation.",
+        "es": "Posición en el mundo y rotación desde la caché."
+      }
+    },
+    {
+      "name": "player.getTarget",
+      "description": {
+        "en": "Cached target GUID.",
+        "es": "GUID del objetivo desde la caché."
+      }
+    }
+  ]
+}

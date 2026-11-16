@@ -1,0 +1,17 @@
+{
+  "name": "friends",
+  "title": {
+    "en": "Friends",
+    "es": "Amigos"
+  },
+  "icon": "heart-handshake",
+  "methods": [
+    {
+      "name": "friends.list",
+      "description": {
+        "en": "Friend list with level, class, zone and status.",
+        "es": "Lista de amigos con nivel, clase, zona y estado."
+      }
+    }
+  ]
+}

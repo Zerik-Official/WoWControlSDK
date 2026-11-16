@@ -1,0 +1,82 @@
+{
+  "name": "object",
+  "title": {
+    "en": "Objects",
+    "es": "Objetos"
+  },
+  "icon": "box",
+  "methods": [
+    {
+      "name": "object.exists",
+      "description": {
+        "en": "Whether the entity exists.",
+        "es": "Si la entidad existe."
+      },
+      "params": [
+        {
+          "name": "token",
+          "type": "string",
+          "description": {
+            "en": "Unit token: player, target, focus, mouseover, partyN, raidN or a GUID",
+            "es": "Token de unidad: player, target, focus, mouseover, partyN, raidN o un GUID"
+          },
+          "default": "player"
+        }
+      ]
+    },
+    {
+      "name": "object.getType",
+      "description": {
+        "en": "Object type of the entity.",
+        "es": "Tipo de objeto de la entidad."
+      },
+      "params": [
+        {
+          "name": "token",
+          "type": "string",
+          "description": {
+            "en": "Unit token: player, target, focus, mouseover, partyN, raidN or a GUID",
+            "es": "Token de unidad: player, target, focus, mouseover, partyN, raidN o un GUID"
+          },
+          "default": "player"
+        }
+      ]
+    },
+    {
+      "name": "object.isUnit",
+      "description": {
+        "en": "Whether the entity is a unit.",
+        "es": "Si la entidad es una unidad."
+      },
+      "params": [
+        {
+          "name": "token",
+          "type": "string",
+          "description": {
+            "en": "Unit token: player, target, focus, mouseover, partyN, raidN or a GUID",
+            "es": "Token de unidad: player, target, focus, mouseover, partyN, raidN o un GUID"
+          },
+          "default": "player"
+        }
+      ]
+    },
+    {
+      "name": "object.isPlayer",
+      "description": {
+        "en": "Whether the entity is a player.",
+        "es": "Si la entidad es un jugador."
+      },
+      "params": [
+        {
+          "name": "token",
+          "type": "string",
+          "description": {
+            "en": "Unit token: player, target, focus, mouseover, partyN, raidN or a GUID",
+            "es": "Token de unidad: player, target, focus, mouseover, partyN, raidN o un GUID"
+          },
+          "default": "player"
+        }
+      ]
+    }
+  ]
+}

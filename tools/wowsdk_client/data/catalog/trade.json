@@ -1,0 +1,52 @@
+{
+  "name": "trade",
+  "title": {
+    "en": "Trade",
+    "es": "Comercio"
+  },
+  "icon": "handshake",
+  "methods": [
+    {
+      "name": "trade.get",
+      "description": {
+        "en": "Pending request and both sides of the trade window.",
+        "es": "Solicitud pendiente y ambos lados de la ventana de comercio."
+      }
+    },
+    {
+      "name": "trade.acceptRequest",
+      "description": {
+        "en": "Accept the pending trade request.",
+        "es": "Acepta la solicitud de comercio pendiente."
+      }
+    },
+    {
+      "name": "trade.declineRequest",
+      "description": {
+        "en": "Decline the pending trade request.",
+        "es": "Rechaza la solicitud de comercio pendiente."
+      }
+    },
+    {
+      "name": "trade.accept",
+      "description": {
+        "en": "Press Trade in the trade window.",
+        "es": "Pulsa Comerciar en la ventana de comercio."
+      }
+    },
+    {
+      "name": "trade.unaccept",
+      "description": {
+        "en": "Withdraw your acceptance.",
+        "es": "Retira tu aceptación."
+      }
+    },
+    {
+      "name": "trade.cancel",
+      "description": {
+        "en": "Close the trade window without trading.",
+        "es": "Cierra la ventana de comercio sin comerciar."
+      }
+    }
+  ]
+}

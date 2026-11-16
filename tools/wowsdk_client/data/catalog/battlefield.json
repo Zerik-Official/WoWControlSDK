@@ -1,0 +1,55 @@
+{
+  "name": "battlefield",
+  "title": {
+    "en": "Battlegrounds",
+    "es": "Campos de batalla"
+  },
+  "icon": "flag",
+  "methods": [
+    {
+      "name": "battlefield.getQueues",
+      "description": {
+        "en": "Both battleground and arena queues.",
+        "es": "Las dos colas de campos de batalla y arenas."
+      }
+    },
+    {
+      "name": "battlefield.acceptPort",
+      "description": {
+        "en": "Enter the battleground or arena.",
+        "es": "Entra al campo de batalla o la arena."
+      },
+      "params": [
+        {
+          "name": "index",
+          "type": "integer",
+          "description": {
+            "en": "Queue slot, 1 or 2",
+            "es": "Ranura de la cola, 1 o 2"
+          },
+          "required": true,
+          "default": 1
+        }
+      ]
+    },
+    {
+      "name": "battlefield.leaveQueue",
+      "description": {
+        "en": "Leave a queue or decline its invitation.",
+        "es": "Sale de una cola o rechaza su invitación."
+      },
+      "params": [
+        {
+          "name": "index",
+          "type": "integer",
+          "description": {
+            "en": "Queue slot, 1 or 2",
+            "es": "Ranura de la cola, 1 o 2"
+          },
+          "required": true,
+          "default": 1
+        }
+      ]
+    }
+  ]
+}
