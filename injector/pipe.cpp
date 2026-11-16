@@ -2,19 +2,7 @@
 #include <cstdio>
 #include <string>
 
-static void die(const char* msg)
-{
-    DWORD err = GetLastError();
-    char buf[512];
-    FormatMessageA(
-        FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-        nullptr, err, 0, buf, sizeof(buf), nullptr
-    );
-    fprintf(stderr, "[injector] error: %s - %s (0x%08X)\n", msg, buf, err);
-    ExitProcess(1);
-}
-
-void waitForPipe(const char* pipeName, DWORD timeoutMs)
+bool waitForPipe(const char* pipeName, DWORD timeoutMs, HANDLE process)
 {
     std::string fullPath = std::string("\\\\.\\pipe\\") + pipeName;
     fprintf(stdout, "[injector] waiting for pipe %s ...\n", fullPath.c_str());
@@ -34,14 +22,24 @@ void waitForPipe(const char* pipeName, DWORD timeoutMs)
         {
             CloseHandle(h);
             fprintf(stdout, "[injector] pipe ready (%lums)\n", elapsed);
-            return;
+            return true;
+        }
+
+        if (process && WaitForSingleObject(process, 0) == WAIT_OBJECT_0)
+        {
+            DWORD exitCode = 0;
+            GetExitCodeProcess(process, &exitCode);
+            fprintf(stderr, "[injector] error: the game closed while the SDK was starting (exit code 0x%08X)\n", exitCode);
+            return false;
         }
 
         Sleep(interval);
         elapsed += interval;
     }
 
-    die("timeout waiting for pipe - the DLL may have failed to initialize");
+    fprintf(stderr, "[injector] error: the SDK did not open its pipe within %lu seconds - the DLL may have failed to initialize\n",
+        timeoutMs / 1000);
+    return false;
 }
 
 bool sendPipeCommand(const char* pipeName, const std::string& json, std::string& responseOut)
