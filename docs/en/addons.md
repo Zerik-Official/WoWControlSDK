@@ -135,6 +135,70 @@ Functions called by the application run tainted, like the addon itself. They can
 | `/wcs types` | Sends one event with every supported value type |
 | `/wcs flood` | Sends 300 events to show the per-frame limit and `lua.dropped` |
 
+## Scripts without an addon folder
+
+An application can also send Lua code through the pipe with [`lua.loadScript`](methods/lua.md#lualoadscript). The SDK runs it as a virtual addon called `@name`, with its own `SDK` object, so the user does not have to copy a folder to `Interface\AddOns` or restart the game. A script fits up to 1 MiB of code, the request limit of the command pipe.
+
+| | Addon | Script |
+| --- | --- | --- |
+| Installation | A folder in `Interface\AddOns` with a `.toc` | `lua.loadScript` from the application |
+| Name | The folder name | `@name`; names starting with `@` are reserved for scripts |
+| `SDK` object | `ns.SDK` | `ns.SDK`, with `SDK.script = true` |
+| After `/reload` | The game loads it again | The SDK runs it again when `persist` is `true` |
+| SavedVariables, XML and templates from a `.toc` | Yes | No |
+| Can be removed without `/reload` | No | Yes, with `lua.unloadScript` |
+
+A script receives the same arguments as an addon file:
+
+```lua
+local name, ns = ...
+local SDK = ns.SDK
+
+local frame = CreateFrame("Frame", "MyToolFrame", UIParent)
+frame:RegisterEvent("PLAYER_TARGET_CHANGED")
+frame:SetScript("OnEvent", function()
+    SDK.Emit("tool.target", UnitName("target"))
+end)
+
+SLASH_MYTOOL1 = "/mytool"
+SlashCmdList.MYTOOL = function(text)
+    SDK.Emit("tool.command", text)
+end
+
+SDK.OnUnload(function()
+    print(name .. " unloaded")
+end)
+```
+
+### Extra SDK functions for scripts
+
+| Function | Description |
+| --- | --- |
+| `SDK.OnUnload(function)` | Runs the function when the script is unloaded, before the SDK removes its resources. The last one registered runs first |
+| `SDK.HookScript(frame, handler, function)` | Like `frame:HookScript`, but the hook stops running when the script is unloaded. Use it for frames that the script did not create |
+| `SDK.IsActive()` | `false` once the script was unloaded |
+
+After unloading, `SDK.Emit` raises an error, so old timers or callbacks cannot send events in the script's name.
+
+### What unloading removes
+
+The SDK runs each script in its own environment and records what it creates:
+
+| Resource | When unloaded |
+| --- | --- |
+| Frames created with `CreateFrame`, and their children | Events unregistered, handlers such as `OnEvent` and `OnUpdate` removed, hidden; a global frame name is cleared |
+| Hooks created with `hooksecurefunc` or `SDK.HookScript` | They stop running |
+| Globals written by the script, including functions and `SLASH_*` names | They get back the value they had before the script |
+| Entries added to `SlashCmdList` | Removed, together with the game's cache of typed commands |
+
+The SDK cannot see changes made through other tables, such as new fields in `StaticPopupDialogs`, `frame:HookScript` on a frame the script did not create, or `rawset(_G, ...)`. Undo those in an `SDK.OnUnload` function.
+
+### Timing and taint
+
+- The script runs once the player is in the world, after `PLAYER_LOGIN`, also after every `/reload`. That event has already fired when the script starts, so do not wait for it: the interface, the addons and the player data are ready.
+- A script runs tainted, with `@name` as its source, exactly like an addon. Protected functions are blocked, and the game's notice names the script.
+- `client.getAddonMemory` reports the memory of each running script in `scripts`.
+
 ## Security
 
 - Treat every argument that arrives from the application as untrusted data. Check its type and size before using it.
