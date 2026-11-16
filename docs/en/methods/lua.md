@@ -10,6 +10,7 @@ Run code, call functions, read and write values, watch calls and manage the addo
 | Request size | The command pipe reads at most 4096 bytes per request, so Lua code must fit in that limit. Put larger code in an addon and call it with `lua.call`. |
 | Errors | A failed call returns `{"ok": false, "error": "..."}`. Lua errors also carry `stack` with the Lua stack trace. |
 | Blocked actions | When the game blocks a protected function, the call returns `ok: false` with a `blocked` list. See [Taint and secure mode](#taint-and-secure-mode). |
+| Script errors | Errors raised by any Lua script of the game or an addon are sent to the event pipe as [`lua.error`](events.md#sdk-event-payloads), even when an error addon such as BugGrabber is installed. |
 | Reload | `/reload` and logging out create a new Lua VM. Refs and hooks are lost and must be created again. |
 
 ## Taint and secure mode
