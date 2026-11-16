@@ -77,7 +77,7 @@ namespace Runtime
             freopen_s(&f, "CONOUT$", "w", stderr);
             freopen_s(&f, "CONIN$", "r", stdin);
 
-            SetConsoleTitleA("WoWControlSDK v2.1.0");
+            SetConsoleTitleA("WoWControlSDK v2.2.0");
 
             s_initialized = true;
             s_visible = true;
@@ -85,7 +85,7 @@ namespace Runtime
 
             ColorPrint(CYN, LOGO);
             ColorPrint(DIM, "────────────────────────────────────────────────────────");
-            ColorPrint(WHT, "  Version : 2.1.0");
+            ColorPrint(WHT, "  Version : 2.2.0");
             ColorPrint(WHT, "  Author  : Zerik-Official");
             ColorPrint(WHT, "  License : Apache License, Version 2.0");
             ColorPrint(WHT, "  Repo    : https://github.com/Zerik-Official/WoWControlSDK");
@@ -147,7 +147,7 @@ namespace Runtime
             info.initialized = s_initialized;
             info.visible = s_visible;
             info.uptimeMs = s_initialized ? (nowMs() - s_startMs) : 0;
-            info.version = "2.1.0";
+            info.version = "2.2.0";
             return info;
         }
 
