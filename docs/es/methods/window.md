@@ -39,6 +39,7 @@ Ninguno.
 | `minimized` | boolean | Indica si la ventana está minimizada |
 | `maximized` | boolean | Indica si la ventana está maximizada |
 | `topMost` | boolean | Indica si `WS_EX_TOPMOST` está activo |
+| `startHidden` | boolean | Indica si [`window.setStartHidden`](#windowsetstarthidden) sigue manteniendo la ventana oculta |
 | `bounds.x` | integer | Coordenada X de la esquina superior izquierda |
 | `bounds.y` | integer | Coordenada Y de la esquina superior izquierda |
 | `bounds.width` | integer | Ancho en píxeles |
@@ -48,7 +49,7 @@ Cuando no se encuentra la ventana, la respuesta es `{"error": "Window not found"
 
 ## window.show
 
-Muestra la ventana, equivalente a `ShowWindow(SW_SHOW)`.
+Muestra la ventana, equivalente a `ShowWindow(SW_SHOW)`. También termina el arranque oculto de [`window.setStartHidden`](#windowsetstarthidden), igual que `window.restore`, `window.maximize` y `window.focus`.
 
 ### Parámetros
 
@@ -73,6 +74,44 @@ Ninguno.
 | Campo | Tipo | Descripción |
 | --- | --- | --- |
 | `ok` | boolean | Siempre `true` |
+
+## window.setStartHidden
+
+Mantiene oculta la ventana del juego desde el momento en que el cliente la crea, para lanzamientos headless. Mientras está activo, el SDK quita `WS_VISIBLE` al crear la ventana del juego y convierte cada intento del cliente de mostrarla (`ShowWindow`, `SetWindowPos` con `SWP_SHOWWINDOW`) en una ventana oculta. Solo afecta a la ventana del juego `GxWindowClass*`, no a otras como la consola del SDK.
+
+Llámalo antes de que el juego cree su ventana: [`WowInjector.exe --hidden`](../injection.md#argumentos) lo envía con el juego todavía congelado. `window.show`, `window.restore`, `window.maximize` y `window.focus` terminan el arranque oculto y muestran la ventana, por ejemplo cuando el personaje ya está en el mundo.
+
+### Parámetros
+
+| Nombre | Tipo | Obligatorio | Descripción |
+| --- | --- | --- | --- |
+| `hidden` | boolean | Sí | `true` para mantener la ventana oculta, `false` para dejar de hacerlo (la ventana sigue como está hasta mostrarla) |
+
+### Respuesta
+
+| Campo | Tipo | Descripción |
+| --- | --- | --- |
+| `ok` | boolean | Siempre `true` |
+| `startHidden` | boolean | El nuevo estado |
+
+### Ejemplo
+
+```json
+{"jsonrpc": "2.0", "id": 1, "method": "window.setStartHidden", "params": {"hidden": true}}
+```
+
+```json
+{"jsonrpc": "2.0", "id": 1, "result": {"ok": true, "startHidden": true}}
+```
+
+### Errores
+
+| Condición | Respuesta |
+| --- | --- |
+| Falta `hidden` o no es booleano | `{"error": "hidden must be a boolean"}` |
+
+!!! note
+    Una ventana oculta no tiene botón en la barra de tareas. El juego sigue ejecutándose y cargando con normalidad; el modo pantalla completa puede no iniciarse bien con la ventana oculta, así que se recomienda el modo ventana para los lanzamientos headless.
 
 ## window.minimize
 
