@@ -117,6 +117,7 @@ Ninguno.
 | Campo | Tipo | Descripción |
 | --- | --- | --- |
 | `addons` | array | Addons que usan memoria, de mayor a menor, como `{"name", "kilobytes"}` |
+| `scripts` | array | Scripts cargados con [`lua.loadScript`](lua.md#lualoadscript), como `{"name", "kilobytes"}` |
 | `addonsKilobytes` | number | Suma de los addons |
 | `totalKilobytes` | number | Memoria de toda la Lua VM, incluida la interfaz de Blizzard |
 | `ageMs` | integer | Milisegundos desde la medición |
@@ -127,6 +128,7 @@ Ninguno.
     {"name": "Questie", "kilobytes": 18452.6},
     {"name": "DBM-Core", "kilobytes": 6210.3}
   ],
+  "scripts": [{"name": "@MyTool", "kilobytes": 12.4}],
   "addonsKilobytes": 24662.9,
   "totalKilobytes": 31877.2,
   "ageMs": 0
