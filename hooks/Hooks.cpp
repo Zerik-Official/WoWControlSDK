@@ -9,4 +9,5 @@ void Hooks::initialize()
     Hooks::Loading::Initialize();
     Hooks::Social::Initialize();
     Hooks::WindowStart::Initialize();
+    Hooks::Addons::Initialize();
 }
