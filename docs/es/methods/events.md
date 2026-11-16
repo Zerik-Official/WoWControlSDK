@@ -241,6 +241,7 @@ Ninguno.
 | `chat.whisperReceived` | Recibiste un susurro | `{"battleNet", "text", "author", "language", "status", "lineId", "guid", "presenceId", "args"}`; `status` es `"AFK"`, `"DND"`, `"GM"` o vacío, `presenceId` solo tiene valor en susurros de Battle.net y `args` contiene los argumentos originales del evento |
 | `client.crashed` | El juego tuvo un error fatal y va a mostrar su ventana de error | El mismo objeto que [client.getLastCrash](client.md#clientgetlastcrash), log incluido |
 | `lua.error` | Un script de Lua lanzó un error | `{"message", "addon", "stack"}`; `addon` se obtiene de la ruta `Interface\AddOns\<Addon>\` del mensaje y es `null` si no la tiene. El mismo mensaje se envía como mucho una vez cada 10 segundos |
+| `lua.script` | Un script guardado con [`lua.loadScript`](lua.md#lualoadscript) se ejecutó tras un `/reload` o al cargar el mundo | `{"name", "status", "error", "stack"}`; `status` es `"loaded"` o `"failed"`, y `error` y `stack` solo aparecen cuando falló. Un script que falla se elimina |
 | `lua.custom` | Un addon llamó a `SDK.Emit` | `{"name", "addon", "args", "truncated"}`; `args` contiene los [valores convertidos](lua.md#valores) y `truncated` solo aparece cuando un límite los cortó. Consulta [Integración con addons](../addons.md) |
 | `lua.hooked` | Se llamó una función vigilada con [`lua.hook`](lua.md#luahook) | `{"function", "args"}`; `function` es la ruta vigilada |
 | `lua.dropped` | Los addons emitieron más de 256 eventos en un frame | `{"count": <int>}` con el número de eventos descartados |
