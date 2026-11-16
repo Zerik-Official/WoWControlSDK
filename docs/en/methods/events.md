@@ -7,7 +7,7 @@ Events fall into two groups:
 | Group | Delivery | Examples |
 | --- | --- | --- |
 | WoW UI events | Pushed only after `events.subscribe` | `PLAYER_LOGIN`, `PLAYER_ENTERING_WORLD`, `UNIT_HEALTH`, `ZONE_CHANGED` |
-| SDK events | Pushed automatically | `client.screenChanged`, `loading.*`, `friends.*`, `group.invite*`, `summon.*`, `lfg.*`, `trade.*`, `duel.*`, `battlefield.*`, `chat.whisperReceived` |
+| SDK events | Pushed automatically | `client.screenChanged`, `loading.*`, `friends.*`, `group.invite*`, `summon.*`, `lfg.*`, `trade.*`, `duel.*`, `battlefield.*`, `chat.whisperReceived`, `lua.*` |
 
 Every event that reaches the event pipe is also stored in the history buffer.
 
@@ -239,6 +239,10 @@ None.
 | `battlefield.statusChanged` | A queue changed status | [Queue object](battlefield.md#battlefieldgetqueues) plus `previousStatusId` |
 | `battlefield.ready` | A battleground or arena is ready to enter | Queue object |
 | `chat.whisperReceived` | You received a whisper | `{"battleNet", "text", "author", "language", "status", "lineId", "guid", "presenceId", "args"}`; `status` is `"AFK"`, `"DND"`, `"GM"` or empty, `presenceId` is only set for Battle.net whispers and `args` holds the raw event arguments |
+| `lua.custom` | An addon called `SDK.Emit` | `{"name", "addon", "args", "truncated"}`; `args` holds the [converted values](lua.md#values) and `truncated` is only present when a limit cut them. See [Addon integration](../addons.md) |
+| `lua.hooked` | A function watched with [`lua.hook`](lua.md#luahook) was called | `{"function", "args"}`; `function` is the hooked path |
+| `lua.dropped` | Addons emitted more than 256 events in one frame | `{"count": <int>}` with the number of discarded events |
+| `lua.blocked` | The game blocked a protected function called by the SDK | `{"event", "function"}`; `event` is `ADDON_ACTION_FORBIDDEN` or `ADDON_ACTION_BLOCKED`. See [Taint and secure mode](lua.md#taint-and-secure-mode) |
 
 `background` describes the loading screen image from `LoadingScreens.dbc`, or is `null` when the map has none and the generic `Interface\Glues\loading` image is used:
 

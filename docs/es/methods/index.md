@@ -12,13 +12,14 @@ Cada método RPC pertenece a un dominio. Cada dominio tiene su propia página co
 - **Posiciones** como objetos con `x`, `y` y `z` en coma flotante. Las posiciones del mundo usan coordenadas del juego; las de mapa están normalizadas.
 - **Errores** normalmente dentro de `result` como `{"error": "<mensaje>"}`. Un sobre JSON-RPC correcto no garantiza que la operación haya funcionado.
 - **Métodos cacheados** (`player.*` y `world.*`) que leen la caché por frame y responden de inmediato. Los demás métodos se ejecutan en el hilo del juego.
+- **Métodos Lua** que se ejecutan contaminados por defecto, igual que un addon. Consulta [Taint y modo seguro](lua.md#taint-y-modo-seguro).
 - **Acciones nativas** (`group.acceptInvite`, `summon.accept`, `lfg.acceptProposal`, `trade.accept`, `duel.accept`, `battlefield.acceptPort` y sus opuestos) que llaman a las mismas funciones del cliente que los botones del juego. Nunca ejecutan Lua.
 
 ## Dominios
 
 | Dominio | Métodos | Descripción |
 | --- | --- | --- |
-| [lua.*](lua.md) | 5 | Ejecutar, evaluar y gestionar globales en la Lua VM de WoW |
+| [lua.*](lua.md) | 15 | Ejecutar Lua, llamar funciones, leer y escribir valores, vigilar llamadas y gestionar el puente de addons |
 | [unit.*](unit.md) | 4 | Leer salud, poder, posición, rotación y flags de estado de una unidad |
 | [group.*](group.md) | 5 | Leer la lista del grupo o raid, un resumen de combate y las invitaciones de grupo, y responder a las invitaciones |
 | [player.*](player.md) | 4 | Leer salud, posición, objetivo y estado completo cacheados del jugador |
@@ -40,7 +41,7 @@ Cada método RPC pertenece a un dominio. Cada dominio tiene su propia página co
 
 | Dominio | Métodos |
 | --- | --- |
-| `lua` | `execute`, `evaluate`, `getGlobal`, `setGlobal`, `createNamespace` |
+| `lua` | `execute`, `evaluate`, `call`, `getGlobal`, `setGlobal`, `createNamespace`, `getRef`, `releaseRef`, `hook`, `unhook`, `getHooks`, `batch`, `setAllowedAddons`, `getAddons`, `setBlockedNotice` |
 | `unit` | `get`, `state`, `position`, `mapPosition` |
 | `group` | `get`, `combatSummary`, `getInvite`, `acceptInvite`, `declineInvite` |
 | `player` | `getHealth`, `getPosition`, `getTarget`, `getState` |

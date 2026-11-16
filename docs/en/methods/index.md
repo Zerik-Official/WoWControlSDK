@@ -12,13 +12,14 @@ Every RPC method belongs to a domain. Each domain has its own page with the para
 - **Positions** are objects with `x`, `y` and `z` as floating-point values. World positions are in game coordinates; map positions are normalized.
 - **Errors** are usually returned inside `result` as `{"error": "<message>"}`. A successful JSON-RPC envelope does not guarantee that the operation succeeded.
 - **Cached methods** (`player.*` and `world.*`) read the per-frame cache and return immediately. The other methods run on the game thread.
+- **Lua methods** run tainted by default, like an addon. See [Taint and secure mode](lua.md#taint-and-secure-mode).
 - **Native actions** (`group.acceptInvite`, `summon.accept`, `lfg.acceptProposal`, `trade.accept`, `duel.accept`, `battlefield.acceptPort` and their counterparts) call the same client functions as the game's buttons. They never run Lua.
 
 ## Domains
 
 | Domain | Methods | Description |
 | --- | --- | --- |
-| [lua.*](lua.md) | 5 | Execute, evaluate and manage Lua globals in WoW's Lua VM |
+| [lua.*](lua.md) | 15 | Run Lua, call functions, read and write values, watch calls and manage the addon bridge |
 | [unit.*](unit.md) | 4 | Read health, power, position, rotation and state flags from a unit |
 | [group.*](group.md) | 5 | Read the party or raid roster, a combat summary and group invitations, and answer invitations |
 | [player.*](player.md) | 4 | Read cached player health, position, target and full state |
@@ -40,7 +41,7 @@ Every RPC method belongs to a domain. Each domain has its own page with the para
 
 | Domain | Methods |
 | --- | --- |
-| `lua` | `execute`, `evaluate`, `getGlobal`, `setGlobal`, `createNamespace` |
+| `lua` | `execute`, `evaluate`, `call`, `getGlobal`, `setGlobal`, `createNamespace`, `getRef`, `releaseRef`, `hook`, `unhook`, `getHooks`, `batch`, `setAllowedAddons`, `getAddons`, `setBlockedNotice` |
 | `unit` | `get`, `state`, `position`, `mapPosition` |
 | `group` | `get`, `combatSummary`, `getInvite`, `acceptInvite`, `declineInvite` |
 | `player` | `getHealth`, `getPosition`, `getTarget`, `getState` |

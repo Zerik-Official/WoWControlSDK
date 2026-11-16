@@ -1,184 +1,201 @@
 #include "LuaEngine.h"
-#include "offsets/OffsetsLua.h"
-#include "client/lua/LuaAPI.h"
-#include <Windows.h>
-#include <string>
-#include <cstdio>
-
-struct lua_State;
-
-#define LUA_TNUMBER  3
-#define LUA_TBOOLEAN 1
-
-typedef void        (__cdecl* lua_Execute_t)        (const char* code, const char* source, int zero);
-typedef int         (__cdecl* lua_loadbuffer_t)     (lua_State* L, const char* buff, size_t sz, const char* name);
-typedef int         (__cdecl* lua_pcall_t)      (lua_State* L, int nargs, int nresults, int errfunc);
-typedef int         (__cdecl* lua_gettop_t)     (lua_State* L);
-typedef void        (__cdecl* lua_settop_t)     (lua_State* L, int idx);
-typedef const char* (__cdecl* lua_tolstring_t)  (lua_State* L, int idx, size_t* len);
-typedef double      (__cdecl* lua_tonumber_t)   (lua_State* L, int idx);
-typedef int         (__cdecl* lua_toboolean_t)  (lua_State* L, int idx);
-typedef int         (__cdecl* lua_isnumber_t)   (lua_State* L, int idx);
-typedef int         (__cdecl* lua_type_t)       (lua_State* L, int idx);
-
-static lua_Execute_t        s_execute       = nullptr;
-static lua_loadbuffer_t     s_loadbuffer    = nullptr;
-static lua_pcall_t          s_pcall         = nullptr;
-static lua_gettop_t     s_gettop        = nullptr;
-static lua_settop_t     s_settop        = nullptr;
-static lua_tolstring_t  s_tolstring     = nullptr;
-static lua_tonumber_t   s_tonumber      = nullptr;
-static lua_toboolean_t  s_toboolean     = nullptr;
-static lua_isnumber_t   s_isnumber      = nullptr;
-static lua_type_t       s_type          = nullptr;
-
-static lua_State* getLuaState()
-{
-    return ::GetLuaState();
-}
+#include "lua/LuaBlocked.h"
+#include "lua/LuaBridge.h"
+#include "lua/LuaNative.h"
+#include "lua/LuaPath.h"
+#include "lua/LuaStack.h"
+#include "lua/LuaTaint.h"
 
 namespace LuaEngine {
 
-static LuaValue readStackValue(lua_State* L, int idx, lua_type_t typeFn, lua_toboolean_t toBool, lua_isnumber_t isNum, lua_tonumber_t toNum, lua_tolstring_t toStr)
+static LuaResult runPath(const char* function, const std::string& path, const ReadLimits& limits)
 {
-    LuaValue v;
-    int t = typeFn(L, idx);
-    if (t == LUA_TBOOLEAN) {
-        v.type = LuaType::Bool;
-        v.boolVal = toBool(L, idx) != 0;
-    } else if (t == LUA_TNUMBER && isNum(L, idx)) {
-        v.type = LuaType::Number;
-        v.numVal = toNum(L, idx);
-    } else {
-        size_t len = 0;
-        const char* val = toStr(L, idx, &len);
-        if (val) {
-            v.type = LuaType::String;
-            v.strVal = std::string(val, len);
-        }
-    }
-    return v;
+    return LuaBridge::run(function, [&](lua_State* L) -> int {
+        LuaNative::pushstring(L, path.c_str());
+        return 1;
+    }, limits, false);
 }
 
 bool initialize()
 {
-    s_execute       = reinterpret_cast<lua_Execute_t>       (Offsets::Lua::WOW_LUA_EXECUTE);
-    s_loadbuffer    = reinterpret_cast<lua_loadbuffer_t>    (Offsets::Lua::LUA_LOADBUFFER);
-    s_pcall         = reinterpret_cast<lua_pcall_t>         (Offsets::Lua::LUA_PCALL);
-    s_gettop     = reinterpret_cast<lua_gettop_t>    (Offsets::Lua::LUA_GETTOP);
-    s_settop     = reinterpret_cast<lua_settop_t>    (Offsets::Lua::LUA_SETTOP);
-    s_tolstring  = reinterpret_cast<lua_tolstring_t> (Offsets::Lua::LUA_TOLSTRING);
-    s_tonumber   = reinterpret_cast<lua_tonumber_t>  (Offsets::Lua::LUA_TONUMBER);
-    s_toboolean  = reinterpret_cast<lua_toboolean_t> (Offsets::Lua::LUA_TOBOOLEAN);
-    s_isnumber   = reinterpret_cast<lua_isnumber_t>  (Offsets::Lua::LUA_ISNUMBER);
-    s_type       = reinterpret_cast<lua_type_t>      (Offsets::Lua::LUA_TYPE);
-
-    if (!s_execute || !s_loadbuffer || !s_gettop || !s_settop || !s_tolstring || !s_pcall)
-        return false;
-
-    return true;
+    return LuaNative::initialize();
 }
 
 void shutdown()
 {
-    s_execute       = nullptr;
-    s_loadbuffer    = nullptr;
-    s_pcall         = nullptr;
-    s_gettop     = nullptr;
-    s_settop     = nullptr;
-    s_tolstring  = nullptr;
-    s_tonumber   = nullptr;
-    s_toboolean  = nullptr;
-    s_isnumber   = nullptr;
-    s_type       = nullptr;
+    LuaNative::shutdown();
 }
 
-void execute(const std::string& code)
+std::vector<BlockedAction> execute(const std::string& code, const std::string& chunkName, bool secure)
 {
-    if (!s_execute) return;
-    lua_State* L = getLuaState();
-    if (!L) return;
-    s_execute(code.c_str(), "sdk_exec", 0);
+    if (!LuaNative::state())
+        return {};
+
+    LuaBlocked::Capture capture;
+    const char* taint = secure ? nullptr : LuaTaint::sdkSource();
+    LuaNative::execute(code.c_str(), chunkName.empty() ? "sdk_exec" : chunkName.c_str(), taint);
+    return capture.take();
 }
 
-LuaResult getGlobal(const std::string& name)
+LuaResult evaluate(const std::string& code, const std::string& chunkName, const ReadLimits& limits, bool secure)
 {
-    return evaluate("return " + name);
-}
+    lua_State* L = LuaNative::state();
+    if (!L)
+        return LuaStack::failure("lua not initialized");
 
-void setGlobal(const std::string& name, const LuaValue& value)
-{
-    std::string code;
-    switch (value.type)
+    int top = LuaNative::gettop(L);
+    if (!LuaNative::checkstack(L, 8))
+        return LuaStack::failure("lua stack is full");
+
+    int errorIndex = 0;
+    if (LuaBridge::ensure(L))
     {
-        case LuaType::String:
+        LuaBridge::pushField(L, "errorHandler");
+        errorIndex = top + 1;
+    }
+
+    std::string name = "=" + (chunkName.empty() ? std::string("sdk_eval") : chunkName);
+    LuaBlocked::Capture capture;
+    int status = LuaNative::loadbuffer(L, code.c_str(), code.size(), name.c_str());
+    if (status == 0)
+    {
+        LuaTaint::Scope scope(secure);
+        status = LuaNative::pcall(L, 0, -1, errorIndex);
+    }
+
+    LuaResult result = LuaStack::collect(L, status, errorIndex ? errorIndex : top, limits);
+    LuaNative::settop(L, top);
+    LuaBlocked::apply(result, capture);
+    return result;
+}
+
+LuaResult call(const CallTarget& target, const std::vector<LuaValue>& args, const ReadLimits& limits, bool secure)
+{
+    bool byRef = target.ref > 0;
+    return LuaBridge::run(byRef ? "callRef" : "call", [&](lua_State* L) -> int {
+        if (!LuaNative::checkstack(L, static_cast<int>(args.size()) + 4))
+            return -1;
+
+        int count = 1;
+        if (byRef)
         {
-            std::string escaped;
-            escaped.reserve(value.strVal.size());
-            for (char c : value.strVal)
-            {
-                if (c == '\\') { escaped += "\\\\"; }
-                else if (c == '\'') { escaped += "\\'"; }
-                else { escaped += c; }
-            }
-            code = name + " = '" + escaped + "'";
-            break;
+            LuaNative::pushnumber(L, target.ref);
+            if (target.method.empty())
+                LuaNative::pushnil(L);
+            else
+                LuaNative::pushstring(L, target.method.c_str());
+            count = 2;
         }
-        case LuaType::Number:
-            code = name + " = " + std::to_string(value.numVal);
-            break;
-        case LuaType::Bool:
-            code = name + " = " + (value.boolVal ? "true" : "false");
-            break;
-        default:
-            code = name + " = nil";
-            break;
-    }
-    execute(code);
+        else
+        {
+            LuaNative::pushstring(L, target.path.c_str());
+        }
+
+        for (const auto& arg : args)
+        {
+            if (!LuaStack::pushValue(L, arg))
+                return -1;
+        }
+        return count + static_cast<int>(args.size());
+    }, limits, secure);
 }
 
-void createTable(const std::string& name)
+bool isPath(const std::string& path, bool allowMethod)
 {
-    execute(name + " = {}");
+    return LuaPath::isValid(path, allowMethod);
 }
 
-LuaResult evaluate(const std::string& code)
+bool isIdentifier(const std::string& value)
 {
-    lua_State* L = getLuaState();
-    if (!L || !s_pcall || !s_loadbuffer || !s_gettop || !s_settop || !s_tolstring) {
-        return {false, "lua not initialized", {}};
-    }
+    return LuaPath::isIdentifier(value);
+}
 
-    int topBefore = s_gettop(L);
+LuaResult getPath(const std::string& path, const ReadLimits& limits)
+{
+    return runPath("get", path, limits);
+}
 
-    int loadStatus = s_loadbuffer(L, code.c_str(), code.size(), "=sdk_eval");
-    if (loadStatus != 0) {
-        size_t len = 0;
-        const char* errStr = s_tolstring(L, -1, &len);
-        std::string msg = errStr ? errStr : "load error";
-        s_settop(L, topBefore);
-        return {false, msg, {}};
-    }
+LuaResult setPath(const std::string& path, const LuaValue& value)
+{
+    return LuaBridge::run("set", [&](lua_State* L) -> int {
+        LuaNative::pushstring(L, path.c_str());
+        return LuaStack::pushValue(L, value) ? 2 : -1;
+    }, ReadLimits{}, false);
+}
 
-    int callStatus = s_pcall(L, 0, -1, 0);
-    if (callStatus != 0) {
-        size_t len = 0;
-        const char* errStr = s_tolstring(L, -1, &len);
-        std::string msg = errStr ? errStr : "pcall error";
-        s_settop(L, topBefore);
-        return {false, msg, {}};
-    }
+LuaResult createRef(const std::string& path)
+{
+    return runPath("ref", path, ReadLimits{});
+}
 
-    int nresults = s_gettop(L) - topBefore;
-    std::vector<LuaValue> vals;
-    vals.reserve(nresults);
+LuaResult releaseRef(int ref)
+{
+    return LuaBridge::run("unref", [ref](lua_State* L) -> int {
+        LuaNative::pushnumber(L, ref);
+        return 1;
+    }, ReadLimits{}, false);
+}
 
-    for (int i = 1; i <= nresults; ++i) {
-        vals.push_back(readStackValue(L, topBefore + i, s_type, s_toboolean, s_isnumber, s_tonumber, s_tolstring));
-    }
+LuaResult hook(const std::string& path)
+{
+    return runPath("hook", path, ReadLimits{});
+}
 
-    s_settop(L, topBefore);
-    return {true, "", std::move(vals)};
+LuaResult unhook(const std::string& path)
+{
+    return runPath("unhook", path, ReadLimits{});
+}
+
+LuaResult listHooks()
+{
+    return LuaBridge::run("hookList", [](lua_State*) -> int {
+        return 0;
+    }, ReadLimits{2, 1000}, false);
+}
+
+bool grantAddon(const char* addon)
+{
+    return LuaBridge::grantAddon(addon);
+}
+
+void setAllowedAddons(std::optional<std::vector<std::string>> addons)
+{
+    LuaBridge::setAllowedAddons(std::move(addons));
+}
+
+std::optional<std::vector<std::string>> allowedAddons()
+{
+    return LuaBridge::allowedAddons();
+}
+
+std::vector<std::string> grantedAddons()
+{
+    return LuaBridge::grantedAddons();
+}
+
+const char* taintSource()
+{
+    return LuaTaint::sdkSource();
+}
+
+void reportBlocked(const std::string& event, const std::string& function)
+{
+    LuaBlocked::report(event, function);
+}
+
+void setShowBlockedNotice(bool show)
+{
+    LuaBlocked::setShowNotice(show);
+}
+
+bool showBlockedNotice()
+{
+    return LuaBlocked::showNotice();
+}
+
+BridgeBatch drainBridge(const ReadLimits& limits)
+{
+    return LuaBridge::drain(limits);
 }
 
 }

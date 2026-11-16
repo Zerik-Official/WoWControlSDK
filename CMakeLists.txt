@@ -15,6 +15,12 @@ add_library(WoWControlSDK SHARED
     DllMain.cpp
 
     core/engine/LuaEngine.cpp
+    core/engine/lua/LuaBlocked.cpp
+    core/engine/lua/LuaBridge.cpp
+    core/engine/lua/LuaNative.cpp
+    core/engine/lua/LuaPath.cpp
+    core/engine/lua/LuaStack.cpp
+    core/engine/lua/LuaTaint.cpp
 
     core/native/ObjectManager.cpp
     core/native/ClientState.cpp
@@ -73,10 +79,12 @@ add_library(WoWControlSDK SHARED
     runtime/realm/RealmList.cpp
     runtime/events/EventPipe.cpp
     runtime/events/GameEventBridge.cpp
+    runtime/events/LuaEventBridge.cpp
 
     runtime/window/WindowService.cpp
 
     hooks/Hooks.cpp
+    hooks/AddonHooks.cpp
     hooks/lua/LuaHooks.cpp
     hooks/glue/GlueLoadHooks.cpp
     hooks/EndSceneHook.cpp
