@@ -12,7 +12,9 @@ void dismissAgreementDialog()
 {
     LuaEngine::execute(
         "AcceptEULA();AcceptTOS();AcceptTerminationWithoutNotice();AcceptScanning();AcceptContest();"
-        "if TOSFrame and TOSFrame:IsShown() then TOSFrame:Hide() TOSNotice:Hide() AccountLoginUI:Show() end");
+        "if TOSFrame and TOSFrame:IsShown() then TOSFrame:Hide() TOSNotice:Hide() AccountLoginUI:Show() end",
+        "sdk_exec",
+        true);
 }
 
 }
