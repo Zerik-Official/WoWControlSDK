@@ -39,6 +39,7 @@ None.
 | `minimized` | boolean | Whether the window is minimized |
 | `maximized` | boolean | Whether the window is maximized |
 | `topMost` | boolean | Whether `WS_EX_TOPMOST` is set |
+| `startHidden` | boolean | Whether the window is still kept hidden by [`window.setStartHidden`](#windowsetstarthidden) |
 | `bounds.x` | integer | X coordinate of the top-left corner |
 | `bounds.y` | integer | Y coordinate of the top-left corner |
 | `bounds.width` | integer | Width in pixels |
@@ -48,7 +49,7 @@ When the window is not found, the response is `{"error": "Window not found"}`.
 
 ## window.show
 
-Shows the window, equivalent to `ShowWindow(SW_SHOW)`.
+Shows the window, equivalent to `ShowWindow(SW_SHOW)`. It also ends the hidden start of [`window.setStartHidden`](#windowsetstarthidden), like `window.restore`, `window.maximize` and `window.focus`.
 
 ### Parameters
 
@@ -73,6 +74,44 @@ None.
 | Field | Type | Description |
 | --- | --- | --- |
 | `ok` | boolean | Always `true` |
+
+## window.setStartHidden
+
+Keeps the game window hidden from the moment the client creates it, for headless launches. While active, the SDK removes `WS_VISIBLE` when the game window is created and turns every attempt of the client to show it (`ShowWindow`, `SetWindowPos` with `SWP_SHOWWINDOW`) into a hidden window. It only affects the `GxWindowClass*` game window, not other windows such as the SDK console.
+
+Call it before the game creates its window: [`WowInjector.exe --hidden`](../injection.md#arguments) sends it while the game is still frozen. `window.show`, `window.restore`, `window.maximize` and `window.focus` end the hidden start and show the window, for example once the character is in the world.
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `hidden` | boolean | Yes | `true` to keep the window hidden, `false` to stop (the window stays as it is until shown) |
+
+### Response
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `ok` | boolean | Always `true` |
+| `startHidden` | boolean | The new state |
+
+### Example
+
+```json
+{"jsonrpc": "2.0", "id": 1, "method": "window.setStartHidden", "params": {"hidden": true}}
+```
+
+```json
+{"jsonrpc": "2.0", "id": 1, "result": {"ok": true, "startHidden": true}}
+```
+
+### Errors
+
+| Condition | Response |
+| --- | --- |
+| `hidden` is missing or not a boolean | `{"error": "hidden must be a boolean"}` |
+
+!!! note
+    A hidden window has no taskbar button. The game keeps running and loading normally; fullscreen mode may not start correctly while the window is hidden, so windowed mode is recommended for headless launches.
 
 ## window.minimize
 
