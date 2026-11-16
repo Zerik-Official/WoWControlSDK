@@ -82,8 +82,18 @@ namespace Rpc
             addons.push_back(item);
         }
 
+        Json scripts = Json::array();
+        for (const auto& script : report.scripts)
+        {
+            Json item;
+            item["name"] = script.name;
+            item["kilobytes"] = rounded(script.kilobytes, 10.0);
+            scripts.push_back(item);
+        }
+
         Json result;
         result["addons"] = addons;
+        result["scripts"] = scripts;
         result["addonsKilobytes"] = rounded(report.addonsKilobytes, 10.0);
         result["totalKilobytes"] = rounded(report.totalKilobytes, 10.0);
         result["ageMs"] = ageMs(report.updatedMs);
