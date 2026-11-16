@@ -15,6 +15,10 @@
 </p>
 
 <p align="center">
+  <a href="https://deepwiki.com/Zerik-Official/WoWControlSDK"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
+</p>
+
+<p align="center">
   <img src=".github/images/preview.png" alt="WoWControlSDK preview"/>
 </p>
 
@@ -37,7 +41,7 @@ La DLL se ejecuta dentro de `Wow.exe`. Un cliente se conecta a `\\.\pipe\WowGame
 | Unidades | Salud, poder, posición, rotación, raza, clase, nivel, GUID, objetivo y flags de estado para `player`, `target`, `focus`, `mouseover`, `partyN`, `raidN` y GUIDs |
 | Grupo y raid | Lista completa con los miembros fuera de alcance, roles, método de botín, dificultades, resumen de combate y aceptar o rechazar invitaciones de grupo de forma nativa |
 | Jugador y mundo | Estado cacheado del jugador, experiencia, AFK, DND, bajo el agua, mapa, zona, tipo de instancia y dificultad |
-| Social | Lista de amigos con eventos de conexión y desconexión, susurros y aceptar o rechazar invocaciones de forma nativa |
+| Social | Lista de amigos con eventos de conexión y desconexión, susurros, chat en todos los canales con respuesta a susurros y aceptar o rechazar invocaciones de forma nativa |
 | Buscador de mazmorras | Detalles de la propuesta, miembros, encuentros y entrar o abandonar la cola de forma nativa |
 | Comercio y duelos | Solicitudes de comercio, los dos lados de la ventana de comercio, aceptar y cancelar; solicitudes de duelo, aceptar y rechazar |
 | Campos de batalla y arenas | Estado de las colas, tiempos de espera y entrar o abandonar la cola de forma nativa |
@@ -45,7 +49,7 @@ La DLL se ejecuta dentro de `Wow.exe`. Un cliente se conecta a `\\.\pipe\WowGame
 | Estado de pantalla | Pantalla glue actual, estado de login y diagnóstico de autenticación de bajo nivel |
 | Eventos | Suscripción a eventos UI de WoW y eventos del SDK de pantallas de carga, actividad social, comercio, duelos y colas, todo por el pipe de eventos con búfer circular de historial |
 | Seguridad | Pipes limitados a conexiones locales del usuario de Windows que ejecuta el juego y un token de sesión en cada petición |
-| Ventana | Mostrar, ocultar, minimizar, maximizar, enfocar, mover, redimensionar, opacidad, siempre visible, título, icono y parpadeo de la barra de tareas |
+| Ventana | Mostrar, ocultar, minimizar, maximizar, enfocar, mover, redimensionar, opacidad, siempre visible, título, icono, parpadeo de la barra de tareas y arranque oculto para lanzamientos headless |
 | Diagnóstico | Consola superpuesta en el juego, logs capturados e información de la DLL |
 
 ## Arquitectura
