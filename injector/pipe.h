@@ -2,5 +2,5 @@
 #include <Windows.h>
 #include <string>
 
-void waitForPipe(const char* pipeName, DWORD timeoutMs);
+bool waitForPipe(const char* pipeName, DWORD timeoutMs, HANDLE process = nullptr);
 bool sendPipeCommand(const char* pipeName, const std::string& json, std::string& responseOut);
