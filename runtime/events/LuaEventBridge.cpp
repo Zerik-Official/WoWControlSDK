@@ -19,8 +19,26 @@ namespace Runtime
             }
         }
 
+        static void pushScriptEvents()
+        {
+            for (const auto& event : LuaEngine::pollScripts())
+            {
+                SDK::Json data;
+                data["name"] = event.name;
+                data["status"] = event.loaded ? "loaded" : "failed";
+                if (!event.loaded)
+                {
+                    data["error"] = event.error;
+                    if (!event.stack.empty())
+                        data["stack"] = event.stack;
+                }
+                EventPipe::PushEvent("lua.script", sanitize(data), static_cast<uint64_t>(GetTickCount64()));
+            }
+        }
+
         void Poll()
         {
+            pushScriptEvents();
             LuaEngine::BridgeBatch batch = LuaEngine::drainBridge(EVENT_LIMITS);
             if (batch.messages.empty() && batch.dropped == 0)
                 return;
