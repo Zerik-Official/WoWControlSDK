@@ -38,7 +38,7 @@ The DLL runs inside `Wow.exe`. A client connects to `\\.\pipe\WowGameCommand`, s
 | Area | Methods and behavior |
 | --- | --- |
 | Lua | Run code, call functions by path, read and write tables, refs, hooks and batches, with taint by default and blocked actions reported |
-| Addon bridge | Addons that opt in send events to your application with `SDK.Emit`; code from `/run`, the server or other players cannot reach it |
+| Addon bridge | Addons that opt in send events to your application with `SDK.Emit`; code from `/run`, the server or other players cannot reach it. Scripts sent by the application run as virtual addons that survive `/reload` and can be unloaded with everything they created |
 | Units | Health, power, position, rotation, race, class, level, GUID, target and state flags for `player`, `target`, `focus`, `mouseover`, `partyN`, `raidN` and GUIDs |
 | Group and raid | Full roster including members out of range, roles, loot method, difficulties, combat summary, and native accept or decline of group invitations |
 | Player and world | Cached player state, experience, AFK, DND, underwater state, map, zone, instance type and difficulty |
