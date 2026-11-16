@@ -37,7 +37,8 @@ La DLL se ejecuta dentro de `Wow.exe`. Un cliente se conecta a `\\.\pipe\WowGame
 
 | Área | Métodos y comportamiento |
 | --- | --- |
-| Lua | `lua.execute`, `lua.evaluate`, `lua.getGlobal`, `lua.setGlobal`, `lua.createNamespace` |
+| Lua | Ejecutar código, llamar funciones por ruta, leer y escribir tablas, refs, hooks y lotes, con taint por defecto y aviso de acciones bloqueadas |
+| Puente de addons | Los addons que lo activan envían eventos a tu aplicación con `SDK.Emit`; el código de `/run`, del servidor o de otros jugadores no puede acceder a él |
 | Unidades | Salud, poder, posición, rotación, raza, clase, nivel, GUID, objetivo y flags de estado para `player`, `target`, `focus`, `mouseover`, `partyN`, `raidN` y GUIDs |
 | Grupo y raid | Lista completa con los miembros fuera de alcance, roles, método de botín, dificultades, resumen de combate y aceptar o rechazar invitaciones de grupo de forma nativa |
 | Jugador y mundo | Estado cacheado del jugador, experiencia, AFK, DND, bajo el agua, mapa, zona, tipo de instancia y dificultad |
@@ -170,7 +171,8 @@ Para recibir eventos, conéctate a `\\.\pipe\WowGameEvent` y envía primero `{"a
 
 | Método | Descripción |
 | --- | --- |
-| `lua.execute` / `lua.evaluate` | Ejecuta Lua con o sin valor de retorno tipado |
+| `lua.execute` / `lua.evaluate` | Ejecuta Lua con o sin sus valores de retorno |
+| `lua.call` / `lua.getGlobal` | Llama una función o lee un valor por ruta, con las tablas convertidas a JSON |
 | `unit.get` / `unit.state` / `unit.position` | Instantánea completa, flags de estado o posición en el mundo |
 | `unit.mapPosition` | Posición normalizada en el mapa, solo para miembros de grupo o raid |
 | `group.get` / `group.combatSummary` | Lista del grupo o raid y resumen de combate |
