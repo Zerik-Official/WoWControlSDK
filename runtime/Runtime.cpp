@@ -53,6 +53,7 @@ namespace Runtime
         s_cache.update();
         Hooks::Loading::PollFlag();
         LuaEventBridge::Poll();
+        Hooks::Errors::Initialize();
     }
 
     MethodRegistry& registry() { return s_registry; }
