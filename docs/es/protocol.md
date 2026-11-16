@@ -9,11 +9,11 @@ El SDK expone todos sus métodos mediante JSON-RPC 2.0 sobre dos named pipes de 
 | `\\.\pipe\WowGameCommand` | Dúplex | Mensaje | Una petición JSON-RPC y una respuesta JSON por conexión |
 | `\\.\pipe\WowGameEvent` | Dúplex | Byte | Saludo de autenticación y luego flujo de eventos delimitado por saltos de línea, un cliente a la vez |
 
-El pipe de comandos lee un mensaje de hasta **4096 bytes**, lo despacha y escribe la respuesta. Después vacía el búfer y desconecta al cliente. Esto implica:
+El pipe de comandos lee un mensaje de hasta **1 MiB** (1.048.576 bytes), lo despacha y escribe la respuesta. Después vacía el búfer y desconecta al cliente. Esto implica:
 
 - Abrir un handle nuevo para cada petición.
 - Escribir el objeto JSON completo en una sola llamada a `WriteFile`.
-- Mantener las peticiones por debajo de 4096 bytes, incluidos los fragmentos Lua grandes.
+- Mantener las peticiones por debajo de 1 MiB. Una petición mayor devuelve el error JSON-RPC `-32600` con `Request too large`.
 - Leer la respuesta antes de cerrar el handle.
 
 El pipe de eventos es distinto. Es una conexión de larga duración: el cliente se autentica primero, después el SDK escribe un objeto JSON por línea y el cliente sigue leyendo hasta que el pipe se cierra.
@@ -131,11 +131,11 @@ Inspecciona siempre `result` antes de leer sus campos. Que no haya un `error` de
 
 ## Catálogo de métodos
 
-El SDK registra 108 métodos en diecisiete dominios.
+El SDK registra 111 métodos en diecisiete dominios.
 
 | Dominio | Métodos | Página |
 | --- | --- | --- |
-| `lua.*` | 15 | [lua.*](methods/lua.md) |
+| `lua.*` | 18 | [lua.*](methods/lua.md) |
 | `unit.*` | 4 | [unit.*](methods/unit.md) |
 | `group.*` | 5 | [group.*](methods/group.md) |
 | `player.*` | 4 | [player.*](methods/player.md) |
