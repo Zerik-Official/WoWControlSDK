@@ -52,6 +52,7 @@ plugins:
             Architecture: Arquitectura
             Injection: Inyección
             RPC protocol: Protocolo RPC
+            Addon integration: Integración con addons
             Methods: Métodos
             Operations: Operación
             Building: Compilación
@@ -66,6 +67,7 @@ nav:
   - Architecture: architecture.md
   - Injection: injection.md
   - RPC protocol: protocol.md
+  - Addon integration: addons.md
   - Methods:
       - methods/index.md
       - lua.*: methods/lua.md
