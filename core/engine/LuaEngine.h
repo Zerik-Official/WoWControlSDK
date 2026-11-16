@@ -1,33 +1,41 @@
 #pragma once
+#include "lua/LuaValue.h"
+#include <optional>
 #include <string>
 #include <vector>
 
 namespace LuaEngine {
 
-enum class LuaType { Nil, Bool, Number, String };
-
-struct LuaValue {
-    LuaType type = LuaType::Nil;
-    bool boolVal = false;
-    double numVal = 0.0;
-    std::string strVal;
-};
-
-struct LuaResult {
-    bool ok = false;
-    std::string error;
-    std::vector<LuaValue> values;
-};
-
 bool     initialize();
 void     shutdown();
 
-void     execute(const std::string& code);
+std::vector<BlockedAction> execute(const std::string& code, const std::string& chunkName = "", bool secure = false);
 
-LuaResult evaluate(const std::string& code);
+LuaResult evaluate(const std::string& code, const std::string& chunkName, const ReadLimits& limits, bool secure);
+LuaResult call(const CallTarget& target, const std::vector<LuaValue>& args, const ReadLimits& limits, bool secure);
 
-LuaResult getGlobal(const std::string& name);
-void     setGlobal(const std::string& name, const LuaValue& value);
-void     createTable(const std::string& name);
+bool     isPath(const std::string& path, bool allowMethod);
+bool     isIdentifier(const std::string& value);
+LuaResult getPath(const std::string& path, const ReadLimits& limits);
+LuaResult setPath(const std::string& path, const LuaValue& value);
+
+LuaResult createRef(const std::string& path);
+LuaResult releaseRef(int ref);
+
+LuaResult hook(const std::string& path);
+LuaResult unhook(const std::string& path);
+LuaResult listHooks();
+
+bool     grantAddon(const char* addon);
+void     setAllowedAddons(std::optional<std::vector<std::string>> addons);
+std::optional<std::vector<std::string>> allowedAddons();
+std::vector<std::string> grantedAddons();
+
+const char* taintSource();
+void     reportBlocked(const std::string& event, const std::string& function);
+void     setShowBlockedNotice(bool show);
+bool     showBlockedNotice();
+
+BridgeBatch drainBridge(const ReadLimits& limits);
 
 }
