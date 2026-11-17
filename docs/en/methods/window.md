@@ -79,7 +79,7 @@ None.
 
 Keeps the game window hidden from the moment the client creates it, for headless launches. While active, the SDK removes `WS_VISIBLE` when the game window is created and turns every attempt of the client to show it (`ShowWindow`, `SetWindowPos` with `SWP_SHOWWINDOW`) into a hidden window. It only affects the `GxWindowClass*` game window, not other windows such as the SDK console.
 
-Call it before the game creates its window: [`WowInjector.exe --hidden`](../injection.md#arguments) sends it while the game is still frozen. `window.show`, `window.restore`, `window.maximize` and `window.focus` end the hidden start and show the window, for example once the character is in the world.
+Call it before the game creates its window: [`WowInjector.exe --hidden`](../injection.md#arguments) sends it while the game is still frozen. `window.show`, `window.restore`, `window.maximize` and `window.focus` end the hidden start and show the window, for example once the character is in the world. When the hidden start ends, the SDK makes the window one pixel taller for two frames and then restores it, so the game rebuilds its back buffer at the real size instead of showing a blurry image.
 
 ### Parameters
 

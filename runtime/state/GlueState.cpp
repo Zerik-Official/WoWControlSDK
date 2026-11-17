@@ -3,7 +3,6 @@
 #include "hooks/GlueHooks.h"
 #include <Windows.h>
 #include <cstring>
-#include <chrono>
 
 namespace Runtime
 {
@@ -72,12 +71,10 @@ namespace Runtime
 
         LoginResult waitForLoginResult(int timeoutMs)
         {
-            auto start = std::chrono::steady_clock::now();
-
             while (true)
             {
-                if (std::chrono::duration_cast<std::chrono::milliseconds>(
-                        std::chrono::steady_clock::now() - start).count() >= timeoutMs)
+                ULONGLONG lastProgress = Hooks::Glue::getLastLoginStateTick();
+                if (GetTickCount64() - lastProgress >= static_cast<ULONGLONG>(timeoutMs))
                     return LoginResult::TIMEOUT;
 
                 const char* resultStr = Hooks::Glue::getCapturedLoginResult();

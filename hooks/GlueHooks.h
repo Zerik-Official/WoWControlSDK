@@ -15,5 +15,6 @@ std::string Execute(std::function<std::string()> task, DWORD timeoutMs = 15000);
 
 void setLoginPending();
 const char* getCapturedLoginResult();
+ULONGLONG getLastLoginStateTick();
 
 }
