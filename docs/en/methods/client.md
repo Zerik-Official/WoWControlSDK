@@ -249,7 +249,7 @@ When the login succeeds but a later wait fails, the response also contains `ok: 
 | `database busy` | The login database is busy |
 | `trial expired` | The trial period expired |
 | `account converted` | The account was converted |
-| `login timeout` | No login result arrived within 20 seconds |
+| `login timeout` | The login server stopped answering for 20 seconds |
 | `realm list timeout` | The realm list was not ready within 5 seconds |
 | `realm select timeout` | The character select screen did not appear within 15 seconds |
 | `unknown error` | An unmapped login result |
@@ -261,7 +261,7 @@ When the login succeeds but a later wait fails, the response also contains `ok: 
 ```
 
 !!! note
-    The login wait is 20 seconds. When `realmName` is provided, the method also waits up to 5 seconds for the realm list and up to 15 seconds for the character select screen.
+    The login succeeds as soon as the server authenticates the account, even if the client then shows the realm list. The wait ends with `login timeout` only when the login makes no progress for 20 seconds, so slow connections keep waiting while the server answers. When `realmName` is provided, the method also waits up to 5 seconds for the realm list and up to 15 seconds for the character select screen.
 
 !!! warning
     This method blocks the RPC thread while polling with `Sleep(50)`. Do not call it from time-sensitive code.
