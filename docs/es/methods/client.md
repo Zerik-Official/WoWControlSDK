@@ -249,7 +249,7 @@ Cuando el login se completa pero falla una espera posterior, la respuesta tambi�
 | `database busy` | La base de datos de login está ocupada |
 | `trial expired` | El periodo de prueba ha caducado |
 | `account converted` | La cuenta fue convertida |
-| `login timeout` | No llegó ningún resultado de login en 20 segundos |
+| `login timeout` | El servidor de login dejó de responder durante 20 segundos |
 | `realm list timeout` | La lista de reinos no estuvo lista en 5 segundos |
 | `realm select timeout` | La pantalla de selección de personajes no apareció en 15 segundos |
 | `unknown error` | Un resultado de login sin asignar |
@@ -261,7 +261,7 @@ Cuando el login se completa pero falla una espera posterior, la respuesta tambi�
 ```
 
 !!! note
-    La espera del login es de 20 segundos. Cuando se indica `realmName`, el método también espera hasta 5 segundos a la lista de reinos y hasta 15 segundos a la pantalla de selección de personajes.
+    El login se da por correcto en cuanto el servidor autentica la cuenta, aunque el cliente muestre después la lista de reinos. La espera termina con `login timeout` solo cuando el login no avanza durante 20 segundos, así que una conexión lenta sigue esperando mientras el servidor responda. Cuando se indica `realmName`, el método también espera hasta 5 segundos a la lista de reinos y hasta 15 segundos a la pantalla de selección de personajes.
 
 !!! warning
     Este método bloquea el hilo RPC mientras sondea con `Sleep(50)`. No lo llames desde código sensible al tiempo.
