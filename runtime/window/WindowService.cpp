@@ -1,6 +1,7 @@
 #include "WindowService.h"
 #include "runtime/console/ConsoleManager.h"
 #include "hooks/WindowHooks.h"
+#include "hooks/FrameHooks.h"
 #include <Windows.h>
 #include <string>
 #include <algorithm>
@@ -165,6 +166,14 @@ static bool ReleaseStartHidden()
     return true;
 }
 
+static constexpr int LAYOUT_REFRESH_FRAMES = 2;
+
+static void WaitForFrames(int frames)
+{
+    for (int i = 0; i < frames; ++i)
+        Hooks::Frame::Execute([]() { return std::string(); });
+}
+
 static void RefreshLayout(HWND hwnd)
 {
     RECT rect;
@@ -173,7 +182,9 @@ static void RefreshLayout(HWND hwnd)
     int height = rect.bottom - rect.top;
     UINT flags = SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOMOVE | SWP_FRAMECHANGED;
     SetWindowPos(hwnd, nullptr, 0, 0, width, height + 1, flags);
+    WaitForFrames(LAYOUT_REFRESH_FRAMES);
     SetWindowPos(hwnd, nullptr, 0, 0, width, height, flags);
+    WaitForFrames(LAYOUT_REFRESH_FRAMES);
 }
 
 bool WindowService::Show()
