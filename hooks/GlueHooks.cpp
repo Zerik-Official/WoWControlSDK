@@ -4,6 +4,7 @@
 #include "offsets/OffsetsLogin.h"
 #include "utils/json/Json.h"
 #include "utils/TaskQueue.h"
+#include <atomic>
 #include <cstring>
 
 namespace Hooks::Glue
@@ -28,44 +29,60 @@ static void __cdecl GlueMgrUpdate_Hook()
 using GruntPrintFn = void(__cdecl*)(int, int, const char*, const char*, const char*, unsigned char);
 static GruntPrintFn s_gruntOriginal = nullptr;
 
-static bool s_loginPending = false;
-static const char* s_capturedLoginResult = nullptr;
+static std::atomic<bool> s_loginPending{false};
+static std::atomic<bool> s_loginResultReady{false};
+static std::atomic<ULONGLONG> s_lastLoginStateTick{0};
+static char s_capturedLoginResult[64] = {};
 
 void setLoginPending()
 {
-    s_loginPending = true;
-    s_capturedLoginResult = nullptr;
+    s_loginResultReady.store(false);
+    s_capturedLoginResult[0] = '\0';
+    s_lastLoginStateTick.store(GetTickCount64());
+    s_loginPending.store(true);
+}
+
+static void captureLoginResult(const char* resultStr)
+{
+    strncpy_s(s_capturedLoginResult, sizeof(s_capturedLoginResult), resultStr, _TRUNCATE);
+    s_loginResultReady.store(true);
+    s_loginPending.store(false);
 }
 
 static void __cdecl GruntLoginState_Hook(int param_1, int param_2, const char* param_3, const char* stateStr, const char* resultStr, unsigned char param_6)
 {
-    if (s_loginPending && stateStr && resultStr)
+    if (s_loginPending.load() && stateStr && resultStr)
     {
-        if (strcmp(stateStr, "LOGIN_STATE_FAILED") == 0 && !s_capturedLoginResult)
-        {
-            s_capturedLoginResult = resultStr;
-            s_loginPending = false;
-        }
+        s_lastLoginStateTick.store(GetTickCount64());
+        if (strcmp(stateStr, "LOGIN_STATE_FAILED") == 0)
+            captureLoginResult(resultStr);
+        else if (strcmp(stateStr, "LOGIN_STATE_AUTHENTICATED") == 0)
+            captureLoginResult("LOGIN_OK");
     }
     s_gruntOriginal(param_1, param_2, param_3, stateStr, resultStr, param_6);
 }
 
 static void GlueMgr_PostUpdate()
 {
-    if (!s_loginPending) return;
+    if (!s_loginPending.load()) return;
 
     const char* screen = WoW::GetScreenName();
     if (!screen) return;
 
     if (strcmp(screen, "charselect") == 0)
     {
-        s_loginPending = false;
+        s_loginPending.store(false);
     }
 }
 
 const char* getCapturedLoginResult()
 {
-    return s_capturedLoginResult;
+    return s_loginResultReady.load() ? s_capturedLoginResult : nullptr;
+}
+
+ULONGLONG getLastLoginStateTick()
+{
+    return s_lastLoginStateTick.load();
 }
 
 void Initialize()
