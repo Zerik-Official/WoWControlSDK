@@ -16,7 +16,7 @@
 static void OnAttach()
 {
     Runtime::LogCapture::Initialize();
-    Runtime::LogCapture::SetConfig(256, false);
+    Runtime::LogCapture::SetConfig(Runtime::LogCapture::DEFAULT_MAX_ENTRIES, false);
     Hooks::Console::SetCallback(Runtime::LogCapture::OnConsoleMessage);
     Runtime::EventPipe::Initialize();
 
@@ -41,6 +41,9 @@ static void OnDetach()
 
     Hooks::Events::Shutdown();
     Hooks::Social::Shutdown();
+    Hooks::WindowStart::Shutdown();
+    Hooks::Addons::Shutdown();
+    Hooks::Errors::Shutdown();
     Hooks::Frame::Shutdown();
     Hooks::Glue::Shutdown();
     LuaEngine::shutdown();

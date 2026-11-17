@@ -63,7 +63,7 @@ None.
     "continentId": 0,
     "zoneName": "Stormwind City",
     "subZoneName": "Dwarven District",
-    "mapAreaId": 301,
+    "mapAreaId": 302,
     "instance": {
       "inInstance": false,
       "mapId": 0,

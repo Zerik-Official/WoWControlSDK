@@ -13,6 +13,7 @@ import customtkinter as ctk
 
 # Project imports
 from ..events import EventStream, StreamMessage
+from ..i18n import tr
 from . import theme
 from .json_view import JsonView
 
@@ -34,19 +35,19 @@ class EventsPanel(ctk.CTkFrame):
         self._paused = False
         self._count = 0
 
-        self._toggle = ctk.CTkButton(self, text="Connect", width=100, fg_color=theme.ACCENT,
+        self._toggle = ctk.CTkButton(self, text=tr("events.connect"), width=100, fg_color=theme.ACCENT,
                                      hover_color=theme.ACCENT_HOVER, command=self.toggle)
         self._toggle.grid(row=0, column=0, padx=(0, 6), pady=(0, 6))
-        self._pause = ctk.CTkButton(self, text="Pause", width=80, fg_color=theme.SURFACE_ALT,
+        self._pause = ctk.CTkButton(self, text=tr("events.pause"), width=80, fg_color=theme.SURFACE_ALT,
                                     hover_color=theme.SURFACE, text_color=("#1a1a1a", "#e6e6e6"),
                                     command=self._toggle_pause)
         self._pause.grid(row=0, column=1, padx=(0, 6), pady=(0, 6))
-        ctk.CTkButton(self, text="Clear", width=70, fg_color=theme.SURFACE_ALT, hover_color=theme.SURFACE,
+        ctk.CTkButton(self, text=tr("events.clear"), width=70, fg_color=theme.SURFACE_ALT, hover_color=theme.SURFACE,
                       text_color=("#1a1a1a", "#e6e6e6"), command=self._clear).grid(row=0, column=2, padx=(0, 6),
                                                                                     pady=(0, 6))
-        self._filter = ctk.CTkEntry(self, placeholder_text="Filter by event name, for example trade. or UNIT_")
+        self._filter = ctk.CTkEntry(self, placeholder_text=tr("events.filter"))
         self._filter.grid(row=0, column=3, sticky="ew", pady=(0, 6))
-        self._counter = ctk.CTkLabel(self, text="0 events", font=theme.small(), text_color=theme.MUTED)
+        self._counter = ctk.CTkLabel(self, text=tr("events.count", count=0), font=theme.small(), text_color=theme.MUTED)
         self._counter.grid(row=0, column=4, padx=(8, 0), pady=(0, 6))
 
         self._view = JsonView(self)
@@ -57,10 +58,10 @@ class EventsPanel(ctk.CTkFrame):
         """Connect or disconnect."""
         if self._stream.running:
             self._stream.stop()
-            self._toggle.configure(text="Connect")
+            self._toggle.configure(text=tr("events.connect"))
         else:
             self._stream.start(self._token())
-            self._toggle.configure(text="Disconnect")
+            self._toggle.configure(text=tr("events.disconnect"))
 
     def disconnect(self) -> None:
         """Stop reading events."""
@@ -68,12 +69,12 @@ class EventsPanel(ctk.CTkFrame):
 
     def _toggle_pause(self) -> None:
         self._paused = not self._paused
-        self._pause.configure(text="Resume" if self._paused else "Pause")
+        self._pause.configure(text=tr("events.resume") if self._paused else tr("events.pause"))
 
     def _clear(self) -> None:
         self._view.clear()
         self._count = 0
-        self._counter.configure(text="0 events")
+        self._counter.configure(text=tr("events.count", count=0))
 
     def _poll(self) -> None:
         for _ in range(MAX_PER_TICK):
@@ -89,7 +90,7 @@ class EventsPanel(ctk.CTkFrame):
             self._log(f"[events] {message.text}")
             return
         if message.kind == "stopped":
-            self._toggle.configure(text="Connect")
+            self._toggle.configure(text=tr("events.connect"))
             return
         if self._paused:
             return
@@ -104,4 +105,4 @@ class EventsPanel(ctk.CTkFrame):
             line = f"{stamp}  {message.text}"
         self._view.append_line(line)
         self._count += 1
-        self._counter.configure(text=f"{self._count} events")
+        self._counter.configure(text=tr("events.count", count=self._count))

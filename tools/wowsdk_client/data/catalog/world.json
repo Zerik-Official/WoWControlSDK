@@ -1,0 +1,17 @@
+{
+  "name": "world",
+  "title": {
+    "en": "World",
+    "es": "Mundo"
+  },
+  "icon": "globe",
+  "methods": [
+    {
+      "name": "world.getState",
+      "description": {
+        "en": "Map, zone, map area, instance and difficulty.",
+        "es": "Mapa, zona, área del mapa, instancia y dificultad."
+      }
+    }
+  ]
+}

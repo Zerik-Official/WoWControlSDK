@@ -12,13 +12,14 @@ Every RPC method belongs to a domain. Each domain has its own page with the para
 - **Positions** are objects with `x`, `y` and `z` as floating-point values. World positions are in game coordinates; map positions are normalized.
 - **Errors** are usually returned inside `result` as `{"error": "<message>"}`. A successful JSON-RPC envelope does not guarantee that the operation succeeded.
 - **Cached methods** (`player.*` and `world.*`) read the per-frame cache and return immediately. The other methods run on the game thread.
+- **Lua methods** run tainted by default, like an addon. See [Taint and secure mode](lua.md#taint-and-secure-mode).
 - **Native actions** (`group.acceptInvite`, `summon.accept`, `lfg.acceptProposal`, `trade.accept`, `duel.accept`, `battlefield.acceptPort` and their counterparts) call the same client functions as the game's buttons. They never run Lua.
 
 ## Domains
 
 | Domain | Methods | Description |
 | --- | --- | --- |
-| [lua.*](lua.md) | 5 | Execute, evaluate and manage Lua globals in WoW's Lua VM |
+| [lua.*](lua.md) | 18 | Run Lua, call functions, read and write values, watch calls and manage the addon bridge |
 | [unit.*](unit.md) | 4 | Read health, power, position, rotation and state flags from a unit |
 | [group.*](group.md) | 5 | Read the party or raid roster, a combat summary and group invitations, and answer invitations |
 | [player.*](player.md) | 4 | Read cached player health, position, target and full state |
@@ -28,18 +29,19 @@ Every RPC method belongs to a domain. Each domain has its own page with the para
 | [lfg.*](lfg.md) | 4 | Read and answer Dungeon Finder proposals |
 | [trade.*](trade.md) | 6 | Read and answer trade requests and the trade window |
 | [duel.*](duel.md) | 3 | Read, accept and decline duels |
+| [chat.*](chat.md) | 3 | Send chat on any channel and reply to whispers |
 | [battlefield.*](battlefield.md) | 3 | Read battleground and arena queues and answer their invitations |
 | [object.*](object.md) | 4 | Inspect whether an entity exists and what type it is |
-| [client.*](client.md) | 17 | Login, realm selection, character list, screen state and EULA/TOS automation |
+| [client.*](client.md) | 21 | Login, realm selection, character list, screen state, latency, FPS, addon memory, crash reports and EULA/TOS automation |
 | [events.*](events.md) | 8 | Subscribe to WoW events and manage the event history |
 | [dll.*](dll.md) | 4 | Control the console overlay and read SDK diagnostics and logs |
-| [window.*](window.md) | 18 | Inspect and control the main WoW window |
+| [window.*](window.md) | 19 | Inspect and control the main WoW window, including hidden starts |
 
 ## Full method list
 
 | Domain | Methods |
 | --- | --- |
-| `lua` | `execute`, `evaluate`, `getGlobal`, `setGlobal`, `createNamespace` |
+| `lua` | `execute`, `evaluate`, `call`, `getGlobal`, `setGlobal`, `createNamespace`, `getRef`, `releaseRef`, `hook`, `unhook`, `getHooks`, `batch`, `setAllowedAddons`, `getAddons`, `loadScript`, `unloadScript`, `getScripts`, `setBlockedNotice` |
 | `unit` | `get`, `state`, `position`, `mapPosition` |
 | `group` | `get`, `combatSummary`, `getInvite`, `acceptInvite`, `declineInvite` |
 | `player` | `getHealth`, `getPosition`, `getTarget`, `getState` |
@@ -49,12 +51,13 @@ Every RPC method belongs to a domain. Each domain has its own page with the para
 | `lfg` | `getProposal`, `getDungeon`, `acceptProposal`, `rejectProposal` |
 | `trade` | `get`, `acceptRequest`, `declineRequest`, `accept`, `unaccept`, `cancel` |
 | `duel` | `get`, `accept`, `decline` |
+| `chat` | `send`, `reply`, `getRecentWhispers` |
 | `battlefield` | `getQueues`, `acceptPort`, `leaveQueue` |
 | `object` | `exists`, `getType`, `isUnit`, `isPlayer` |
-| `client` | `ping`, `getScreen`, `getDebugState`, `login`, `enterWorld`, `logout`, `quit`, `getCharacters`, `refreshCharacters`, `getRealmlist`, `setRealmlist`, `acceptEULA`, `acceptTOS`, `acceptTermination`, `acceptScanning`, `acceptContest`, `acceptAll` |
+| `client` | `ping`, `getScreen`, `getDebugState`, `getNetStats`, `getFramerate`, `getAddonMemory`, `getLastCrash`, `login`, `enterWorld`, `logout`, `quit`, `getCharacters`, `refreshCharacters`, `getRealmlist`, `setRealmlist`, `acceptEULA`, `acceptTOS`, `acceptTermination`, `acceptScanning`, `acceptContest`, `acceptAll` |
 | `events` | `subscribe`, `unsubscribe`, `list`, `clear`, `getHistory`, `clearHistory`, `setMaxBuffer`, `isReady` |
 | `dll` | `toggleConsole`, `getInfo`, `getLogs`, `setLogConfig` |
-| `window` | `getHandle`, `getInfo`, `show`, `hide`, `minimize`, `restore`, `maximize`, `focus`, `getPosition`, `setPosition`, `getSize`, `setSize`, `setBounds`, `setTitle`, `setTopMost`, `setOpacity`, `flashTaskbar`, `setIcon` |
+| `window` | `getHandle`, `getInfo`, `show`, `hide`, `minimize`, `restore`, `maximize`, `focus`, `getPosition`, `setPosition`, `getSize`, `setSize`, `setBounds`, `setTitle`, `setTopMost`, `setOpacity`, `flashTaskbar`, `setIcon`, `setStartHidden` |
 
 ## Anatomy of a method page
 

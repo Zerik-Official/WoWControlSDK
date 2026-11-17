@@ -7,6 +7,7 @@
 #include "core/api/TradeAPI.h"
 #include "core/api/DuelAPI.h"
 #include "core/api/BattlefieldAPI.h"
+#include "core/api/ChatAPI.h"
 #include "utils/json/Json.h"
 
 namespace Rpc
@@ -249,8 +250,77 @@ namespace Rpc
         return onGameThread([index]() { return battlefieldResultJson(CoreAPI::Battlefield::LeaveQueue(index)); });
     }
 
+    static std::string stringParam(const Json& params, const char* key)
+    {
+        if (!params.is_object() || !params.contains(key) || !params[key].is_string())
+            return {};
+        return params[key].get<std::string>();
+    }
+
+    static Json chatResultJson(const CoreAPI::ChatSendResult& sent)
+    {
+        if (sent.result != CoreAPI::ChatResult::Ok)
+            return SDK::makeErrorJson(CoreAPI::Chat::ResultMessage(sent.result));
+        Json j = SDK::okJson();
+        j["channel"] = sent.channel;
+        j["target"] = sent.target;
+        return j;
+    }
+
+    static Json handleChatSend(const Json& params)
+    {
+        std::string channel = stringParam(params, "channel");
+        std::string target = stringParam(params, "target");
+        std::string text = stringParam(params, "text");
+        if (channel.empty())
+            return SDK::makeErrorJson("channel is required");
+
+        std::optional<uint32_t> language;
+        if (params.is_object() && params.contains("language") && params["language"].is_number_integer())
+            language = params["language"].get<uint32_t>();
+
+        return onGameThread([channel, target, text, language]() {
+            return chatResultJson(CoreAPI::Chat::Send(channel, target, text, language));
+        });
+    }
+
+    static Json handleChatReply(const Json& params)
+    {
+        std::string text = stringParam(params, "text");
+        std::string guid = stringParam(params, "guid");
+        std::optional<int64_t> lineId;
+        if (params.is_object() && params.contains("lineId") && params["lineId"].is_number_integer())
+            lineId = params["lineId"].get<int64_t>();
+
+        return onGameThread([text, lineId, guid]() {
+            return chatResultJson(CoreAPI::Chat::Reply(text, lineId, guid));
+        });
+    }
+
+    static Json handleChatRecentWhispers(const Json&)
+    {
+        Json list = Json::array();
+        for (const CoreAPI::WhisperRecord& whisper : CoreAPI::Chat::RecentWhispers())
+        {
+            Json j;
+            j["author"] = whisper.author;
+            j["battleNet"] = whisper.battleNet;
+            j["presenceId"] = whisper.presenceId;
+            j["lineId"] = whisper.lineId;
+            j["guid"] = whisper.guid;
+            j["receivedAtMs"] = whisper.receivedAtMs;
+            list.push_back(j);
+        }
+        Json j;
+        j["whispers"] = list;
+        return j;
+    }
+
     void registerSocialMethods(Runtime::MethodRegistry& registry)
     {
+        registry.registerMethod("chat.send", handleChatSend);
+        registry.registerMethod("chat.reply", handleChatReply);
+        registry.registerMethod("chat.getRecentWhispers", handleChatRecentWhispers);
         registry.registerMethod("trade.get", handleTradeGet);
         registry.registerMethod("trade.acceptRequest", handleTradeAcceptRequest);
         registry.registerMethod("trade.declineRequest", handleTradeDeclineRequest);

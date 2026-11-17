@@ -1,0 +1,120 @@
+{
+  "name": "events",
+  "title": {
+    "en": "Events",
+    "es": "Eventos"
+  },
+  "icon": "radio",
+  "methods": [
+    {
+      "name": "events.subscribe",
+      "description": {
+        "en": "Subscribe to WoW UI events.",
+        "es": "Se suscribe a eventos de la interfaz de WoW."
+      },
+      "params": [
+        {
+          "name": "events",
+          "type": "string_list",
+          "description": {
+            "en": "Event names separated by commas",
+            "es": "Nombres de eventos separados por comas"
+          },
+          "required": true,
+          "default": "PLAYER_LOGIN, PLAYER_ENTERING_WORLD, PLAYER_REGEN_DISABLED, UNIT_HEALTH"
+        }
+      ]
+    },
+    {
+      "name": "events.unsubscribe",
+      "description": {
+        "en": "Unsubscribe from WoW UI events.",
+        "es": "Cancela la suscripción a eventos de la interfaz de WoW."
+      },
+      "params": [
+        {
+          "name": "events",
+          "type": "string_list",
+          "description": {
+            "en": "Event names separated by commas",
+            "es": "Nombres de eventos separados por comas"
+          },
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "events.list",
+      "description": {
+        "en": "Subscribed WoW UI events.",
+        "es": "Eventos de la interfaz de WoW suscritos."
+      }
+    },
+    {
+      "name": "events.clear",
+      "description": {
+        "en": "Remove every subscription.",
+        "es": "Quita todas las suscripciones."
+      }
+    },
+    {
+      "name": "events.getHistory",
+      "description": {
+        "en": "Read the event history buffer.",
+        "es": "Lee el búfer del historial de eventos."
+      },
+      "params": [
+        {
+          "name": "offset",
+          "type": "integer",
+          "description": {
+            "en": "Position to start from",
+            "es": "Posición desde la que empezar"
+          },
+          "default": 0
+        },
+        {
+          "name": "count",
+          "type": "integer",
+          "description": {
+            "en": "Number of entries",
+            "es": "Número de entradas"
+          },
+          "default": 50
+        }
+      ]
+    },
+    {
+      "name": "events.clearHistory",
+      "description": {
+        "en": "Clear the event history buffer.",
+        "es": "Vacía el búfer del historial de eventos."
+      }
+    },
+    {
+      "name": "events.setMaxBuffer",
+      "description": {
+        "en": "Change the history buffer size.",
+        "es": "Cambia el tamaño del búfer del historial."
+      },
+      "params": [
+        {
+          "name": "maxBuffer",
+          "type": "integer",
+          "description": {
+            "en": "Maximum number of entries",
+            "es": "Número máximo de entradas"
+          },
+          "default": 256
+        }
+      ]
+    },
+    {
+      "name": "events.isReady",
+      "description": {
+        "en": "Whether the event hooks are ready.",
+        "es": "Si los hooks de eventos están listos."
+      }
+    }
+  ]
+}

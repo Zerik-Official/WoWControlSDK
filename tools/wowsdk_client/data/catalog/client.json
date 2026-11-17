@@ -1,0 +1,236 @@
+{
+  "name": "client",
+  "title": {
+    "en": "Client",
+    "es": "Cliente"
+  },
+  "icon": "monitor",
+  "methods": [
+    {
+      "name": "client.ping",
+      "description": {
+        "en": "Check that the command pipe answers.",
+        "es": "Comprueba que el pipe de comandos responde."
+      }
+    },
+    {
+      "name": "client.getScreen",
+      "description": {
+        "en": "Current glue screen and login state.",
+        "es": "Pantalla actual de inicio y estado del login."
+      }
+    },
+    {
+      "name": "client.getDebugState",
+      "description": {
+        "en": "Low-level login and authentication diagnostics.",
+        "es": "Diagnóstico de bajo nivel del login y la autenticación."
+      }
+    },
+    {
+      "name": "client.getNetStats",
+      "description": {
+        "en": "Latency and bandwidth, refreshed every 500 ms.",
+        "es": "Latencia y ancho de banda, actualizados cada 500 ms."
+      }
+    },
+    {
+      "name": "client.getFramerate",
+      "description": {
+        "en": "Frames per second, refreshed every 500 ms.",
+        "es": "Fotogramas por segundo, actualizados cada 500 ms."
+      }
+    },
+    {
+      "name": "client.getAddonMemory",
+      "description": {
+        "en": "Memory used by each addon and by Lua, refreshed at most once per second.",
+        "es": "Memoria usada por cada addon y por Lua, actualizada como mucho una vez por segundo."
+      }
+    },
+    {
+      "name": "client.getLastCrash",
+      "description": {
+        "en": "The last fatal error or crash, with the game's error log.",
+        "es": "El último error fatal o crash, con el log de error del juego."
+      }
+    },
+    {
+      "name": "client.login",
+      "description": {
+        "en": "Log in, optionally setting the realm list and choosing a realm.",
+        "es": "Inicia sesión; opcionalmente cambia la realm list y elige un reino."
+      },
+      "params": [
+        {
+          "name": "username",
+          "type": "string",
+          "description": {
+            "en": "Account username",
+            "es": "Usuario de la cuenta"
+          },
+          "required": true
+        },
+        {
+          "name": "password",
+          "type": "secret",
+          "description": {
+            "en": "Account password",
+            "es": "Contraseña de la cuenta"
+          },
+          "required": true
+        },
+        {
+          "name": "realmList",
+          "type": "string",
+          "description": {
+            "en": "Realm list address to set before logging in",
+            "es": "Dirección de la realm list que se usa antes de iniciar sesión"
+          }
+        },
+        {
+          "name": "realmName",
+          "type": "string",
+          "description": {
+            "en": "Realm to select after logging in",
+            "es": "Reino que se elige después de iniciar sesión"
+          }
+        }
+      ]
+    },
+    {
+      "name": "client.getCharacters",
+      "description": {
+        "en": "Characters on the character select screen.",
+        "es": "Personajes de la pantalla de selección."
+      }
+    },
+    {
+      "name": "client.refreshCharacters",
+      "description": {
+        "en": "Ask the server for the character list again.",
+        "es": "Vuelve a pedir la lista de personajes al servidor."
+      }
+    },
+    {
+      "name": "client.enterWorld",
+      "description": {
+        "en": "Enter the world with a character.",
+        "es": "Entra al mundo con un personaje."
+      },
+      "params": [
+        {
+          "name": "name",
+          "type": "string",
+          "description": {
+            "en": "Character name, takes precedence over index",
+            "es": "Nombre del personaje; tiene prioridad sobre el índice"
+          }
+        },
+        {
+          "name": "index",
+          "type": "integer",
+          "description": {
+            "en": "Character slot index",
+            "es": "Índice de la ranura del personaje"
+          },
+          "default": 0
+        },
+        {
+          "name": "wait",
+          "type": "boolean",
+          "description": {
+            "en": "Wait until the world is loaded, up to 30 seconds",
+            "es": "Espera a que cargue el mundo, hasta 30 segundos"
+          },
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "client.logout",
+      "description": {
+        "en": "Log out to the character select screen.",
+        "es": "Cierra sesión y vuelve a la selección de personaje."
+      }
+    },
+    {
+      "name": "client.quit",
+      "description": {
+        "en": "Close the game.",
+        "es": "Cierra el juego."
+      },
+      "confirm": {
+        "en": "Close World of Warcraft?",
+        "es": "¿Cerrar World of Warcraft?"
+      }
+    },
+    {
+      "name": "client.getRealmlist",
+      "description": {
+        "en": "Read the realm list CVar.",
+        "es": "Lee la CVar de la realm list."
+      }
+    },
+    {
+      "name": "client.setRealmlist",
+      "description": {
+        "en": "Set the realm list CVar.",
+        "es": "Cambia la CVar de la realm list."
+      },
+      "params": [
+        {
+          "name": "realmList",
+          "type": "string",
+          "description": {
+            "en": "New realm list address",
+            "es": "Nueva dirección de la realm list"
+          },
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "client.acceptEULA",
+      "description": {
+        "en": "Accept the EULA dialog.",
+        "es": "Acepta el diálogo del EULA."
+      }
+    },
+    {
+      "name": "client.acceptTOS",
+      "description": {
+        "en": "Accept the Terms of Service dialog.",
+        "es": "Acepta el diálogo de los Términos de servicio."
+      }
+    },
+    {
+      "name": "client.acceptTermination",
+      "description": {
+        "en": "Accept the termination policy dialog.",
+        "es": "Acepta el diálogo de la política de cancelación."
+      }
+    },
+    {
+      "name": "client.acceptScanning",
+      "description": {
+        "en": "Accept the scanning dialog.",
+        "es": "Acepta el diálogo de escaneo."
+      }
+    },
+    {
+      "name": "client.acceptContest",
+      "description": {
+        "en": "Accept the contest dialog.",
+        "es": "Acepta el diálogo de concursos."
+      }
+    },
+    {
+      "name": "client.acceptAll",
+      "description": {
+        "en": "Accept every agreement dialog.",
+        "es": "Acepta todos los diálogos de acuerdos."
+      }
+    }
+  ]
+}

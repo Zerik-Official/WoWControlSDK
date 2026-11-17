@@ -1,0 +1,328 @@
+{
+  "name": "window",
+  "title": {
+    "en": "Window",
+    "es": "Ventana"
+  },
+  "icon": "app-window",
+  "methods": [
+    {
+      "name": "window.getInfo",
+      "description": {
+        "en": "Window handle, state, bounds and title.",
+        "es": "Handle, estado, límites y título de la ventana."
+      }
+    },
+    {
+      "name": "window.getHandle",
+      "description": {
+        "en": "Window handle.",
+        "es": "Handle de la ventana."
+      }
+    },
+    {
+      "name": "window.show",
+      "description": {
+        "en": "Show the window.",
+        "es": "Muestra la ventana."
+      }
+    },
+    {
+      "name": "window.hide",
+      "description": {
+        "en": "Hide the window.",
+        "es": "Oculta la ventana."
+      }
+    },
+    {
+      "name": "window.setStartHidden",
+      "description": {
+        "en": "Keep the game window hidden until window.show.",
+        "es": "Mantiene oculta la ventana del juego hasta window.show."
+      },
+      "params": [
+        {
+          "name": "hidden",
+          "type": "boolean",
+          "description": {
+            "en": "Keep the window hidden",
+            "es": "Mantener la ventana oculta"
+          },
+          "required": true,
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "window.minimize",
+      "description": {
+        "en": "Minimize the window.",
+        "es": "Minimiza la ventana."
+      }
+    },
+    {
+      "name": "window.restore",
+      "description": {
+        "en": "Restore the window.",
+        "es": "Restaura la ventana."
+      }
+    },
+    {
+      "name": "window.maximize",
+      "description": {
+        "en": "Maximize the window.",
+        "es": "Maximiza la ventana."
+      }
+    },
+    {
+      "name": "window.focus",
+      "description": {
+        "en": "Bring the window to the foreground.",
+        "es": "Trae la ventana al frente."
+      }
+    },
+    {
+      "name": "window.getPosition",
+      "description": {
+        "en": "Window position.",
+        "es": "Posición de la ventana."
+      }
+    },
+    {
+      "name": "window.setPosition",
+      "description": {
+        "en": "Move the window.",
+        "es": "Mueve la ventana."
+      },
+      "params": [
+        {
+          "name": "x",
+          "type": "integer",
+          "description": {
+            "en": "X coordinate",
+            "es": "Coordenada X"
+          },
+          "required": true,
+          "default": 0
+        },
+        {
+          "name": "y",
+          "type": "integer",
+          "description": {
+            "en": "Y coordinate",
+            "es": "Coordenada Y"
+          },
+          "required": true,
+          "default": 0
+        }
+      ]
+    },
+    {
+      "name": "window.getSize",
+      "description": {
+        "en": "Window size.",
+        "es": "Tamaño de la ventana."
+      }
+    },
+    {
+      "name": "window.setSize",
+      "description": {
+        "en": "Resize the window.",
+        "es": "Cambia el tamaño de la ventana."
+      },
+      "params": [
+        {
+          "name": "width",
+          "type": "integer",
+          "description": {
+            "en": "Width in pixels",
+            "es": "Ancho en píxeles"
+          },
+          "required": true,
+          "default": 1280
+        },
+        {
+          "name": "height",
+          "type": "integer",
+          "description": {
+            "en": "Height in pixels",
+            "es": "Alto en píxeles"
+          },
+          "required": true,
+          "default": 720
+        }
+      ]
+    },
+    {
+      "name": "window.setBounds",
+      "description": {
+        "en": "Move and resize the window.",
+        "es": "Mueve y cambia el tamaño de la ventana."
+      },
+      "params": [
+        {
+          "name": "x",
+          "type": "integer",
+          "description": {
+            "en": "X coordinate",
+            "es": "Coordenada X"
+          },
+          "required": true,
+          "default": 0
+        },
+        {
+          "name": "y",
+          "type": "integer",
+          "description": {
+            "en": "Y coordinate",
+            "es": "Coordenada Y"
+          },
+          "required": true,
+          "default": 0
+        },
+        {
+          "name": "width",
+          "type": "integer",
+          "description": {
+            "en": "Width in pixels",
+            "es": "Ancho en píxeles"
+          },
+          "required": true,
+          "default": 1280
+        },
+        {
+          "name": "height",
+          "type": "integer",
+          "description": {
+            "en": "Height in pixels",
+            "es": "Alto en píxeles"
+          },
+          "required": true,
+          "default": 720
+        }
+      ]
+    },
+    {
+      "name": "window.setTitle",
+      "description": {
+        "en": "Change the window title.",
+        "es": "Cambia el título de la ventana."
+      },
+      "params": [
+        {
+          "name": "title",
+          "type": "string",
+          "description": {
+            "en": "New title",
+            "es": "Nuevo título"
+          },
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "window.setTopMost",
+      "description": {
+        "en": "Keep the window above the others.",
+        "es": "Mantiene la ventana por encima de las demás."
+      },
+      "params": [
+        {
+          "name": "topMost",
+          "type": "boolean",
+          "description": {
+            "en": "Always on top",
+            "es": "Siempre visible"
+          },
+          "required": true,
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "window.setOpacity",
+      "description": {
+        "en": "Change the window opacity.",
+        "es": "Cambia la opacidad de la ventana."
+      },
+      "params": [
+        {
+          "name": "percent",
+          "type": "integer",
+          "description": {
+            "en": "Opacity from 0 to 100",
+            "es": "Opacidad de 0 a 100"
+          },
+          "default": 100
+        }
+      ]
+    },
+    {
+      "name": "window.flashTaskbar",
+      "description": {
+        "en": "Flash the taskbar button.",
+        "es": "Hace parpadear el botón de la barra de tareas."
+      },
+      "params": [
+        {
+          "name": "count",
+          "type": "integer",
+          "description": {
+            "en": "Number of flashes, 0 until focused",
+            "es": "Número de parpadeos, 0 hasta que tenga el foco"
+          },
+          "default": 0
+        },
+        {
+          "name": "timeoutMs",
+          "type": "integer",
+          "description": {
+            "en": "Interval in milliseconds, 0 for the default",
+            "es": "Intervalo en milisegundos, 0 para el valor por defecto"
+          },
+          "default": 0
+        }
+      ]
+    },
+    {
+      "name": "window.setIcon",
+      "description": {
+        "en": "Change the window icon or restore the original one.",
+        "es": "Cambia el icono de la ventana o restaura el original."
+      },
+      "params": [
+        {
+          "name": "path",
+          "type": "string",
+          "description": {
+            "en": "Absolute path to an .ico file",
+            "es": "Ruta absoluta a un archivo .ico"
+          }
+        },
+        {
+          "name": "type",
+          "type": "choice",
+          "description": {
+            "en": "Icon size to change, empty for both",
+            "es": "Tamaño de icono que se cambia, vacío para ambos"
+          },
+          "default": "",
+          "choices": [
+            "",
+            "small",
+            "big"
+          ]
+        },
+        {
+          "name": "restore",
+          "type": "boolean",
+          "description": {
+            "en": "Restore the original icon instead",
+            "es": "Restaurar el icono original"
+          },
+          "default": false
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include "base/DetourHelper.h"
 #include "EventHooks.h"
+#include "core/engine/LuaEngine.h"
 #include "offsets/OffsetsLua.h"
 #include "runtime/events/EventPipe.h"
 #include "runtime/events/GameEventBridge.h"
@@ -105,6 +106,33 @@ static SDK::Json BuildArgsJson(const char* format, int varargsPtr)
     return arr;
 }
 
+static std::string stringArg(const SDK::Json& args, size_t index)
+{
+    if (index >= args.size() || !args[index].is_string())
+        return "";
+    return args[index].get<std::string>();
+}
+
+static bool handleSdkBlocked(const std::string& eventName, const char* format, int varargsPtr)
+{
+    if (eventName != "ADDON_ACTION_FORBIDDEN" && eventName != "ADDON_ACTION_BLOCKED")
+        return false;
+
+    SDK::Json args = BuildArgsJson(format, varargsPtr);
+    if (stringArg(args, 0) != LuaEngine::taintSource())
+        return false;
+
+    std::string function = stringArg(args, 1);
+    LuaEngine::reportBlocked(eventName, function);
+
+    SDK::Json data;
+    data["event"] = eventName;
+    data["function"] = function;
+    Runtime::EventPipe::PushEvent("lua.blocked", data, static_cast<uint64_t>(GetTickCount64()));
+
+    return !LuaEngine::showBlockedNotice();
+}
+
 static void __cdecl SignalEventHandler_hook(int eventID, const char* format, int varargsPtr)
 {
     AcquireSRWLockShared(&s_lock);
@@ -126,6 +154,9 @@ static void __cdecl SignalEventHandler_hook(int eventID, const char* format, int
         if (bridged)
             Runtime::GameEventBridge::OnGameEvent(eventName, args, now);
     }
+
+    if (handleSdkBlocked(eventName, format, varargsPtr))
+        return;
 
     SignalEventHandler_orig(eventID, format, varargsPtr);
 }

@@ -90,7 +90,7 @@ sequenceDiagram
 ```
 
 1. The client connects to `\\.\pipe\WowGameCommand`.
-2. `ipc/CommandPipe` reads one message, up to 4096 bytes.
+2. `ipc/CommandPipe` reads one message, up to 1 MiB.
 3. `rpc/Dispatcher` validates the envelope and routes the request to the registered handler.
 4. The handler calls a `core/` API, reads the `runtime/` cache or posts work to the game thread.
 5. `Dispatcher` wraps the handler result in a JSON-RPC response.
@@ -138,7 +138,7 @@ Events are also stored in a circular buffer that `events.getHistory` can read. T
 | RPC handler execution | Some handlers post work to the game thread through `Hooks::Frame::Post`; others block the RPC thread while polling. |
 
 !!! note
-    Lua operations (`lua.evaluate` and `lua.execute`) use `lua_pcall` with `errfunc=0` and are safe to call from the RPC thread. State-changing operations such as login, logout and enter world are posted to the game thread to avoid races.
+    Every `lua.*` method runs on the game thread: the RPC thread hands the call to the next frame and waits for its result. State-changing operations such as login, logout and enter world are posted to the game thread to avoid races.
 
 ## Offsets isolation
 

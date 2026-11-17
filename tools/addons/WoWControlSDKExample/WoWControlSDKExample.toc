@@ -1,0 +1,9 @@
+## Interface: 30300
+## Title: WoWControlSDK Example
+## Notes: Integration guide for the WoWControlSDK addon bridge
+## Author: Zerik
+## Version: 1.0.0
+## X-WoWControlSDK: 1
+## SavedVariables: WoWControlSDKExampleDB
+Core.lua
+Api.lua

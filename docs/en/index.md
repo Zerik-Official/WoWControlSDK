@@ -25,6 +25,7 @@ The DLL runs inside `Wow.exe`. A client connects to `\\.\pipe\WowGameCommand`, s
 | Understand how the layers and threads fit together | [Architecture](architecture.md) |
 | Know exactly how injection works | [Injection](injection.md) |
 | Connect from Python, C# or another language | [RPC protocol](protocol.md) |
+| Connect an addon to your application | [Addon integration](addons.md) |
 | Look up a method and its response | [Methods](methods/index.md) |
 | Build a release or read the CI | [Operations](operations/building.md) |
 | Look up a term | [Glossary](glossary.md) |
@@ -37,6 +38,7 @@ The DLL runs inside `Wow.exe`. A client connects to `\\.\pipe\WowGameCommand`, s
 - [Architecture](architecture.md): components, layered design, request and event flow, threading and offsets.
 - [Injection](injection.md): the freeze-sync injector, its arguments, alternative injectors and startup commands.
 - [RPC protocol](protocol.md): pipe behavior, JSON-RPC envelope, errors, method catalog and client examples.
+- [Addon integration](addons.md): the addon bridge, `SDK.Emit`, calling addon functions and the example addon.
 
 **Reference**
 

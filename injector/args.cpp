@@ -20,6 +20,7 @@ void printUsage(const char* argv0)
         "  --wait <ms>         ms to wait when --no-pipe is active (default: 500)\n"
         "  --wow-args <str>    extra arguments for WoW.exe\n"
         "  --kill              kill existing WoW.exe before starting\n"
+        "  --hidden            keep the game window hidden until window.show (needs the pipe)\n"
         "  --pipe-cmd <json>   send a JSON-RPC command after pipe is ready (repeatable)\n",
         argv0
     );
@@ -38,6 +39,7 @@ bool parseArgs(int argc, char* argv[], Args& out)
         else if (strcmp(argv[i], "--no-pipe")  == 0) out.usePipe = false;
         else if (strcmp(argv[i], "--token-stdin") == 0) out.tokenStdin = true;
         else if (strcmp(argv[i], "--no-auth")  == 0) out.noAuth = true;
+        else if (strcmp(argv[i], "--hidden")   == 0) out.hidden = true;
         else if (strcmp(argv[i], "--pipe-cmd") == 0 && i + 1 < argc)
             out.pipeCommands.emplace_back(argv[++i]);
         else
@@ -53,6 +55,12 @@ bool parseArgs(int argc, char* argv[], Args& out)
     if (out.tokenStdin == out.noAuth)
     {
         fprintf(stderr, "[injector] choose exactly one of --token-stdin or --no-auth\n");
+        return false;
+    }
+
+    if (out.hidden && !out.usePipe)
+    {
+        fprintf(stderr, "[injector] --hidden cannot be combined with --no-pipe\n");
         return false;
     }
 

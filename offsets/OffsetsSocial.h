@@ -140,6 +140,7 @@ namespace Offsets
         constexpr uintptr_t WRITE_U8              = 0x47AFE0;
         constexpr uintptr_t WRITE_U32             = 0x47B0A0;
         constexpr uintptr_t WRITE_U64             = 0x47B100;
+        constexpr uintptr_t WRITE_STRING          = 0x47B300;
         constexpr uintptr_t SEND                  = 0x6B0B50;
     }
 
@@ -217,6 +218,54 @@ namespace Offsets
         constexpr uint32_t  OPCODE_PORT           = 0x2D5;
         constexpr int       LEAVE_EVENT_ID        = 0x19C;
         constexpr uintptr_t STOP_READY_SOUND      = 0x848380;
+    }
+
+    namespace Chat
+    {
+        constexpr uint32_t  OPCODE_MESSAGE        = 0x95;
+        constexpr uintptr_t DEFAULT_LANGUAGE      = 0x6D5E70;
+        constexpr uintptr_t VTABLE_IS_SILENCED    = 0x128;
+
+        constexpr uintptr_t CHANNEL_COUNT         = 0xBCF090;
+        constexpr uintptr_t CHANNEL_TABLE         = 0xBCF094;
+        constexpr uintptr_t CHANNEL_ENTRY_SIZE    = 0xA8;
+        constexpr uintptr_t CHANNEL_ENTRY_NUMBER  = 0x00;
+        constexpr uintptr_t CHANNEL_ENTRY_NAME    = 0x04;
+        constexpr uintptr_t CHANNEL_ENTRY_PENDING = 0x9C;
+
+        constexpr uint32_t  TYPE_SAY              = 1;
+        constexpr uint32_t  TYPE_PARTY            = 2;
+        constexpr uint32_t  TYPE_RAID             = 3;
+        constexpr uint32_t  TYPE_GUILD            = 4;
+        constexpr uint32_t  TYPE_OFFICER          = 5;
+        constexpr uint32_t  TYPE_YELL             = 6;
+        constexpr uint32_t  TYPE_WHISPER          = 7;
+        constexpr uint32_t  TYPE_EMOTE            = 10;
+        constexpr uint32_t  TYPE_CHANNEL          = 17;
+        constexpr uint32_t  TYPE_RAID_LEADER      = 39;
+        constexpr uint32_t  TYPE_RAID_WARNING     = 40;
+        constexpr uint32_t  TYPE_BATTLEGROUND     = 44;
+        constexpr uint32_t  TYPE_BATTLEGROUND_LEADER = 45;
+        constexpr uint32_t  TYPE_PARTY_LEADER     = 51;
+
+        constexpr size_t    MAX_MESSAGE_BYTES     = 255;
+    }
+
+    namespace BattleNet
+    {
+        constexpr uintptr_t GET_CLIENT            = 0x6B0990;
+        constexpr uintptr_t VTABLE_STATE          = 0xC8;
+        constexpr uintptr_t VTABLE_IS_BUSY        = 0xAC;
+        constexpr int       STATE_CONNECTED       = 1;
+        constexpr uintptr_t IS_READY              = 0x533C40;
+        constexpr uintptr_t CAN_SEND              = 0x5342D0;
+        constexpr uintptr_t CONVERT_TEXT          = 0x530D00;
+        constexpr size_t    TEXT_BUFFER_SIZE      = 0x3FD;
+        constexpr uintptr_t GET_FRIEND_INFO       = 0x533740;
+        constexpr uintptr_t FRIEND_INFO_CONTEXT   = 0xACCA3C;
+        constexpr size_t    FRIEND_INFO_SIZE      = 0x20C;
+        constexpr int       FRIEND_ONLINE         = 0x11;
+        constexpr uintptr_t SEND_WHISPER          = 0x5312E0;
     }
 
     namespace BattlemasterListDb

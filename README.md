@@ -15,6 +15,10 @@
 </p>
 
 <p align="center">
+  <a href="https://deepwiki.com/Zerik-Official/WoWControlSDK"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
+</p>
+
+<p align="center">
   <img src=".github/images/preview.png" alt="WoWControlSDK preview"/>
 </p>
 
@@ -33,11 +37,12 @@ The DLL runs inside `Wow.exe`. A client connects to `\\.\pipe\WowGameCommand`, s
 
 | Area | Methods and behavior |
 | --- | --- |
-| Lua | `lua.execute`, `lua.evaluate`, `lua.getGlobal`, `lua.setGlobal`, `lua.createNamespace` |
+| Lua | Run code, call functions by path, read and write tables, refs, hooks and batches, with taint by default and blocked actions reported |
+| Addon bridge | Addons that opt in send events to your application with `SDK.Emit`; code from `/run`, the server or other players cannot reach it. Scripts sent by the application run as virtual addons that survive `/reload` and can be unloaded with everything they created |
 | Units | Health, power, position, rotation, race, class, level, GUID, target and state flags for `player`, `target`, `focus`, `mouseover`, `partyN`, `raidN` and GUIDs |
 | Group and raid | Full roster including members out of range, roles, loot method, difficulties, combat summary, and native accept or decline of group invitations |
 | Player and world | Cached player state, experience, AFK, DND, underwater state, map, zone, instance type and difficulty |
-| Social | Friend list with online and offline events, whispers, and native accept or decline of summons |
+| Social | Friend list with online and offline events, whispers, chat on every channel with whisper replies, and native accept or decline of summons |
 | Dungeon Finder | Proposal details, members, encounters, and native enter or leave queue |
 | Trade and duels | Trade requests, both sides of the trade window, accept and cancel; duel requests, accept and decline |
 | Battlegrounds and arenas | Queue status, wait times and native enter or leave queue |
@@ -45,8 +50,8 @@ The DLL runs inside `Wow.exe`. A client connects to `\\.\pipe\WowGameCommand`, s
 | Screen state | Current glue screen, login state and low-level authentication diagnostics |
 | Events | WoW UI event subscriptions plus SDK events for loading screens, social activity, trades, duels and queues, all streamed over the event pipe with a circular history buffer |
 | Security | Pipes restricted to local connections from the Windows user that runs the game, and a per-session token on every request |
-| Window | Show, hide, minimize, maximize, focus, move, resize, opacity, top-most, title, icon and taskbar flash |
-| Diagnostics | In-game console overlay, captured game logs and DLL information |
+| Window | Show, hide, minimize, maximize, focus, move, resize, opacity, top-most, title, icon, taskbar flash and hidden starts for headless launches |
+| Diagnostics | Latency, FPS, addon memory, crash reports with the game's error log, Lua errors, in-game console overlay, captured game logs and DLL information |
 
 ## Architecture
 
@@ -166,7 +171,8 @@ To receive events, connect to `\\.\pipe\WowGameEvent` and first send `{"auth":"<
 
 | Method | Description |
 | --- | --- |
-| `lua.execute` / `lua.evaluate` | Run Lua with or without a typed return value |
+| `lua.execute` / `lua.evaluate` | Run Lua with or without its return values |
+| `lua.call` / `lua.getGlobal` | Call a function or read a value by path, with tables converted to JSON |
 | `unit.get` / `unit.state` / `unit.position` | Full unit snapshot, state flags or world position |
 | `unit.mapPosition` | Normalized map position for party and raid members only |
 | `group.get` / `group.combatSummary` | Group or raid roster and combat summary |

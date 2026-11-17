@@ -12,13 +12,14 @@ Cada método RPC pertenece a un dominio. Cada dominio tiene su propia página co
 - **Posiciones** como objetos con `x`, `y` y `z` en coma flotante. Las posiciones del mundo usan coordenadas del juego; las de mapa están normalizadas.
 - **Errores** normalmente dentro de `result` como `{"error": "<mensaje>"}`. Un sobre JSON-RPC correcto no garantiza que la operación haya funcionado.
 - **Métodos cacheados** (`player.*` y `world.*`) que leen la caché por frame y responden de inmediato. Los demás métodos se ejecutan en el hilo del juego.
+- **Métodos Lua** que se ejecutan contaminados por defecto, igual que un addon. Consulta [Taint y modo seguro](lua.md#taint-y-modo-seguro).
 - **Acciones nativas** (`group.acceptInvite`, `summon.accept`, `lfg.acceptProposal`, `trade.accept`, `duel.accept`, `battlefield.acceptPort` y sus opuestos) que llaman a las mismas funciones del cliente que los botones del juego. Nunca ejecutan Lua.
 
 ## Dominios
 
 | Dominio | Métodos | Descripción |
 | --- | --- | --- |
-| [lua.*](lua.md) | 5 | Ejecutar, evaluar y gestionar globales en la Lua VM de WoW |
+| [lua.*](lua.md) | 18 | Ejecutar Lua, llamar funciones, leer y escribir valores, vigilar llamadas y gestionar el puente de addons |
 | [unit.*](unit.md) | 4 | Leer salud, poder, posición, rotación y flags de estado de una unidad |
 | [group.*](group.md) | 5 | Leer la lista del grupo o raid, un resumen de combate y las invitaciones de grupo, y responder a las invitaciones |
 | [player.*](player.md) | 4 | Leer salud, posición, objetivo y estado completo cacheados del jugador |
@@ -28,18 +29,19 @@ Cada método RPC pertenece a un dominio. Cada dominio tiene su propia página co
 | [lfg.*](lfg.md) | 4 | Leer y responder a las propuestas del Buscador de mazmorras |
 | [trade.*](trade.md) | 6 | Leer y responder a las solicitudes de comercio y a la ventana de comercio |
 | [duel.*](duel.md) | 3 | Leer, aceptar y rechazar duelos |
+| [chat.*](chat.md) | 3 | Enviar chat en cualquier canal y responder a susurros |
 | [battlefield.*](battlefield.md) | 3 | Leer las colas de campos de batalla y arenas y responder a sus invitaciones |
 | [object.*](object.md) | 4 | Inspeccionar si una entidad existe y de qué tipo es |
-| [client.*](client.md) | 17 | Login, selección de reino, lista de personajes, estado de pantalla y automatización de EULA/TOS |
+| [client.*](client.md) | 21 | Login, selección de reino, lista de personajes, estado de pantalla, latencia, FPS, memoria de addons, informes de crash y automatización de EULA/TOS |
 | [events.*](events.md) | 8 | Suscribirse a eventos de WoW y gestionar el historial |
 | [dll.*](dll.md) | 4 | Controlar la consola y leer diagnóstico y logs del SDK |
-| [window.*](window.md) | 18 | Inspeccionar y controlar la ventana principal de WoW |
+| [window.*](window.md) | 19 | Inspeccionar y controlar la ventana principal de WoW, incluido el arranque oculto |
 
 ## Lista completa de métodos
 
 | Dominio | Métodos |
 | --- | --- |
-| `lua` | `execute`, `evaluate`, `getGlobal`, `setGlobal`, `createNamespace` |
+| `lua` | `execute`, `evaluate`, `call`, `getGlobal`, `setGlobal`, `createNamespace`, `getRef`, `releaseRef`, `hook`, `unhook`, `getHooks`, `batch`, `setAllowedAddons`, `getAddons`, `loadScript`, `unloadScript`, `getScripts`, `setBlockedNotice` |
 | `unit` | `get`, `state`, `position`, `mapPosition` |
 | `group` | `get`, `combatSummary`, `getInvite`, `acceptInvite`, `declineInvite` |
 | `player` | `getHealth`, `getPosition`, `getTarget`, `getState` |
@@ -49,12 +51,13 @@ Cada método RPC pertenece a un dominio. Cada dominio tiene su propia página co
 | `lfg` | `getProposal`, `getDungeon`, `acceptProposal`, `rejectProposal` |
 | `trade` | `get`, `acceptRequest`, `declineRequest`, `accept`, `unaccept`, `cancel` |
 | `duel` | `get`, `accept`, `decline` |
+| `chat` | `send`, `reply`, `getRecentWhispers` |
 | `battlefield` | `getQueues`, `acceptPort`, `leaveQueue` |
 | `object` | `exists`, `getType`, `isUnit`, `isPlayer` |
-| `client` | `ping`, `getScreen`, `getDebugState`, `login`, `enterWorld`, `logout`, `quit`, `getCharacters`, `refreshCharacters`, `getRealmlist`, `setRealmlist`, `acceptEULA`, `acceptTOS`, `acceptTermination`, `acceptScanning`, `acceptContest`, `acceptAll` |
+| `client` | `ping`, `getScreen`, `getDebugState`, `getNetStats`, `getFramerate`, `getAddonMemory`, `getLastCrash`, `login`, `enterWorld`, `logout`, `quit`, `getCharacters`, `refreshCharacters`, `getRealmlist`, `setRealmlist`, `acceptEULA`, `acceptTOS`, `acceptTermination`, `acceptScanning`, `acceptContest`, `acceptAll` |
 | `events` | `subscribe`, `unsubscribe`, `list`, `clear`, `getHistory`, `clearHistory`, `setMaxBuffer`, `isReady` |
 | `dll` | `toggleConsole`, `getInfo`, `getLogs`, `setLogConfig` |
-| `window` | `getHandle`, `getInfo`, `show`, `hide`, `minimize`, `restore`, `maximize`, `focus`, `getPosition`, `setPosition`, `getSize`, `setSize`, `setBounds`, `setTitle`, `setTopMost`, `setOpacity`, `flashTaskbar`, `setIcon` |
+| `window` | `getHandle`, `getInfo`, `show`, `hide`, `minimize`, `restore`, `maximize`, `focus`, `getPosition`, `setPosition`, `getSize`, `setSize`, `setBounds`, `setTitle`, `setTopMost`, `setOpacity`, `flashTaskbar`, `setIcon`, `setStartHidden` |
 
 ## Anatomía de una página de método
 

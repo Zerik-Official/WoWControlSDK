@@ -15,10 +15,20 @@ add_library(WoWControlSDK SHARED
     DllMain.cpp
 
     core/engine/LuaEngine.cpp
+    core/engine/lua/LuaBlocked.cpp
+    core/engine/lua/LuaBridge.cpp
+    core/engine/lua/LuaNative.cpp
+    core/engine/lua/LuaPath.cpp
+    core/engine/lua/LuaScripts.cpp
+    core/engine/lua/LuaStack.cpp
+    core/engine/lua/LuaTaint.cpp
 
     core/native/ObjectManager.cpp
     core/native/ClientState.cpp
     core/native/NetClient.cpp
+    core/native/Performance.cpp
+    core/native/AddonMemory.cpp
+    core/native/CrashReport.cpp
     core/native/RealmListReader.cpp
     core/native/WoWObject.cpp
     core/native/Unit.cpp
@@ -44,6 +54,7 @@ add_library(WoWControlSDK SHARED
     core/api/TradeAPI.cpp
     core/api/DuelAPI.cpp
     core/api/BattlefieldAPI.cpp
+    core/api/ChatAPI.cpp
 
     core/resolvers/NameResolver.cpp
     core/resolvers/UnitResolver.cpp
@@ -72,10 +83,16 @@ add_library(WoWControlSDK SHARED
     runtime/realm/RealmList.cpp
     runtime/events/EventPipe.cpp
     runtime/events/GameEventBridge.cpp
+    runtime/events/LuaEventBridge.cpp
+
+    runtime/diagnostics/CrashMonitor.cpp
+    runtime/diagnostics/AddonMemoryMonitor.cpp
 
     runtime/window/WindowService.cpp
 
     hooks/Hooks.cpp
+    hooks/AddonHooks.cpp
+    hooks/ErrorHooks.cpp
     hooks/lua/LuaHooks.cpp
     hooks/glue/GlueLoadHooks.cpp
     hooks/EndSceneHook.cpp
@@ -85,6 +102,7 @@ add_library(WoWControlSDK SHARED
     hooks/EventHooks.cpp
     hooks/LoadingHooks.cpp
     hooks/SocialHooks.cpp
+    hooks/WindowHooks.cpp
 
     ipc/CommandPipe.cpp
     ipc/Auth.cpp

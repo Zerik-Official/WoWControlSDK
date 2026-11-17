@@ -36,6 +36,12 @@ void ClientPacket::writeU64(uint32_t low, uint32_t high)
     reinterpret_cast<WriteFn>(Offsets::Packet::WRITE_U64)(&m_store, low, high);
 }
 
+void ClientPacket::writeString(const char* value)
+{
+    using WriteFn = void(__thiscall*)(DataStore*, const char*);
+    reinterpret_cast<WriteFn>(Offsets::Packet::WRITE_STRING)(&m_store, value);
+}
+
 void ClientPacket::send()
 {
     m_store.read = 0;

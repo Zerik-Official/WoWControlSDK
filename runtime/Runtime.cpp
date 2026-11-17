@@ -5,6 +5,7 @@
 #include "hooks/Hooks.h"
 #include "hooks/LoadingHooks.h"
 #include "window/WindowService.h"
+#include "events/LuaEventBridge.h"
 #include <Windows.h>
 
 namespace Runtime
@@ -51,6 +52,8 @@ namespace Runtime
     {
         s_cache.update();
         Hooks::Loading::PollFlag();
+        LuaEventBridge::Poll();
+        Hooks::Errors::Initialize();
     }
 
     MethodRegistry& registry() { return s_registry; }

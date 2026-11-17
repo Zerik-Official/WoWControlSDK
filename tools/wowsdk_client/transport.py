@@ -15,9 +15,13 @@ import pywintypes
 import win32file
 import win32pipe
 
+# Project imports
+from .i18n import tr
+
 COMMAND_PIPE = r"\\.\pipe\WowGameCommand"
 
 ERROR_FILE_NOT_FOUND = 2
+ERROR_ACCESS_DENIED = 5
 ERROR_SEM_TIMEOUT = 121
 ERROR_PIPE_BUSY = 231
 ERROR_BROKEN_PIPE = 109
@@ -110,19 +114,19 @@ class CommandClient:
             win32file.WriteFile(handle, json.dumps(request).encode("utf-8"))
             raw = self._read_all(handle)
         except pywintypes.error as exc:
-            raise TransportError(f"Pipe error {exc.winerror}: {exc.strerror}") from exc
+            raise TransportError(tr("transport.pipe_error", code=exc.winerror, error=exc.strerror)) from exc
         finally:
             win32file.CloseHandle(handle)
 
         text = raw.decode("utf-8", errors="replace").rstrip("\x00").strip()
         if not text:
-            raise TransportError("Empty response: the game closed the pipe")
+            raise TransportError(tr("transport.empty"))
         try:
             parsed = json.loads(text)
         except json.JSONDecodeError as exc:
-            raise TransportError(f"Invalid JSON response: {exc}") from exc
+            raise TransportError(tr("transport.invalid_json", error=exc)) from exc
         if not isinstance(parsed, dict):
-            raise TransportError("The response is not a JSON object")
+            raise TransportError(tr("transport.not_object"))
         return parsed
 
     @staticmethod
@@ -146,9 +150,11 @@ class CommandClient:
                         pass
                     continue
                 if exc.winerror == ERROR_FILE_NOT_FOUND:
-                    raise TransportError("The SDK is not running: the command pipe does not exist") from exc
-                raise TransportError(f"Could not open the command pipe: {exc.strerror}") from exc
-        raise TransportError("The command pipe stayed busy")
+                    raise TransportError(tr("transport.not_running")) from exc
+                if exc.winerror == ERROR_ACCESS_DENIED:
+                    raise TransportError(tr("transport.access_denied")) from exc
+                raise TransportError(tr("transport.open_failed", error=exc.strerror)) from exc
+        raise TransportError(tr("transport.busy"))
 
     @staticmethod
     def _read_all(handle: Any) -> bytes:

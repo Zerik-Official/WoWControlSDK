@@ -1,14 +1,29 @@
-"""Catalog of every SDK method the client can call.
+"""Catalog of every SDK method the client can call, loaded from ``data/catalog``.
 
-Each method is described once here. The interface builds its forms from these
-descriptions, so supporting a new SDK method only needs a new entry.
+Each domain lives in its own JSON file with its methods, parameters and the English and
+Spanish texts. ``index.json`` sets the order of the domains in the sidebar. Supporting a new
+SDK method only needs a new entry in the file of its domain.
 """
 
 # Standard library
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from enum import Enum
+from pathlib import Path
+from typing import Any
+
+# Project imports
+from .i18n import localized
+
+CATALOG_DIR: Path = Path(__file__).resolve().parent / "data" / "catalog"
+
+LocalizedText = dict[str, str]
+
+
+class CatalogError(Exception):
+    """A catalog file is missing or malformed."""
 
 
 class ParamType(Enum):
@@ -30,10 +45,15 @@ class Param:
 
     name: str
     type: ParamType
-    description: str
+    texts: LocalizedText
     required: bool = False
     default: str | int | bool | None = None
     choices: tuple[str, ...] = ()
+
+    @property
+    def description(self) -> str:
+        """Description in the current language."""
+        return localized(self.texts)
 
 
 @dataclass(frozen=True)
@@ -41,14 +61,29 @@ class Method:
     """One SDK method."""
 
     name: str
-    description: str
+    texts: LocalizedText
     params: tuple[Param, ...] = ()
-    confirm: str | None = None
+    confirm_texts: LocalizedText | None = None
 
     @property
     def domain(self) -> str:
         """Domain part of the method name, for example ``group``."""
         return self.name.split(".", 1)[0]
+
+    @property
+    def action(self) -> str:
+        """Method part of the name, for example ``getInvite``."""
+        return self.name.split(".", 1)[1]
+
+    @property
+    def description(self) -> str:
+        """Description in the current language."""
+        return localized(self.texts)
+
+    @property
+    def confirm(self) -> str | None:
+        """Confirmation question in the current language, if the method needs one."""
+        return localized(self.confirm_texts) if self.confirm_texts else None
 
 
 @dataclass(frozen=True)
@@ -56,217 +91,67 @@ class Domain:
     """A group of methods shown together in the sidebar."""
 
     name: str
-    title: str
+    texts: LocalizedText
+    icon: str
     methods: tuple[Method, ...] = field(default_factory=tuple)
 
-
-def _token(description: str = "Unit token: player, target, focus, mouseover, partyN, raidN or a GUID") -> Param:
-    """Unit token parameter shared by the unit and object methods."""
-    return Param("token", ParamType.STRING, description, default="player")
-
-
-def _index() -> Param:
-    """Queue index parameter shared by the battlefield actions."""
-    return Param("index", ParamType.INTEGER, "Queue slot, 1 or 2", required=True, default=1)
+    @property
+    def title(self) -> str:
+        """Title in the current language."""
+        return localized(self.texts)
 
 
-DOMAINS: tuple[Domain, ...] = (
-    Domain("client", "Client", (
-        Method("client.ping", "Check that the command pipe answers."),
-        Method("client.getScreen", "Current glue screen and login state."),
-        Method("client.getDebugState", "Low-level login and authentication diagnostics."),
-        Method("client.login", "Log in, optionally setting the realm list and choosing a realm.", (
-            Param("username", ParamType.STRING, "Account username", required=True),
-            Param("password", ParamType.SECRET, "Account password", required=True),
-            Param("realmList", ParamType.STRING, "Realm list address to set before logging in"),
-            Param("realmName", ParamType.STRING, "Realm to select after logging in"),
-        )),
-        Method("client.getCharacters", "Characters on the character select screen."),
-        Method("client.refreshCharacters", "Ask the server for the character list again."),
-        Method("client.enterWorld", "Enter the world with a character.", (
-            Param("name", ParamType.STRING, "Character name, takes precedence over index"),
-            Param("index", ParamType.INTEGER, "Character slot index", default=0),
-            Param("wait", ParamType.BOOLEAN, "Wait until the world is loaded, up to 30 seconds", default=True),
-        )),
-        Method("client.logout", "Log out to the character select screen."),
-        Method("client.quit", "Close the game.", confirm="Close World of Warcraft?"),
-        Method("client.getRealmlist", "Read the realm list CVar."),
-        Method("client.setRealmlist", "Set the realm list CVar.", (
-            Param("realmList", ParamType.STRING, "New realm list address", required=True),
-        )),
-        Method("client.acceptEULA", "Accept the EULA dialog."),
-        Method("client.acceptTOS", "Accept the Terms of Service dialog."),
-        Method("client.acceptTermination", "Accept the termination policy dialog."),
-        Method("client.acceptScanning", "Accept the scanning dialog."),
-        Method("client.acceptContest", "Accept the contest dialog."),
-        Method("client.acceptAll", "Accept every agreement dialog."),
-    )),
-    Domain("player", "Player", (
-        Method("player.getState", "Full cached player state."),
-        Method("player.getHealth", "Cached health and power."),
-        Method("player.getPosition", "Cached world position and rotation."),
-        Method("player.getTarget", "Cached target GUID."),
-    )),
-    Domain("world", "World", (
-        Method("world.getState", "Map, zone, map area, instance and difficulty."),
-    )),
-    Domain("unit", "Units", (
-        Method("unit.get", "Full unit snapshot.", (_token(),)),
-        Method("unit.state", "Unit state flags.", (_token(),)),
-        Method("unit.position", "Unit world position.", (_token(),)),
-        Method("unit.mapPosition", "Normalized map position of a party or raid member.", (
-            _token("Unit token: partyN or raidN"),
-        )),
-    )),
-    Domain("object", "Objects", (
-        Method("object.exists", "Whether the entity exists.", (_token(),)),
-        Method("object.getType", "Object type of the entity.", (_token(),)),
-        Method("object.isUnit", "Whether the entity is a unit.", (_token(),)),
-        Method("object.isPlayer", "Whether the entity is a player.", (_token(),)),
-    )),
-    Domain("group", "Group", (
-        Method("group.get", "Full party or raid roster, including members out of range."),
-        Method("group.combatSummary", "Combat summary of the members in range."),
-        Method("group.getInvite", "Pending group invitation."),
-        Method("group.acceptInvite", "Accept the pending invitation with the selected roles.", (
-            Param("tank", ParamType.BOOLEAN, "Offer the tank role", default=False),
-            Param("healer", ParamType.BOOLEAN, "Offer the healer role", default=False),
-            Param("damage", ParamType.BOOLEAN, "Offer the damage role", default=False),
-        )),
-        Method("group.declineInvite", "Decline the pending invitation."),
-    )),
-    Domain("friends", "Friends", (
-        Method("friends.list", "Friend list with level, class, zone and status."),
-    )),
-    Domain("summon", "Summons", (
-        Method("summon.get", "Pending summon."),
-        Method("summon.accept", "Accept the pending summon."),
-        Method("summon.decline", "Decline the pending summon."),
-    )),
-    Domain("lfg", "Dungeon Finder", (
-        Method("lfg.getProposal", "Active Dungeon Finder proposal."),
-        Method("lfg.getDungeon", "One row of LfgDungeons.dbc.", (
-            Param("id", ParamType.INTEGER, "LfgDungeons.dbc ID", required=True),
-        )),
-        Method("lfg.acceptProposal", "Enter the dungeon."),
-        Method("lfg.rejectProposal", "Leave the queue."),
-    )),
-    Domain("trade", "Trade", (
-        Method("trade.get", "Pending request and both sides of the trade window."),
-        Method("trade.acceptRequest", "Accept the pending trade request."),
-        Method("trade.declineRequest", "Decline the pending trade request."),
-        Method("trade.accept", "Press Trade in the trade window."),
-        Method("trade.unaccept", "Withdraw your acceptance."),
-        Method("trade.cancel", "Close the trade window without trading."),
-    )),
-    Domain("duel", "Duels", (
-        Method("duel.get", "Current duel request or duel."),
-        Method("duel.accept", "Accept the duel."),
-        Method("duel.decline", "Decline the request or forfeit the duel."),
-    )),
-    Domain("battlefield", "Battlegrounds", (
-        Method("battlefield.getQueues", "Both battleground and arena queues."),
-        Method("battlefield.acceptPort", "Enter the battleground or arena.", (_index(),)),
-        Method("battlefield.leaveQueue", "Leave a queue or decline its invitation.", (_index(),)),
-    )),
-    Domain("events", "Events", (
-        Method("events.subscribe", "Subscribe to WoW UI events.", (
-            Param("events", ParamType.STRING_LIST, "Event names separated by commas", required=True,
-                  default="PLAYER_LOGIN, PLAYER_ENTERING_WORLD, PLAYER_REGEN_DISABLED, UNIT_HEALTH"),
-        )),
-        Method("events.unsubscribe", "Unsubscribe from WoW UI events.", (
-            Param("events", ParamType.STRING_LIST, "Event names separated by commas", required=True),
-        )),
-        Method("events.list", "Subscribed WoW UI events."),
-        Method("events.clear", "Remove every subscription."),
-        Method("events.getHistory", "Read the event history buffer.", (
-            Param("offset", ParamType.INTEGER, "Position to start from", default=0),
-            Param("count", ParamType.INTEGER, "Number of entries", default=50),
-        )),
-        Method("events.clearHistory", "Clear the event history buffer."),
-        Method("events.setMaxBuffer", "Change the history buffer size.", (
-            Param("maxBuffer", ParamType.INTEGER, "Maximum number of entries", default=256),
-        )),
-        Method("events.isReady", "Whether the event hooks are ready."),
-    )),
-    Domain("lua", "Lua", (
-        Method("lua.execute", "Run Lua code without a return value.", (
-            Param("code", ParamType.TEXT, "Lua source code", required=True),
-        )),
-        Method("lua.evaluate", "Run Lua code and return its result.", (
-            Param("code", ParamType.TEXT, "Lua expression or code", required=True, default="return GetRealZoneText()"),
-        )),
-        Method("lua.getGlobal", "Read a Lua global.", (
-            Param("name", ParamType.STRING, "Global name", required=True),
-        )),
-        Method("lua.setGlobal", "Set a Lua global to a boolean, number or string.", (
-            Param("name", ParamType.STRING, "Global name", required=True),
-            Param("value", ParamType.JSON, "Value as JSON, for example 42, true or \"text\""),
-        )),
-        Method("lua.createNamespace", "Create a table global.", (
-            Param("name", ParamType.STRING, "Table name", required=True),
-        )),
-    )),
-    Domain("window", "Window", (
-        Method("window.getInfo", "Window handle, state, bounds and title."),
-        Method("window.getHandle", "Window handle."),
-        Method("window.show", "Show the window."),
-        Method("window.hide", "Hide the window."),
-        Method("window.minimize", "Minimize the window."),
-        Method("window.restore", "Restore the window."),
-        Method("window.maximize", "Maximize the window."),
-        Method("window.focus", "Bring the window to the foreground."),
-        Method("window.getPosition", "Window position."),
-        Method("window.setPosition", "Move the window.", (
-            Param("x", ParamType.INTEGER, "X coordinate", required=True, default=0),
-            Param("y", ParamType.INTEGER, "Y coordinate", required=True, default=0),
-        )),
-        Method("window.getSize", "Window size."),
-        Method("window.setSize", "Resize the window.", (
-            Param("width", ParamType.INTEGER, "Width in pixels", required=True, default=1280),
-            Param("height", ParamType.INTEGER, "Height in pixels", required=True, default=720),
-        )),
-        Method("window.setBounds", "Move and resize the window.", (
-            Param("x", ParamType.INTEGER, "X coordinate", required=True, default=0),
-            Param("y", ParamType.INTEGER, "Y coordinate", required=True, default=0),
-            Param("width", ParamType.INTEGER, "Width in pixels", required=True, default=1280),
-            Param("height", ParamType.INTEGER, "Height in pixels", required=True, default=720),
-        )),
-        Method("window.setTitle", "Change the window title.", (
-            Param("title", ParamType.STRING, "New title", required=True),
-        )),
-        Method("window.setTopMost", "Keep the window above the others.", (
-            Param("topMost", ParamType.BOOLEAN, "Always on top", required=True, default=True),
-        )),
-        Method("window.setOpacity", "Change the window opacity.", (
-            Param("percent", ParamType.INTEGER, "Opacity from 0 to 100", default=100),
-        )),
-        Method("window.flashTaskbar", "Flash the taskbar button.", (
-            Param("count", ParamType.INTEGER, "Number of flashes, 0 until focused", default=0),
-            Param("timeoutMs", ParamType.INTEGER, "Interval in milliseconds, 0 for the default", default=0),
-        )),
-        Method("window.setIcon", "Change the window icon or restore the original one.", (
-            Param("path", ParamType.STRING, "Absolute path to an .ico file"),
-            Param("type", ParamType.CHOICE, "Icon size to change, empty for both", default="", choices=("", "small", "big")),
-            Param("restore", ParamType.BOOLEAN, "Restore the original icon instead", default=False),
-        )),
-    )),
-    Domain("dll", "DLL", (
-        Method("dll.getInfo", "DLL version, build and state."),
-        Method("dll.toggleConsole", "Show or hide the in-game console."),
-        Method("dll.getLogs", "Captured game logs.", (
-            Param("offset", ParamType.INTEGER, "Position to start from", default=0),
-            Param("count", ParamType.INTEGER, "Number of entries", default=50),
-        )),
-        Method("dll.setLogConfig", "Configure log capture.", (
-            Param("maxEntries", ParamType.INTEGER, "Maximum buffered entries", default=256),
-            Param("showInConsole", ParamType.BOOLEAN, "Echo logs to the in-game console", default=False),
-        )),
-    )),
-    Domain("auth", "Authentication", (
-        Method("auth.status", "Authentication state of the SDK."),
-    )),
-)
+def _texts(value: Any, where: str) -> LocalizedText:
+    if not isinstance(value, dict) or "en" not in value:
+        raise CatalogError(f"{where} needs an object with at least an English text")
+    return {str(code): str(text) for code, text in value.items()}
+
+
+def _param(data: dict[str, Any], where: str) -> Param:
+    return Param(
+        name=str(data["name"]),
+        type=ParamType(data["type"]),
+        texts=_texts(data.get("description"), f"{where}.{data['name']}"),
+        required=bool(data.get("required", False)),
+        default=data.get("default"),
+        choices=tuple(str(choice) for choice in data.get("choices", ())),
+    )
+
+
+def _method(data: dict[str, Any]) -> Method:
+    name = str(data["name"])
+    return Method(
+        name=name,
+        texts=_texts(data.get("description"), name),
+        params=tuple(_param(item, name) for item in data.get("params", ())),
+        confirm_texts=_texts(data["confirm"], f"{name}.confirm") if "confirm" in data else None,
+    )
+
+
+def _domain(name: str) -> Domain:
+    path = CATALOG_DIR / f"{name}.json"
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        return Domain(
+            name=str(data["name"]),
+            texts=_texts(data.get("title"), name),
+            icon=str(data.get("icon", "")),
+            methods=tuple(_method(item) for item in data.get("methods", ())),
+        )
+    except (OSError, json.JSONDecodeError, KeyError, ValueError) as exc:
+        raise CatalogError(f"{path.name}: {exc}") from exc
+
+
+def load_domains() -> tuple[Domain, ...]:
+    """Every domain listed in ``index.json``, in order."""
+    try:
+        index = json.loads((CATALOG_DIR / "index.json").read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise CatalogError(f"index.json: {exc}") from exc
+    return tuple(_domain(str(name)) for name in index.get("domains", ()))
+
+
+DOMAINS: tuple[Domain, ...] = load_domains()
 
 
 def all_methods() -> list[Method]:
@@ -277,3 +162,8 @@ def all_methods() -> list[Method]:
 def find_method(name: str) -> Method | None:
     """The method with this exact name, if it exists."""
     return next((method for method in all_methods() if method.name == name), None)
+
+
+def find_domain(name: str) -> Domain | None:
+    """The domain with this name, if it exists."""
+    return next((domain for domain in DOMAINS if domain.name == name), None)

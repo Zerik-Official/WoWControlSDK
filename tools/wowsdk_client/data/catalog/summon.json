@@ -1,0 +1,31 @@
+{
+  "name": "summon",
+  "title": {
+    "en": "Summons",
+    "es": "Invocaciones"
+  },
+  "icon": "sparkles",
+  "methods": [
+    {
+      "name": "summon.get",
+      "description": {
+        "en": "Pending summon.",
+        "es": "Invocación pendiente."
+      }
+    },
+    {
+      "name": "summon.accept",
+      "description": {
+        "en": "Accept the pending summon.",
+        "es": "Acepta la invocación pendiente."
+      }
+    },
+    {
+      "name": "summon.decline",
+      "description": {
+        "en": "Decline the pending summon.",
+        "es": "Rechaza la invocación pendiente."
+      }
+    }
+  ]
+}

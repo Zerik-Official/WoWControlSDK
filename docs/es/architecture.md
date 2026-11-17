@@ -90,7 +90,7 @@ sequenceDiagram
 ```
 
 1. El cliente se conecta a `\\.\pipe\WowGameCommand`.
-2. `ipc/CommandPipe` lee un mensaje de hasta 4096 bytes.
+2. `ipc/CommandPipe` lee un mensaje de hasta 1 MiB.
 3. `rpc/Dispatcher` valida el sobre y enruta la petición al handler registrado.
 4. El handler llama a una API de `core/`, lee la caché de `runtime/` o encola trabajo en el hilo del juego.
 5. `Dispatcher` envuelve el resultado del handler en una respuesta JSON-RPC.
@@ -138,7 +138,7 @@ Los eventos también se guardan en un búfer circular que `events.getHistory` pu
 | Ejecución de handlers RPC | Algunos handlers encolan trabajo en el hilo del juego mediante `Hooks::Frame::Post`; otros bloquean el hilo RPC mientras sondean. |
 
 !!! note
-    Las operaciones Lua (`lua.evaluate` y `lua.execute`) usan `lua_pcall` con `errfunc=0` y son seguras desde el hilo RPC. Las operaciones que cambian estado, como login, logout y entrar al mundo, se encolan en el hilo del juego para evitar condiciones de carrera.
+    Todos los métodos `lua.*` se ejecutan en el hilo del juego: el hilo RPC pasa la llamada al siguiente frame y espera su resultado. Las operaciones que cambian estado, como login, logout y entrar al mundo, se encolan en el hilo del juego para evitar condiciones de carrera.
 
 ## Aislamiento de offsets
 

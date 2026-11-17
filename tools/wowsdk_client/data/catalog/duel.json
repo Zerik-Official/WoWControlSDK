@@ -1,0 +1,31 @@
+{
+  "name": "duel",
+  "title": {
+    "en": "Duels",
+    "es": "Duelos"
+  },
+  "icon": "swords",
+  "methods": [
+    {
+      "name": "duel.get",
+      "description": {
+        "en": "Current duel request or duel.",
+        "es": "Solicitud de duelo o duelo actual."
+      }
+    },
+    {
+      "name": "duel.accept",
+      "description": {
+        "en": "Accept the duel.",
+        "es": "Acepta el duelo."
+      }
+    },
+    {
+      "name": "duel.decline",
+      "description": {
+        "en": "Decline the request or forfeit the duel.",
+        "es": "Rechaza la solicitud o abandona el duelo."
+      }
+    }
+  ]
+}

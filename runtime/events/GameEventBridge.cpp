@@ -8,6 +8,7 @@
 #include "core/api/TradeAPI.h"
 #include "core/api/DuelAPI.h"
 #include "core/api/BattlefieldAPI.h"
+#include "core/api/ChatAPI.h"
 #include "core/native/ObjectManager.h"
 #include "offsets/OffsetsSocial.h"
 #include <Windows.h>
@@ -87,6 +88,16 @@ namespace Runtime
                 if (!args.is_array() || index >= args.size() || !args[index].is_string())
                     return {};
                 return args[index].get<std::string>();
+            }
+
+            int64_t argInteger(const SDK::Json& args, size_t index)
+            {
+                if (!args.is_array() || index >= args.size()) return 0;
+                const SDK::Json& value = args[index];
+                if (value.is_number_integer()) return value.get<int64_t>();
+                if (value.is_number()) return static_cast<int64_t>(value.get<double>());
+                if (value.is_string()) return std::strtoll(value.get<std::string>().c_str(), nullptr, 10);
+                return 0;
             }
 
             SDK::Json argValue(const SDK::Json& args, size_t index)
@@ -193,6 +204,16 @@ namespace Runtime
                 data["guid"] = argValue(args, 11);
                 data["presenceId"] = battleNet ? argValue(args, 12) : SDK::Json(nullptr);
                 data["args"] = args;
+
+                CoreAPI::WhisperRecord record = {};
+                record.author       = argString(args, 1);
+                record.battleNet    = battleNet;
+                record.lineId       = argInteger(args, 10);
+                record.guid         = argString(args, 11);
+                record.presenceId   = battleNet ? static_cast<uint32_t>(argInteger(args, 12)) : 0;
+                record.receivedAtMs = timeMs;
+                CoreAPI::Chat::RecordWhisper(record);
+
                 EventPipe::PushEvent("chat.whisperReceived", data, timeMs);
             }
 

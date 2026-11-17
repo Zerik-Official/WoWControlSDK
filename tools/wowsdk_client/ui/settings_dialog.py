@@ -10,8 +10,12 @@ from typing import Any, Callable
 import customtkinter as ctk
 
 # Project imports
+from ..i18n import LANGUAGES, tr
 from ..settings import Settings, default_binary
 from . import theme
+
+
+APPEARANCES: tuple[str, ...] = ("dark", "light", "system")
 
 
 class PathRow:
@@ -24,7 +28,7 @@ class PathRow:
         if value:
             self.entry.insert(0, value)
         self.entry.grid(row=row, column=1, sticky="ew", pady=4)
-        ctk.CTkButton(master, text="Browse", width=80, fg_color=theme.SURFACE_ALT, hover_color=theme.SURFACE,
+        ctk.CTkButton(master, text=tr("settings.browse"), width=80, fg_color=theme.SURFACE_ALT, hover_color=theme.SURFACE,
                       text_color=("#1a1a1a", "#e6e6e6"),
                       command=lambda: self._browse(file_types)).grid(row=row, column=2, padx=(8, 0), pady=4)
 
@@ -45,7 +49,7 @@ class SettingsDialog(ctk.CTkToplevel):
     def __init__(self, master: Any, settings: Settings, token: str | None,
                  on_save: Callable[[Settings, str | None], None]) -> None:
         super().__init__(master)
-        self.title("Settings")
+        self.title(tr("settings.title"))
         self.resizable(False, False)
         self.transient(master)
         self._settings = settings
@@ -56,53 +60,64 @@ class SettingsDialog(ctk.CTkToplevel):
         body.grid_columnconfigure(0, minsize=150)
         body.grid_columnconfigure(1, weight=1)
 
-        ctk.CTkLabel(body, text="Game and SDK", font=theme.title(15), anchor="w").grid(
+        ctk.CTkLabel(body, text=tr("settings.game_and_sdk"), font=theme.title(15), anchor="w").grid(
             row=0, column=0, columnspan=3, sticky="w", pady=(0, 6))
         self._wow = PathRow(body, 1, "Wow.exe", settings.wow_path, "C:\\World of Warcraft\\Wow.exe",
                             [("Wow.exe", "Wow.exe"), ("Executables", "*.exe")])
-        self._dll = PathRow(body, 2, "SDK DLL", settings.dll_path,
+        self._dll = PathRow(body, 2, tr("settings.dll"), settings.dll_path,
                             default_binary("WoWControlSDK.dll") or "WoWControlSDK.dll",
                             [("DLL", "*.dll")])
-        self._injector = PathRow(body, 3, "Injector", settings.injector_path,
+        self._injector = PathRow(body, 3, tr("settings.injector"), settings.injector_path,
                                  default_binary("WowInjector.exe") or "WowInjector.exe",
                                  [("Executables", "*.exe")])
 
-        ctk.CTkLabel(body, text="Launch options", font=theme.title(15), anchor="w").grid(
+        ctk.CTkLabel(body, text=tr("settings.launch_options"), font=theme.title(15), anchor="w").grid(
             row=4, column=0, columnspan=3, sticky="w", pady=(16, 6))
-        self._use_auth = self._switch(body, 5, "Use a session token (recommended)", settings.use_auth)
-        self._kill = self._switch(body, 6, "Close running Wow.exe before launching", settings.kill_existing)
-        self._console = self._switch(body, 7, "Open the in-game SDK console", settings.open_console)
-        self._logs = self._switch(body, 8, "Show captured logs in the console", settings.show_logs_in_console)
-        ctk.CTkLabel(body, text="Wow.exe arguments", anchor="w").grid(row=9, column=0, sticky="w", pady=4)
+        self._use_auth = self._switch(body, 5, tr("settings.use_auth"), settings.use_auth)
+        self._kill = self._switch(body, 6, tr("settings.kill"), settings.kill_existing)
+        self._console = self._switch(body, 7, tr("settings.console"), settings.open_console)
+        self._logs = self._switch(body, 8, tr("settings.logs"), settings.show_logs_in_console)
+        self._hidden = self._switch(body, 9, tr("settings.hidden"), settings.start_hidden)
+        ctk.CTkLabel(body, text=tr("settings.wow_args"), anchor="w").grid(row=10, column=0, sticky="w", pady=4)
         self._args = ctk.CTkEntry(body)
         self._args.insert(0, settings.wow_args)
-        self._args.grid(row=9, column=1, columnspan=2, sticky="ew", pady=4)
+        self._args.grid(row=10, column=1, columnspan=2, sticky="ew", pady=4)
 
-        ctk.CTkLabel(body, text="Session", font=theme.title(15), anchor="w").grid(
-            row=10, column=0, columnspan=3, sticky="w", pady=(16, 6))
-        ctk.CTkLabel(body, text="Token", anchor="w").grid(row=11, column=0, sticky="w", pady=4)
-        self._token = ctk.CTkEntry(body, show="\u2022", placeholder_text="Empty when the SDK runs with --no-auth")
+        ctk.CTkLabel(body, text=tr("settings.session"), font=theme.title(15), anchor="w").grid(
+            row=11, column=0, columnspan=3, sticky="w", pady=(16, 6))
+        ctk.CTkLabel(body, text=tr("settings.token"), anchor="w").grid(row=12, column=0, sticky="w", pady=4)
+        self._token = ctk.CTkEntry(body, show="\u2022", placeholder_text=tr("settings.token_placeholder"))
         if token:
             self._token.insert(0, token)
-        self._token.grid(row=11, column=1, columnspan=2, sticky="ew", pady=4)
+        self._token.grid(row=12, column=1, columnspan=2, sticky="ew", pady=4)
         ctk.CTkLabel(
-            body, text="Launching from this client creates a new token. Paste one here to control a game "
-                       "started elsewhere. The token is never saved to disk.",
+            body, text=tr("settings.token_help"),
             font=theme.small(), text_color=theme.MUTED, anchor="w", justify="left", wraplength=520,
-        ).grid(row=12, column=0, columnspan=3, sticky="w")
+        ).grid(row=13, column=0, columnspan=3, sticky="w")
 
-        ctk.CTkLabel(body, text="Appearance", anchor="w").grid(row=13, column=0, sticky="w", pady=(16, 4))
-        self._appearance = ctk.CTkSegmentedButton(body, values=["dark", "light", "system"],
+        self._appearance_labels = {tr(f"settings.appearance.{mode}"): mode for mode in APPEARANCES}
+        ctk.CTkLabel(body, text=tr("settings.appearance"), anchor="w").grid(row=14, column=0, sticky="w",
+                                                                            pady=(16, 4))
+        self._appearance = ctk.CTkSegmentedButton(body, values=list(self._appearance_labels),
                                                   selected_color=theme.ACCENT,
                                                   selected_hover_color=theme.ACCENT_HOVER)
-        self._appearance.set(settings.appearance)
-        self._appearance.grid(row=13, column=1, sticky="w", pady=(16, 4))
+        self._appearance.set(tr(f"settings.appearance.{settings.appearance}")
+                             if settings.appearance in APPEARANCES else tr("settings.appearance.dark"))
+        self._appearance.grid(row=14, column=1, sticky="w", pady=(16, 4))
+
+        self._language_labels = {tr("settings.language.auto"): ""}
+        self._language_labels.update({name: code for code, name in LANGUAGES.items()})
+        ctk.CTkLabel(body, text=tr("settings.language"), anchor="w").grid(row=15, column=0, sticky="w", pady=4)
+        self._language = ctk.CTkOptionMenu(body, values=list(self._language_labels), fg_color=theme.SURFACE_ALT,
+                                           button_color=theme.ACCENT, button_hover_color=theme.ACCENT_HOVER)
+        self._language.set(LANGUAGES.get(settings.language, tr("settings.language.auto")))
+        self._language.grid(row=15, column=1, sticky="w", pady=4)
 
         buttons = ctk.CTkFrame(body, fg_color="transparent")
-        buttons.grid(row=14, column=0, columnspan=3, sticky="e", pady=(20, 0))
-        ctk.CTkButton(buttons, text="Cancel", width=90, fg_color=theme.SURFACE_ALT, hover_color=theme.SURFACE,
+        buttons.grid(row=16, column=0, columnspan=3, sticky="e", pady=(20, 0))
+        ctk.CTkButton(buttons, text=tr("settings.cancel"), width=90, fg_color=theme.SURFACE_ALT, hover_color=theme.SURFACE,
                       text_color=("#1a1a1a", "#e6e6e6"), command=self.destroy).pack(side="left", padx=(0, 8))
-        ctk.CTkButton(buttons, text="Save", width=90, fg_color=theme.ACCENT, hover_color=theme.ACCENT_HOVER,
+        ctk.CTkButton(buttons, text=tr("settings.save"), width=90, fg_color=theme.ACCENT, hover_color=theme.ACCENT_HOVER,
                       command=self._save).pack(side="left")
 
         self.after(50, self._focus)
@@ -130,7 +145,9 @@ class SettingsDialog(ctk.CTkToplevel):
             wow_args=self._args.get().strip(),
             open_console=bool(self._console.get()),
             show_logs_in_console=bool(self._logs.get()),
-            appearance=self._appearance.get(),
+            start_hidden=bool(self._hidden.get()),
+            appearance=self._appearance_labels.get(self._appearance.get(), "dark"),
+            language=self._language_labels.get(self._language.get(), ""),
         )
         token = self._token.get().strip() or None
         self._on_save(settings, token)

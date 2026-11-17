@@ -14,6 +14,7 @@ struct Args
     bool                     kill      = false;
     bool                     tokenStdin = false;
     bool                     noAuth    = false;
+    bool                     hidden    = false;
     std::vector<std::string> pipeCommands;
 };
 

@@ -7,7 +7,7 @@ Los eventos se dividen en dos grupos:
 | Grupo | Entrega | Ejemplos |
 | --- | --- | --- |
 | Eventos de la UI de WoW | Se envían solo después de `events.subscribe` | `PLAYER_LOGIN`, `PLAYER_ENTERING_WORLD`, `UNIT_HEALTH`, `ZONE_CHANGED` |
-| Eventos del SDK | Se envían automáticamente | `client.screenChanged`, `loading.*`, `friends.*`, `group.invite*`, `summon.*`, `lfg.*`, `trade.*`, `duel.*`, `battlefield.*`, `chat.whisperReceived` |
+| Eventos del SDK | Se envían automáticamente | `client.screenChanged`, `loading.*`, `friends.*`, `group.invite*`, `summon.*`, `lfg.*`, `trade.*`, `duel.*`, `battlefield.*`, `chat.whisperReceived`, `lua.*` |
 
 Todo evento que llega al pipe de eventos también se guarda en el búfer de historial.
 
@@ -239,6 +239,13 @@ Ninguno.
 | `battlefield.statusChanged` | Una cola cambió de estado | [Objeto de cola](battlefield.md#battlefieldgetqueues) más `previousStatusId` |
 | `battlefield.ready` | Un campo de batalla o una arena está listo para entrar | Objeto de cola |
 | `chat.whisperReceived` | Recibiste un susurro | `{"battleNet", "text", "author", "language", "status", "lineId", "guid", "presenceId", "args"}`; `status` es `"AFK"`, `"DND"`, `"GM"` o vacío, `presenceId` solo tiene valor en susurros de Battle.net y `args` contiene los argumentos originales del evento |
+| `client.crashed` | El juego tuvo un error fatal y va a mostrar su ventana de error | El mismo objeto que [client.getLastCrash](client.md#clientgetlastcrash), log incluido |
+| `lua.error` | Un script de Lua lanzó un error | `{"message", "addon", "stack"}`; `addon` se obtiene de la ruta `Interface\AddOns\<Addon>\` del mensaje y es `null` si no la tiene. El mismo mensaje se envía como mucho una vez cada 10 segundos |
+| `lua.script` | Un script guardado con [`lua.loadScript`](lua.md#lualoadscript) se ejecutó tras un `/reload` o al cargar el mundo | `{"name", "status", "error", "stack"}`; `status` es `"loaded"` o `"failed"`, y `error` y `stack` solo aparecen cuando falló. Un script que falla se elimina |
+| `lua.custom` | Un addon llamó a `SDK.Emit` | `{"name", "addon", "args", "truncated"}`; `args` contiene los [valores convertidos](lua.md#valores) y `truncated` solo aparece cuando un límite los cortó. Consulta [Integración con addons](../addons.md) |
+| `lua.hooked` | Se llamó una función vigilada con [`lua.hook`](lua.md#luahook) | `{"function", "args"}`; `function` es la ruta vigilada |
+| `lua.dropped` | Los addons emitieron más de 256 eventos en un frame | `{"count": <int>}` con el número de eventos descartados |
+| `lua.blocked` | El juego bloqueó una función protegida llamada por el SDK | `{"event", "function"}`; `event` es `ADDON_ACTION_FORBIDDEN` o `ADDON_ACTION_BLOCKED`. Consulta [Taint y modo seguro](lua.md#taint-y-modo-seguro) |
 
 `background` describe la imagen de la pantalla de carga según `LoadingScreens.dbc`, o es `null` cuando el mapa no tiene una propia y se usa la imagen genérica `Interface\Glues\loading`:
 

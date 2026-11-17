@@ -56,6 +56,21 @@ static std::string withAuth(const std::string& command, const std::string& token
     return result;
 }
 
+static bool startHidden(const char* pipeName, const std::string& token)
+{
+    std::string request = withAuth(
+        "{\"jsonrpc\":\"2.0\",\"method\":\"window.setStartHidden\",\"params\":{\"hidden\":true},\"id\":0}",
+        token);
+    std::string response;
+    if (sendPipeCommand(pipeName, request, response) && response.find("\"startHidden\":true") != std::string::npos)
+    {
+        fprintf(stdout, "[injector] window starts hidden\n");
+        return true;
+    }
+    fprintf(stderr, "[injector] window.setStartHidden failed: %s\n", response.c_str());
+    return false;
+}
+
 static bool configureAuth(const char* pipeName, const std::string& token)
 {
     std::string params = token.empty()
@@ -83,8 +98,20 @@ static bool configureAuth(const char* pipeName, const std::string& token)
     return false;
 }
 
+static int abortLaunch(HANDLE process, HANDLE thread)
+{
+    TerminateProcess(process, 1);
+    CloseHandle(thread);
+    CloseHandle(process);
+    fprintf(stderr, "[injector] the game process was closed\n");
+    return 1;
+}
+
 int main(int argc, char* argv[])
 {
+    setvbuf(stdout, nullptr, _IONBF, 0);
+    setvbuf(stderr, nullptr, _IONBF, 0);
+
     Args args{};
     if (!parseArgs(argc, argv, args))
     {
@@ -131,16 +158,17 @@ int main(int argc, char* argv[])
 
     fprintf(stdout, "[injector] pid=%lu tid=%lu\n", pi.dwProcessId, pi.dwThreadId);
 
-    injectDll(pi.hProcess, args.dllPath);
+    if (!injectDll(pi.hProcess, args.dllPath))
+        return abortLaunch(pi.hProcess, pi.hThread);
 
     if (args.usePipe)
     {
-        waitForPipe(args.pipeName, 15000);
+        if (!waitForPipe(args.pipeName, 15000, pi.hProcess))
+            return abortLaunch(pi.hProcess, pi.hThread);
         if (!configureAuth(args.pipeName, token))
-        {
-            TerminateProcess(pi.hProcess, 1);
-            return 1;
-        }
+            return abortLaunch(pi.hProcess, pi.hThread);
+        if (args.hidden && !startHidden(args.pipeName, token))
+            return abortLaunch(pi.hProcess, pi.hThread);
     }
     else
     {
@@ -153,12 +181,8 @@ int main(int argc, char* argv[])
 
     if (!args.usePipe)
     {
-        waitForPipe(args.pipeName, 15000);
-        if (!configureAuth(args.pipeName, token))
-        {
-            TerminateProcess(pi.hProcess, 1);
-            return 1;
-        }
+        if (!waitForPipe(args.pipeName, 15000, pi.hProcess) || !configureAuth(args.pipeName, token))
+            return abortLaunch(pi.hProcess, pi.hThread);
     }
 
     if (!args.pipeCommands.empty())

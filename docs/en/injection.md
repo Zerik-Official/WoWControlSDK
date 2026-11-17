@@ -23,7 +23,7 @@ sequenceDiagram
 1. **Launch suspended.** `Wow.exe` starts with `CREATE_SUSPENDED`, so no game code runs yet.
 2. **Inject the DLL.** The injector allocates memory in the target process, writes the DLL path and calls `LoadLibrary` through `CreateRemoteThread`.
 3. **Initialize the SDK.** `DllMain` starts a dedicated thread that initializes log capture, Detours hooks, the Lua engine, the runtime, the command pipe and the event pipe.
-4. **Wait for the pipe.** The game remains frozen while the injector waits up to 15 seconds for `\\.\pipe\WowGameCommand` to accept a connection.
+4. **Wait for the pipe.** The game remains frozen while the injector waits up to 15 seconds for `\\.\pipe\WowGameCommand` to accept a connection. If the game closes during the wait, the injector stops at once.
 5. **Configure authentication.** The injector registers the session token (or `--no-auth`) with `auth.init` while the game is still frozen. If the SDK rejects it, the game is terminated.
 6. **Resume the game.** The injector resumes the main thread and the game runs normally.
 
@@ -47,6 +47,7 @@ echo %ZFORGE_TOKEN% | WowInjector.exe --wow "C:\World of Warcraft\Wow.exe" --dll
 | `--no-pipe` | Unfreeze after `--wait` milliseconds instead of waiting for the pipe. |
 | `--wait <ms>` | Milliseconds to wait when `--no-pipe` is active. Defaults to `500`. |
 | `--kill` | Kill an existing `Wow.exe` process before launching. |
+| `--hidden` | Keep the game window hidden until [`window.show`](methods/window.md#windowsetstarthidden), for headless launches. Sent while the game is still frozen; cannot be combined with `--no-pipe`. |
 | `--wow-args <str>` | Extra arguments passed to `Wow.exe`. |
 | `--pipe-cmd <json>` | Send a JSON-RPC command after the pipe is ready. Repeatable. The session token is added to each command automatically. |
 
@@ -129,6 +130,7 @@ See [events.*](methods/events.md) for the available events and the CLI listener.
 | Symptom | Cause and fix |
 | --- | --- |
 | The injector exits after 15 seconds | The pipe never appeared. Check that the DLL path is correct and that the DLL matches the client build. |
+| Any injector error | The injector closes the game it started, so a failed launch never leaves a suspended `Wow.exe` behind. |
 | The game stays suspended | The injector is still waiting for the pipe. Run with `--no-pipe --wait 1000` to skip the wait for diagnosis. |
 | `LoadLibrary` fails | The DLL is missing a dependency, or the process architecture does not match. Build with the provided CMake configuration. |
 | No events arrive | The event pipe accepts one client. Disconnect other listeners and subscribe to the events you need. |
