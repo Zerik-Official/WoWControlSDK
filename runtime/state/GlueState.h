@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 namespace Runtime
 {
     enum class Screen
@@ -44,6 +46,11 @@ namespace Runtime
         bool    isLoginLatched();
         void    setLoginLatch(bool value);
         LoginResult waitForLoginResult(int timeoutMs);
+
+        void    requestEnterWorld(const std::string& name, int index);
+        void    tryEnterWorld();
+        void    onCharacterListLoaded();
+        std::string takeEnterWorldError();
 
         void    initialize();
     }
