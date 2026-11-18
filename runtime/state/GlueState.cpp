@@ -1,8 +1,11 @@
 #include "GlueState.h"
 #include "core/native/ClientState.h"
 #include "hooks/GlueHooks.h"
+#include "client/login/LoginAPI.h"
+#include <mutex>
 #include <Windows.h>
 #include <cstring>
+#include <chrono>
 
 namespace Runtime
 {
@@ -71,10 +74,12 @@ namespace Runtime
 
         LoginResult waitForLoginResult(int timeoutMs)
         {
+            auto start = std::chrono::steady_clock::now();
+
             while (true)
             {
-                ULONGLONG lastProgress = Hooks::Glue::getLastLoginStateTick();
-                if (GetTickCount64() - lastProgress >= static_cast<ULONGLONG>(timeoutMs))
+                if (std::chrono::duration_cast<std::chrono::milliseconds>(
+                        std::chrono::steady_clock::now() - start).count() >= timeoutMs)
                     return LoginResult::TIMEOUT;
 
                 const char* resultStr = Hooks::Glue::getCapturedLoginResult();
@@ -92,6 +97,65 @@ namespace Runtime
         void initialize()
         {
             s_loginLatch = false;
+        }
+
+        static std::mutex s_enterMutex;
+        static bool s_enterPending = false;
+        static std::string s_enterName;
+        static int s_enterIndex = 0;
+        static std::string s_enterError;
+
+        void requestEnterWorld(const std::string& name, int index)
+        {
+            std::lock_guard<std::mutex> lock(s_enterMutex);
+            s_enterPending = true;
+            s_enterName = name;
+            s_enterIndex = index;
+            s_enterError.clear();
+        }
+
+        static void enterPending(bool requireReady)
+        {
+            int idx = -1;
+            {
+                std::lock_guard<std::mutex> lock(s_enterMutex);
+                if (!s_enterPending) return;
+                if (requireReady && !WoW::Login::IsCharacterSelectReady()) return;
+
+                WoW::Login::CharVector* chars = WoW::Login::GetChars();
+                if (!chars || chars->size <= 0) return;
+
+                if (!s_enterName.empty())
+                    idx = WoW::Login::FindCharacterIndex(s_enterName.c_str());
+                else if (s_enterIndex >= 0 && s_enterIndex < chars->size)
+                    idx = s_enterIndex;
+
+                s_enterPending = false;
+                if (idx < 0)
+                {
+                    s_enterError = s_enterName.empty() ? "index out of range" : "character not found";
+                    return;
+                }
+            }
+            WoW::Login::EnterWorld(idx);
+        }
+
+        void tryEnterWorld()
+        {
+            enterPending(true);
+        }
+
+        void onCharacterListLoaded()
+        {
+            enterPending(false);
+        }
+
+        std::string takeEnterWorldError()
+        {
+            std::lock_guard<std::mutex> lock(s_enterMutex);
+            std::string error = s_enterError;
+            s_enterError.clear();
+            return error;
         }
     }
 }

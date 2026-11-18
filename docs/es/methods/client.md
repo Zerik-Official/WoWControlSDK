@@ -195,6 +195,8 @@ Después de un error:
 
 Realiza una secuencia de login completa. Opcionalmente define las CVars de lista de reinos y nombre de reino, envía las credenciales y espera el resultado del login.
 
+La pantalla de login ignora las credenciales hasta que el cliente termina sus comprobaciones de inicio y acepta los acuerdos de usuario, así que un login enviado en cuanto aparece la pantalla se perdería. El método espera hasta 30 segundos a que el cliente acepte un login antes de enviar las credenciales, así que se puede llamar en cuanto se informa de la pantalla de login.
+
 ### Parámetros
 
 | Nombre | Tipo | Obligatorio | Descripción |
@@ -229,6 +231,7 @@ Cuando el login se completa pero falla una espera posterior, la respuesta tambi�
 | Error | Significado |
 | --- | --- |
 | `not on login screen` | El cliente no está en la pantalla de login |
+| `login screen not ready` | El cliente no aceptó un login en 30 segundos |
 | `username and password required` | Una de las credenciales está vacía |
 | `login failed` | Fallo genérico de autenticación |
 | `server down` | El servidor de login está caído |
@@ -249,7 +252,7 @@ Cuando el login se completa pero falla una espera posterior, la respuesta tambi�
 | `database busy` | La base de datos de login está ocupada |
 | `trial expired` | El periodo de prueba ha caducado |
 | `account converted` | La cuenta fue convertida |
-| `login timeout` | El servidor de login dejó de responder durante 20 segundos |
+| `login timeout` | No llegó ningún resultado de login en 20 segundos |
 | `realm list timeout` | La lista de reinos no estuvo lista en 5 segundos |
 | `realm select timeout` | La pantalla de selección de personajes no apareció en 15 segundos |
 | `unknown error` | Un resultado de login sin asignar |
@@ -261,7 +264,7 @@ Cuando el login se completa pero falla una espera posterior, la respuesta tambi�
 ```
 
 !!! note
-    El login se da por correcto en cuanto el servidor autentica la cuenta, aunque el cliente muestre después la lista de reinos. La espera termina con `login timeout` solo cuando el login no avanza durante 20 segundos, así que una conexión lenta sigue esperando mientras el servidor responda. Cuando se indica `realmName`, el método también espera hasta 5 segundos a la lista de reinos y hasta 15 segundos a la pantalla de selección de personajes.
+    El método espera primero hasta 30 segundos a que la pantalla de login acepte un login y después hasta 20 segundos al resultado. Cuando se indica `realmName`, el método también espera hasta 5 segundos a la lista de reinos y hasta 15 segundos a la pantalla de selección de personajes.
 
 !!! warning
     Este método bloquea el hilo RPC mientras sondea con `Sleep(50)`. No lo llames desde código sensible al tiempo.
@@ -269,6 +272,8 @@ Cuando el login se completa pero falla una espera posterior, la respuesta tambi�
 ## client.enterWorld
 
 Selecciona un personaje y entra en el mundo.
+
+Justo después del login el cliente todavía está recibiendo la lista de personajes, y entrar en ese momento lo devuelve a la lista. El método espera a la lista: entra en cuanto la pantalla de selección de personajes está lista o, si la lista aún no llegó, en el momento en que el cliente la recibe. Con `wait`, comprueba después que el personaje sigue en el mundo durante 1,5 segundos y vuelve a entrar, hasta dos veces más, si el cliente regresó a la lista de personajes.
 
 ### Parámetros
 
@@ -292,6 +297,7 @@ Selecciona un personaje y entra en el mundo.
 | El nombre no existe | `character not found` |
 | El índice está fuera de rango | `index out of range` |
 | El mundo no se cargó en 30 segundos | `enter world timeout` |
+| El cliente volvió a la lista de personajes tras tres intentos | `the game returned to the character list after entering the world` |
 
 ## client.logout
 

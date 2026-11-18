@@ -77,9 +77,9 @@ None.
 
 ## window.setStartHidden
 
-Keeps the game window hidden from the moment the client creates it, for headless launches. While active, the SDK removes `WS_VISIBLE` when the game window is created and turns every attempt of the client to show it (`ShowWindow`, `SetWindowPos` with `SWP_SHOWWINDOW`) into a hidden window. It only affects the `GxWindowClass*` game window, not other windows such as the SDK console.
+Keeps the game window invisible from the moment the client creates it, for headless launches. The window is not really hidden: the SDK creates it fully transparent (`WS_EX_LAYERED` with alpha 0), out of the taskbar and Alt+Tab (`WS_EX_TOOLWINDOW`), and unable to take the focus or the mouse (`WS_EX_NOACTIVATE`, `WS_EX_TRANSPARENT`). The client treats it as a visible window, so the interface, the login and the character select screen keep working while nobody sees them. It only affects the `GxWindowClass*` game window, not other windows such as the SDK console.
 
-Call it before the game creates its window: [`WowInjector.exe --hidden`](../injection.md#arguments) sends it while the game is still frozen. `window.show`, `window.restore`, `window.maximize` and `window.focus` end the hidden start and show the window, for example once the character is in the world. When the hidden start ends, the SDK makes the window one pixel taller for two frames and then restores it, so the game rebuilds its back buffer at the real size instead of showing a blurry image.
+Call it before the game creates its window: [`WowInjector.exe --hidden`](../injection.md#arguments) sends it while the game is still frozen. `window.show`, `window.restore`, `window.maximize` and `window.focus` end the hidden start and show the window, for example once the character is in the world.
 
 ### Parameters
 
@@ -111,7 +111,7 @@ Call it before the game creates its window: [`WowInjector.exe --hidden`](../inje
 | `hidden` is missing or not a boolean | `{"error": "hidden must be a boolean"}` |
 
 !!! note
-    A hidden window has no taskbar button. The game keeps running and loading normally; fullscreen mode may not start correctly while the window is hidden, so windowed mode is recommended for headless launches.
+    While the hidden start is active the window has no taskbar button and cannot be clicked. Fullscreen mode may not start correctly with a transparent window, so windowed mode is recommended for headless launches.
 
 ## window.minimize
 

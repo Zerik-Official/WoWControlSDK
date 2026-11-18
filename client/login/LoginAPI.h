@@ -53,6 +53,7 @@ struct CharVector
 CharVector* GetChars();
 
 void EnterWorld(int idx);
+bool IsCharacterSelectReady();
 
 int FindCharacterIndex(const char* name);
 
@@ -67,5 +68,6 @@ namespace WoW::NetClient
 {
 
 void Login(const char* login, const char* password);
+bool CanLogin();
 
 }

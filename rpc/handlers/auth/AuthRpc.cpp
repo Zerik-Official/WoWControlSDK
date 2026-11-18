@@ -74,12 +74,28 @@ namespace Rpc
         }
     }
 
+    static bool waitForLoginReady(int timeoutMs)
+    {
+        auto start = std::chrono::steady_clock::now();
+        while (!WoW::NetClient::CanLogin())
+        {
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::steady_clock::now() - start).count() >= timeoutMs)
+                return false;
+            Sleep(50);
+        }
+        return true;
+    }
+
     static Json handleLogin(const Json& params)
     {
         std::string username, password, realmList, realmName;
         Json err;
         if (!validateLoginParams(params, username, password, realmList, realmName, err))
             return err;
+
+        if (!waitForLoginReady(30000))
+            return SDK::makeErrorJson("login screen not ready");
 
         Hooks::Glue::Post([username, password, realmList, realmName]() {
             if (!realmList.empty())
@@ -117,44 +133,83 @@ namespace Rpc
         return result;
     }
 
+    static constexpr int ENTER_WORLD_TIMEOUT_MS = 30000;
+    static constexpr int ENTER_STABLE_MS = 1500;
+    static constexpr int ENTER_RETRIES = 2;
+    static constexpr DWORD ENTER_POLL_MS = 100;
+    static constexpr int ENTER_RETRY_POST_MS = 500;
+
+    static bool elapsedAtLeast(std::chrono::steady_clock::time_point start, int ms)
+    {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now() - start).count() >= ms;
+    }
+
+    static bool stayedInWorld()
+    {
+        auto start = std::chrono::steady_clock::now();
+        while (!elapsedAtLeast(start, ENTER_STABLE_MS))
+        {
+            if (!Runtime::Glue::isGameplayReady())
+                return false;
+            Sleep(ENTER_POLL_MS);
+        }
+        return true;
+    }
+
+    static std::string waitForWorld()
+    {
+        auto start = std::chrono::steady_clock::now();
+        auto lastPost = start;
+        Hooks::Glue::Post([]() { Runtime::Glue::tryEnterWorld(); });
+
+        while (!Runtime::Glue::isGameplayReady())
+        {
+            std::string error = Runtime::Glue::takeEnterWorldError();
+            if (!error.empty())
+                return error;
+            if (elapsedAtLeast(start, ENTER_WORLD_TIMEOUT_MS))
+                return "enter world timeout";
+            if (elapsedAtLeast(lastPost, ENTER_RETRY_POST_MS))
+            {
+                Hooks::Glue::Post([]() { Runtime::Glue::tryEnterWorld(); });
+                lastPost = std::chrono::steady_clock::now();
+            }
+            Sleep(ENTER_POLL_MS);
+        }
+        return {};
+    }
+
     static Json handleEnterWorld(const Json& params)
     {
         if (Runtime::Glue::getScreen() != Runtime::Screen::CHARSELECT)
             return SDK::makeErrorJson("not on character select screen");
 
-        int idx = -1;
-
+        std::string name;
         if (params.contains("name") && params["name"].is_string())
-        {
-            std::string name = params["name"].get<std::string>();
-            idx = WoW::Login::FindCharacterIndex(name.c_str());
-            if (idx < 0)
-                return SDK::makeErrorJson("character not found");
-        }
-        else
-        {
-            idx = params.value("index", 0);
-            WoW::Login::CharVector* chars = WoW::Login::GetChars();
-            if (!chars || idx < 0 || idx >= chars->size)
-                return SDK::makeErrorJson("index out of range");
-        }
+            name = params["name"].get<std::string>();
+        int index = params.value("index", 0);
+        if (name.empty() && index < 0)
+            return SDK::makeErrorJson("index out of range");
 
-        Hooks::Glue::Post([idx]() {
-            WoW::Login::EnterWorld(idx);
-        });
+        bool wait = params.value("wait", true);
 
-        bool waitForWorld = params.value("wait", true);
-        if (waitForWorld)
+        for (int attempt = 0; attempt <= ENTER_RETRIES; ++attempt)
         {
-            auto start = std::chrono::steady_clock::now();
-            constexpr int timeoutMs = 30000;
-            while (!Runtime::Glue::isGameplayReady())
+            Runtime::Glue::requestEnterWorld(name, index);
+            if (!wait)
             {
-                if (std::chrono::duration_cast<std::chrono::milliseconds>(
-                        std::chrono::steady_clock::now() - start).count() >= timeoutMs)
-                    return SDK::makeErrorJson("enter world timeout");
-                Sleep(50);
+                Hooks::Glue::Post([]() { Runtime::Glue::tryEnterWorld(); });
+                break;
             }
+
+            std::string error = waitForWorld();
+            if (!error.empty())
+                return SDK::makeErrorJson(error.c_str());
+            if (stayedInWorld())
+                break;
+            if (attempt == ENTER_RETRIES)
+                return SDK::makeErrorJson("the game returned to the character list after entering the world");
         }
 
         Json ok;

@@ -1,4 +1,5 @@
 #include "LoginAPI.h"
+#include "core/engine/LuaEngine.h"
 #include "offsets/OffsetsLua.h"
 #include "offsets/OffsetsLogin.h"
 #include "offsets/OffsetsClient.h"
@@ -22,10 +23,21 @@ using FrameScriptExecFn = void(__cdecl*)(const char* code, const char* name, int
 
 void EnterWorld(int idx)
 {
-    auto exec = (FrameScriptExecFn)Offsets::Lua::WOW_LUA_EXECUTE;
-    char lua[64];
-    snprintf(lua, sizeof(lua), "SelectCharacter(%d); EnterWorld();", idx + 1);
-    exec(lua, lua, 0);
+    *(int*)Offsets::Login::SELECTED_CHARACTER = idx;
+    ((void(__cdecl*)())Offsets::Login::GLUE_ENTER_WORLD)();
+}
+
+bool IsCharacterSelectReady()
+{
+    static const char* READY_CHECK =
+        "return CharacterSelect ~= nil and CharacterSelect:IsShown() == 1"
+        " and CharSelectEnterWorldButton ~= nil and CharSelectEnterWorldButton:IsEnabled() == 1"
+        " and not (GlueDialog and GlueDialog:IsShown())"
+        " and GetNumCharacters() > 0";
+
+    LuaEngine::LuaResult result = LuaEngine::evaluate(READY_CHECK, "sdk_charselect_ready", LuaEngine::ReadLimits{}, true);
+    return result.ok && !result.values.empty() && result.values[0].type == LuaEngine::LuaType::Bool
+        && result.values[0].boolVal;
 }
 
 int FindCharacterIndex(const char* name)
@@ -77,6 +89,14 @@ namespace WoW::NetClient
 void Login(const char* login, const char* password)
 {
     return ((decltype(&Login))Offsets::Login::NET_LOGIN)(login, password);
+}
+
+bool CanLogin()
+{
+    return *(const char*)Offsets::Login::SCAN_DLL_FINISHED != 0
+        && *(const int*)Offsets::Login::EULA_ACCEPTED != 0
+        && *(const int*)Offsets::Login::TOS_ACCEPTED != 0
+        && *(const int*)Offsets::Client::LOGIN_STATE == 0;
 }
 
 }
