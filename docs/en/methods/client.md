@@ -195,6 +195,8 @@ After an error:
 
 Performs a complete login sequence. It optionally sets the realm list and realm name CVars, sends the credentials and waits for the login result.
 
+The login screen ignores credentials until the client finishes its startup checks and accepts the user agreements, so a login sent as soon as the screen appears would be lost. The method waits up to 30 seconds for the client to accept a login before sending the credentials, so it can be called as soon as the login screen is reported.
+
 ### Parameters
 
 | Name | Type | Required | Description |
@@ -229,6 +231,7 @@ When the login succeeds but a later wait fails, the response also contains `ok: 
 | Error | Meaning |
 | --- | --- |
 | `not on login screen` | The client is not on the login screen |
+| `login screen not ready` | The client did not accept a login within 30 seconds |
 | `username and password required` | One of the credentials is empty |
 | `login failed` | Generic authentication failure |
 | `server down` | The login server is offline |
@@ -249,7 +252,7 @@ When the login succeeds but a later wait fails, the response also contains `ok: 
 | `database busy` | The login database is busy |
 | `trial expired` | The trial period expired |
 | `account converted` | The account was converted |
-| `login timeout` | The login server stopped answering for 20 seconds |
+| `login timeout` | No login result arrived within 20 seconds |
 | `realm list timeout` | The realm list was not ready within 5 seconds |
 | `realm select timeout` | The character select screen did not appear within 15 seconds |
 | `unknown error` | An unmapped login result |
@@ -261,7 +264,7 @@ When the login succeeds but a later wait fails, the response also contains `ok: 
 ```
 
 !!! note
-    The login succeeds as soon as the server authenticates the account, even if the client then shows the realm list. The wait ends with `login timeout` only when the login makes no progress for 20 seconds, so slow connections keep waiting while the server answers. When `realmName` is provided, the method also waits up to 5 seconds for the realm list and up to 15 seconds for the character select screen.
+    The method first waits up to 30 seconds for the login screen to accept a login, then up to 20 seconds for the login result. When `realmName` is provided, the method also waits up to 5 seconds for the realm list and up to 15 seconds for the character select screen.
 
 !!! warning
     This method blocks the RPC thread while polling with `Sleep(50)`. Do not call it from time-sensitive code.
@@ -269,6 +272,8 @@ When the login succeeds but a later wait fails, the response also contains `ok: 
 ## client.enterWorld
 
 Selects a character and enters the world.
+
+Right after the login the client is still receiving the character list, and entering at that moment sends it back to the character list. The method waits for the list: it enters as soon as the character select screen is ready or, when the list has not arrived yet, at the moment the client receives it. With `wait`, it then checks that the character stays in the world for 1.5 seconds and enters again, up to two more times, if the client returned to the character list.
 
 ### Parameters
 
@@ -292,6 +297,7 @@ Selects a character and enters the world.
 | The name does not exist | `character not found` |
 | The index is out of range | `index out of range` |
 | The world did not load within 30 seconds | `enter world timeout` |
+| The client returned to the character list after three attempts | `the game returned to the character list after entering the world` |
 
 ## client.logout
 
