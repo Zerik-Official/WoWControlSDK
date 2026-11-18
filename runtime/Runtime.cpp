@@ -24,6 +24,10 @@ namespace Runtime
         {
             WoW::Glue::AcceptAll();
         });
+        Hooks::GlueXML::registerCharEnum([]()
+        {
+            Glue::onCharacterListLoaded();
+        });
 
         Glue::initialize();
         s_cache.setEventBus(&s_eventBus);
