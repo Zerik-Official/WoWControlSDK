@@ -16,6 +16,9 @@ namespace Offsets
 
         constexpr uintptr_t GLUE_MGR_UPDATE         = 0x004DAB40;
         constexpr uintptr_t GRUNT_PRINTER           = 0x004DA4B0;
+        constexpr uintptr_t SCAN_DLL_FINISHED       = 0x00B6B474;
+        constexpr uintptr_t SELECTED_CHARACTER      = 0x00AC436C;
+        constexpr uintptr_t GLUE_ENTER_WORLD        = 0x004D9BD0;
 
         constexpr uintptr_t EULA_PENDING            = 0x00B6AF50;
         constexpr uintptr_t EULA_ACCEPTED           = 0x00B6AF54;
