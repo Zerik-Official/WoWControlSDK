@@ -1,7 +1,6 @@
 #include "WindowService.h"
 #include "runtime/console/ConsoleManager.h"
 #include "hooks/WindowHooks.h"
-#include "hooks/FrameHooks.h"
 #include <Windows.h>
 #include <string>
 #include <algorithm>
@@ -166,25 +165,9 @@ static bool ReleaseStartHidden()
     return true;
 }
 
-static constexpr int LAYOUT_REFRESH_FRAMES = 2;
-
-static void WaitForFrames(int frames)
+static void BringToFront(HWND hwnd)
 {
-    for (int i = 0; i < frames; ++i)
-        Hooks::Frame::Execute([]() { return std::string(); });
-}
-
-static void RefreshLayout(HWND hwnd)
-{
-    RECT rect;
-    if (!GetWindowRect(hwnd, &rect)) return;
-    int width = rect.right - rect.left;
-    int height = rect.bottom - rect.top;
-    UINT flags = SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOMOVE | SWP_FRAMECHANGED;
-    SetWindowPos(hwnd, nullptr, 0, 0, width, height + 1, flags);
-    WaitForFrames(LAYOUT_REFRESH_FRAMES);
-    SetWindowPos(hwnd, nullptr, 0, 0, width, height, flags);
-    WaitForFrames(LAYOUT_REFRESH_FRAMES);
+    SetForegroundWindow(hwnd);
 }
 
 bool WindowService::Show()
@@ -192,8 +175,8 @@ bool WindowService::Show()
     auto hwnd = GetHandle();
     if (!hwnd) return false;
     bool released = ReleaseStartHidden();
-    bool shown = ShowWindow(*hwnd, SW_SHOW) != FALSE;
-    if (released) RefreshLayout(*hwnd);
+    bool shown = ShowWindow(*hwnd, SW_SHOW) != FALSE || released;
+    if (released) BringToFront(*hwnd);
     return shown;
 }
 
@@ -216,8 +199,8 @@ bool WindowService::Restore()
     auto hwnd = GetHandle();
     if (!hwnd) return false;
     bool released = ReleaseStartHidden();
-    bool shown = ShowWindow(*hwnd, SW_RESTORE) != FALSE;
-    if (released) RefreshLayout(*hwnd);
+    bool shown = ShowWindow(*hwnd, SW_RESTORE) != FALSE || released;
+    if (released) BringToFront(*hwnd);
     return shown;
 }
 
@@ -226,8 +209,8 @@ bool WindowService::Maximize()
     auto hwnd = GetHandle();
     if (!hwnd) return false;
     bool released = ReleaseStartHidden();
-    bool shown = ShowWindow(*hwnd, SW_MAXIMIZE) != FALSE;
-    if (released) RefreshLayout(*hwnd);
+    bool shown = ShowWindow(*hwnd, SW_MAXIMIZE) != FALSE || released;
+    if (released) BringToFront(*hwnd);
     return shown;
 }
 
@@ -236,10 +219,7 @@ bool WindowService::Focus()
     auto hwnd = GetHandle();
     if (!hwnd) return false;
     if (ReleaseStartHidden())
-    {
         ShowWindow(*hwnd, SW_SHOW);
-        RefreshLayout(*hwnd);
-    }
 
     WINDOWPLACEMENT wp{sizeof(wp)};
     GetWindowPlacement(*hwnd, &wp);
