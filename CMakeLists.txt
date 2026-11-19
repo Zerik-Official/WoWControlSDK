@@ -91,17 +91,17 @@ add_library(WoWControlSDK SHARED
     runtime/window/WindowService.cpp
 
     hooks/Hooks.cpp
+    hooks/base/GameScheduler.cpp
+    hooks/base/IatHook.cpp
+    hooks/base/VTableHook.cpp
     hooks/AddonHooks.cpp
     hooks/ErrorHooks.cpp
-    hooks/lua/LuaHooks.cpp
     hooks/glue/GlueLoadHooks.cpp
-    hooks/EndSceneHook.cpp
     hooks/ConsoleHooks.cpp
     hooks/FrameHooks.cpp
     hooks/GlueHooks.cpp
     hooks/EventHooks.cpp
     hooks/LoadingHooks.cpp
-    hooks/SocialHooks.cpp
     hooks/WindowHooks.cpp
 
     ipc/CommandPipe.cpp
