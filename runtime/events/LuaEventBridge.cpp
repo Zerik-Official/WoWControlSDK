@@ -1,6 +1,10 @@
 #include "LuaEventBridge.h"
 #include "EventPipe.h"
+#include "GameEventBridge.h"
+#include "core/api/SummonAPI.h"
 #include "core/engine/LuaEngine.h"
+#include "hooks/glue/GlueLoadHooks.h"
+#include "offsets/OffsetsSocial.h"
 #include "rpc/handlers/core/LuaJson.h"
 #include "utils/json/Json.h"
 #include <Windows.h>
@@ -17,6 +21,39 @@ namespace Runtime
             {
                 return SDK::Json::parse(data.dump(-1, ' ', false, SDK::Json::error_handler_t::replace));
             }
+        }
+
+        static bool argTrue(const LuaEngine::BridgeMessage& message, size_t index)
+        {
+            return index < message.args.size()
+                && message.args[index].type == LuaEngine::LuaType::Bool
+                && message.args[index].boolVal;
+        }
+
+        static void onInternalMessage(const LuaEngine::BridgeMessage& message)
+        {
+            const std::string& name = message.name;
+            if (name == "GLUE_LOADED")                Hooks::GlueXML::notifyPostLoad();
+            else if (name == "CHARACTER_LIST_UPDATE") Hooks::GlueXML::notifyCharEnum();
+            else if (name == "AcceptGroup")
+            {
+                uint32_t roles = 0;
+                if (argTrue(message, 0)) roles |= Offsets::Lfg::ROLE_TANK;
+                if (argTrue(message, 1)) roles |= Offsets::Lfg::ROLE_HEALER;
+                if (argTrue(message, 2)) roles |= Offsets::Lfg::ROLE_DAMAGE;
+                GameEventBridge::OnInviteAnswered(true, roles);
+            }
+            else if (name == "DeclineGroup")  GameEventBridge::OnInviteAnswered(false, 0);
+            else if (name == "ConfirmSummon")
+            {
+                if (CoreAPI::Summon::CanTeleport())
+                    GameEventBridge::OnSummonAnswered(true);
+            }
+            else if (name == "CancelSummon")  GameEventBridge::OnSummonAnswered(false);
+            else if (name == "BeginTrade")    GameEventBridge::OnTradeRequestAnswered(true);
+            else if (name == "CancelTrade")   GameEventBridge::OnTradeRequestAnswered(false);
+            else if (name == "AcceptDuel")    GameEventBridge::OnDuelAnswered(true);
+            else if (name == "CancelDuel")    GameEventBridge::OnDuelAnswered(false);
         }
 
         static void pushScriptEvents()
@@ -47,6 +84,12 @@ namespace Runtime
 
             for (const auto& message : batch.messages)
             {
+                if (message.kind == LuaEngine::BridgeKind::Internal)
+                {
+                    onInternalMessage(message);
+                    continue;
+                }
+
                 if (message.kind == LuaEngine::BridgeKind::Error)
                 {
                     SDK::Json data;
