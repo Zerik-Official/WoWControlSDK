@@ -8,7 +8,6 @@ add_compile_definitions(
     WIN32_LEAN_AND_MEAN
 )
 
-add_subdirectory(deps/Detours)
 add_subdirectory(injector)
 
 add_library(WoWControlSDK SHARED
@@ -92,6 +91,7 @@ add_library(WoWControlSDK SHARED
 
     hooks/Hooks.cpp
     hooks/base/GameScheduler.cpp
+    hooks/base/HardwareBreakpoint.cpp
     hooks/base/IatHook.cpp
     hooks/base/VTableHook.cpp
     hooks/AddonHooks.cpp
@@ -135,10 +135,6 @@ target_include_directories(WoWControlSDK PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/runtime
     ${CMAKE_CURRENT_SOURCE_DIR}/offsets
     ${CMAKE_CURRENT_SOURCE_DIR}/deps
-)
-
-target_link_libraries(WoWControlSDK PRIVATE
-    Detours
 )
 
 target_compile_options(WoWControlSDK PRIVATE
