@@ -2,6 +2,7 @@
 #include "core/native/ObjectManager.h"
 #include "memory/MemReader.h"
 #include "offsets/OffsetsGroup.h"
+#include "offsets/OffsetsPlayer.h"
 #include "offsets/OffsetsUnit.h"
 
 #include <cstring>
@@ -40,17 +41,7 @@ namespace WoW
 
         if (std::strcmp(token, "target") == 0)
         {
-            WoWGUID localGuid = GetLocalGUID();
-            uintptr_t localObj = GetObjectByGUID(localGuid);
-
-            if (!localObj)
-            {
-                *outGuid = NULL_GUID;
-                return allowNull;
-            }
-
-            uintptr_t descBase = Memory::safeRead<uintptr_t>(localObj + Offsets::Unit::DESCRIPTOR_BASE);
-            *outGuid = Memory::safeRead<WoWGUID>(descBase + Offsets::Unit::Desc::TARGET_GUID);
+            *outGuid = Memory::safeRead<WoWGUID>(Offsets::Player::CURRENT_TARGET_GUID);
             return allowNull || outGuid->isValid();
         }
 

@@ -8,6 +8,8 @@
 #include "core/api/WorldAPI.h"
 #include "core/native/NetClient.h"
 #include "core/native/Performance.h"
+#include "memory/MemReader.h"
+#include "offsets/OffsetsPlayer.h"
 
 namespace Runtime
 {
@@ -38,7 +40,7 @@ namespace Runtime
         e.y          = p.getPosition().y;
         e.z          = p.getPosition().z;
         e.rotation   = p.getRotation();
-        e.targetGuid = p.getTargetGUID();
+        e.targetGuid = Memory::safeRead<WoWGUID>(Offsets::Player::CURRENT_TARGET_GUID);
         e.inCombat   = p.isInCombat();
         e.dead       = p.isDead();
         e.ghost      = p.isGhost();

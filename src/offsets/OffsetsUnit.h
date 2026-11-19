@@ -15,6 +15,7 @@ namespace Offsets
         constexpr uintptr_t MOVE_FLAGS                   = 0xA30;
         constexpr uintptr_t MOVE_DATA_PTR                = 0xD8;
         constexpr uintptr_t MOVE_DATA_FLAGS              = 0x44;
+        constexpr uintptr_t MOVE_DATA_CURRENT_SPEED      = 0x8C;
         constexpr uint32_t  MOVEFLAG_FLYING              = 0x02000000;
 
         constexpr uintptr_t AURA_COUNT1                  = 0xDD0;
@@ -29,7 +30,7 @@ namespace Offsets
             constexpr uintptr_t RACE_CLASS_GENDER        = 0x37 * 4;
 
             constexpr uintptr_t RACE_CLASS_GENDER_POWERTYPE = 0x44;
-            constexpr uintptr_t TARGET_GUID              = 0x48;
+            constexpr uintptr_t TARGET_GUID              = 0x30;
             constexpr uintptr_t HEALTH                   = 0x48;
             constexpr uintptr_t POWER1                   = 0x4C;
             constexpr uintptr_t POWER2                   = 0x50;
