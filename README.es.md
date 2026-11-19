@@ -10,7 +10,6 @@
 <p align="center">
   <img src="https://img.shields.io/badge/JSON--RPC_2.0-444444?style=for-the-badge">
   <img src="https://img.shields.io/badge/Named_Pipes-444444?style=for-the-badge">
-  <img src="https://img.shields.io/badge/Detours-444444?style=for-the-badge">
   <img src="https://img.shields.io/badge/Lua_VM-444444?style=for-the-badge">
 </p>
 
