@@ -225,6 +225,7 @@ static void readMessage(lua_State* L, int item, const LuaEngine::ReadLimits& lim
     std::string kind = LuaStack::readString(L, -1);
     message.kind = kind == "hook" ? LuaEngine::BridgeKind::Hook
         : kind == "error" ? LuaEngine::BridgeKind::Error
+        : kind == "internal" ? LuaEngine::BridgeKind::Internal
         : LuaEngine::BridgeKind::Emit;
     LuaNative::settop(L, item);
 
