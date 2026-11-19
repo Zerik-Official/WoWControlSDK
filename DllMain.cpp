@@ -11,8 +11,6 @@
 
 #include <Windows.h>
 
-#include <deps/Detours/detours.h>
-
 static void OnAttach()
 {
     Runtime::LogCapture::Initialize();
@@ -20,9 +18,7 @@ static void OnAttach()
     Hooks::Console::SetCallback(Runtime::LogCapture::OnConsoleMessage);
     Runtime::EventPipe::Initialize();
 
-    DetourTransactionBegin();
     Hooks::initialize();
-    DetourTransactionCommit();
 
     Hooks::Frame::Initialize();
     Hooks::Glue::Initialize();
@@ -42,6 +38,7 @@ static void OnDetach()
     Hooks::Events::Shutdown();
     Hooks::WindowStart::Shutdown();
     Hooks::Addons::Shutdown();
+    Hooks::Loading::Shutdown();
     Hooks::Errors::Shutdown();
     Hooks::Frame::Shutdown();
     Hooks::Glue::Shutdown();
