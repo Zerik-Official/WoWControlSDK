@@ -2,7 +2,7 @@
 
 Gestionan la propia DLL del SDK: la consola superpuesta del juego, la captura de logs y el diagnóstico.
 
-El SDK engancha la función interna `PrintMessage` de WoW en `0x00765270` para capturar la salida de consola. La mayoría de las entradas provienen del propio juego, como errores de Lua, mensajes de depuración y cambios de CVar.
+El SDK lee la lista de líneas de la consola de WoW en cada frame para capturar la salida de consola. La mayoría de las entradas provienen del propio juego, como errores de Lua, mensajes de depuración y cambios de CVar.
 
 ## dll.toggleConsole
 
