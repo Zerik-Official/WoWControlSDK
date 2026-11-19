@@ -1,32 +1,61 @@
 #include "AddonHooks.h"
-#include "base/DetourHelper.h"
+#include "base/GameScheduler.h"
+#include "base/HardwareBreakpoint.h"
 #include "core/engine/LuaEngine.h"
 #include "offsets/OffsetsLua.h"
-#include <intrin.h>
-
-#pragma intrinsic(_ReturnAddress)
+#include <Windows.h>
+#include <atomic>
 
 namespace Hooks::Addons
 {
 
-using LoadTocFn = int(__cdecl*)(const char* tocPath, const char* addon, void* context, void* status);
+static constexpr int BREAKPOINT_SLOT = 0;
+static constexpr float ADDON_PRIORITY = 1.0f;
+static constexpr DWORD DR6_SLOT_HIT = 1u << BREAKPOINT_SLOT;
+static constexpr DWORD RESUME_FLAG = 0x10000;
 
-static LoadTocFn LoadToc_orig = reinterpret_cast<LoadTocFn>(Offsets::Lua::FRAMEXML_LOAD_TOC);
+static PVOID s_handler = nullptr;
+static std::atomic<DWORD> s_thread{0};
 static bool s_initialized = false;
 
-static int __cdecl LoadToc_hook(const char* tocPath, const char* addon, void* context, void* status)
+static LONG CALLBACK OnException(EXCEPTION_POINTERS* info)
 {
-    if (reinterpret_cast<uintptr_t>(_ReturnAddress()) == Offsets::Lua::ADDON_LOAD_TOC_RETURN)
-        LuaEngine::grantAddon(addon);
+    if (info->ExceptionRecord->ExceptionCode != EXCEPTION_SINGLE_STEP)
+        return EXCEPTION_CONTINUE_SEARCH;
 
-    return LoadToc_orig(tocPath, addon, context, status);
+    CONTEXT* context = info->ContextRecord;
+    if (context->Eip != Offsets::Lua::FRAMEXML_LOAD_TOC || (context->Dr6 & DR6_SLOT_HIT) == 0)
+        return EXCEPTION_CONTINUE_SEARCH;
+
+    auto stack = reinterpret_cast<const uintptr_t*>(context->Esp);
+    if (stack[0] == Offsets::Lua::ADDON_LOAD_TOC_RETURN)
+    {
+        auto addon = reinterpret_cast<const char*>(stack[2]);
+        if (addon)
+            LuaEngine::grantAddon(addon);
+    }
+
+    context->Dr6 = 0;
+    context->EFlags |= RESUME_FLAG;
+    return EXCEPTION_CONTINUE_EXECUTION;
+}
+
+static void ArmOnMainThread()
+{
+    DWORD thread = GameScheduler::mainThreadId();
+    if (s_thread.load() != 0 || thread == 0)
+        return;
+    if (Detail::setExecuteBreakpoint(thread, BREAKPOINT_SLOT, Offsets::Lua::FRAMEXML_LOAD_TOC))
+        s_thread.store(thread);
 }
 
 void Initialize()
 {
     if (s_initialized) return;
 
-    Detail::attach(LoadToc_orig, LoadToc_hook);
+    s_handler = AddVectoredExceptionHandler(1, OnException);
+    GameScheduler::Initialize();
+    GameScheduler::addIdleHandler(ArmOnMainThread, ADDON_PRIORITY);
 
     s_initialized = true;
 }
@@ -35,7 +64,14 @@ void Shutdown()
 {
     if (!s_initialized) return;
 
-    Detail::detach(LoadToc_orig, LoadToc_hook);
+    DWORD thread = s_thread.exchange(0);
+    if (thread)
+        Detail::clearBreakpoint(thread, BREAKPOINT_SLOT);
+    if (s_handler)
+    {
+        RemoveVectoredExceptionHandler(s_handler);
+        s_handler = nullptr;
+    }
 
     s_initialized = false;
 }
