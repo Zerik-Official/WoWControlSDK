@@ -1,15 +1,17 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
 namespace Offsets
 {
     namespace Frame
     {
-        constexpr uintptr_t RENDER_FRAME      = 0x008714b0;
-        constexpr uintptr_t D3D_PTR            = 0x00C5DF88;
-        constexpr uintptr_t D3D_DEVICE_OFFSET  = 0x397C;
-        constexpr int       D3D_ENDSCENE_VTABLE_IDX = 42;
+        constexpr uintptr_t GX_DEVICE          = 0x00C5DF88;
+        constexpr uintptr_t GX_VTABLE_D3D      = 0x00A2E718;
+        constexpr uintptr_t GX_VTABLE_OPENGL   = 0x00A2F500;
+        constexpr size_t    GX_VTABLE_SLOTS    = 84;
+        constexpr size_t    GX_PRESENT_SLOT    = 38;
 
         constexpr uintptr_t EVENT_REGISTER     = 0x0047D3C0;
         constexpr uintptr_t EVENT_UNREGISTER   = 0x0047D790;
