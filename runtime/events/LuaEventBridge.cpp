@@ -3,6 +3,7 @@
 #include "GameEventBridge.h"
 #include "core/api/SummonAPI.h"
 #include "core/engine/LuaEngine.h"
+#include "hooks/EventHooks.h"
 #include "hooks/glue/GlueLoadHooks.h"
 #include "offsets/OffsetsSocial.h"
 #include "rpc/handlers/core/LuaJson.h"
@@ -76,17 +77,36 @@ namespace Runtime
         void Poll()
         {
             pushScriptEvents();
+            LuaEngine::configureEvents(Hooks::Events::WantedEvents());
             LuaEngine::BridgeBatch batch = LuaEngine::drainBridge(EVENT_LIMITS);
+            uint64_t timeMs = static_cast<uint64_t>(GetTickCount64());
+
+            for (const auto& blocked : LuaEngine::takeBlockedActions())
+            {
+                SDK::Json data;
+                data["event"] = blocked.event;
+                data["function"] = blocked.function;
+                EventPipe::PushEvent("lua.blocked", sanitize(data), timeMs);
+            }
+
             if (batch.messages.empty() && batch.dropped == 0)
                 return;
-
-            uint64_t timeMs = static_cast<uint64_t>(GetTickCount64());
 
             for (const auto& message : batch.messages)
             {
                 if (message.kind == LuaEngine::BridgeKind::Internal)
                 {
                     onInternalMessage(message);
+                    continue;
+                }
+
+                if (message.kind == LuaEngine::BridgeKind::Event)
+                {
+                    SDK::Json args = sanitize(Rpc::makeLuaValuesJson(message.args));
+                    if (Hooks::Events::IsSubscribed(message.name))
+                        EventPipe::PushEvent(message.name.c_str(), args, timeMs);
+                    if (GameEventBridge::Handles(message.name))
+                        GameEventBridge::OnGameEvent(message.name, args, timeMs);
                     continue;
                 }
 
