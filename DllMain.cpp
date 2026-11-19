@@ -40,7 +40,6 @@ static void OnDetach()
     Runtime::EventPipe::Shutdown();
 
     Hooks::Events::Shutdown();
-    Hooks::Social::Shutdown();
     Hooks::WindowStart::Shutdown();
     Hooks::Addons::Shutdown();
     Hooks::Errors::Shutdown();
@@ -52,7 +51,7 @@ static void OnDetach()
     Runtime::ConsoleManager::Shutdown();
 }
 
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID)
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved)
 {
     if (reason == DLL_PROCESS_ATTACH) {
         DisableThreadLibraryCalls(hModule);
@@ -70,7 +69,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID)
             nullptr
         );
     }
-    else if (reason == DLL_PROCESS_DETACH) {
+    else if (reason == DLL_PROCESS_DETACH && reserved == nullptr) {
         OnDetach();
     }
 
