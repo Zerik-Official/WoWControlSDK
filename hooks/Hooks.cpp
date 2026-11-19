@@ -2,12 +2,9 @@
 
 void Hooks::initialize()
 {
-    Hooks::Lua::Initialize();
-    Hooks::GlueLoad::Initialize();
     Hooks::Console::Initialize();
     Hooks::Events::Initialize();
     Hooks::Loading::Initialize();
-    Hooks::Social::Initialize();
     Hooks::WindowStart::Initialize();
     Hooks::Addons::Initialize();
 }
