@@ -459,6 +459,39 @@ local function wrapErrorHandler(handler)
     wrapping = false
 end
 
+local internalHooks = {
+    "AcceptGroup", "DeclineGroup",
+    "ConfirmSummon", "CancelSummon",
+    "BeginTrade", "CancelTrade",
+    "AcceptDuel", "CancelDuel",
+}
+
+if type(hooksecurefunc) == "function" then
+    for _, name in ipairs(internalHooks) do
+        if type(_G[name]) == "function" then
+            hooksecurefunc(name, function()
+                if name == "AcceptGroup" and type(GetLFGRoles) == "function" then
+                    local _, tank, healer, damage = GetLFGRoles()
+                    push("internal", name, nil, tank and true or false, healer and true or false, damage and true or false)
+                else
+                    push("internal", name, nil)
+                end
+            end)
+        end
+    end
+end
+
+if type(DefaultServerLogin) == "function" then
+    push("internal", "GLUE_LOADED", nil)
+    if type(CreateFrame) == "function" then
+        local glueWatcher = CreateFrame("Frame")
+        glueWatcher:RegisterEvent("CHARACTER_LIST_UPDATE")
+        glueWatcher:SetScript("OnEvent", function(_, event)
+            push("internal", event, nil)
+        end)
+    end
+end
+
 if type(seterrorhandler) == "function" and type(geterrorhandler) == "function" then
     wrapErrorHandler(geterrorhandler())
     if type(hooksecurefunc) == "function" then
