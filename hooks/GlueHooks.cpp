@@ -1,5 +1,6 @@
 #include "GlueHooks.h"
-#include "base/DetourHelper.h"
+#include "base/GameScheduler.h"
+#include "base/VTableHook.h"
 #include "core/native/ClientState.h"
 #include "offsets/OffsetsLogin.h"
 #include "utils/json/Json.h"
@@ -9,24 +10,14 @@
 namespace Hooks::Glue
 {
 
-using GlueMgrUpdateFn = void(*)();
-static GlueMgrUpdateFn s_original = nullptr;
+static constexpr float GLUE_PRIORITY = 1.0f;
+
 static bool s_initialized = false;
 
 static Utils::TaskQueue s_queue;
 
-static void GlueMgr_PostUpdate();
-
-static void __cdecl GlueMgrUpdate_Hook()
-{
-    s_queue.drainAll();
-
-    s_original();
-    GlueMgr_PostUpdate();
-}
-
-using GruntPrintFn = void(__cdecl*)(int, int, const char*, const char*, const char*, unsigned char);
-static GruntPrintFn s_gruntOriginal = nullptr;
+using LoginStateFn = void(__thiscall*)(void*, int, int, const char*, const char*, const char*, unsigned char);
+static Detail::VTableHook s_loginStatus;
 
 static bool s_loginPending = false;
 static const char* s_capturedLoginResult = nullptr;
@@ -37,7 +28,7 @@ void setLoginPending()
     s_capturedLoginResult = nullptr;
 }
 
-static void __cdecl GruntLoginState_Hook(int param_1, int param_2, const char* param_3, const char* stateStr, const char* resultStr, unsigned char param_6)
+static void __fastcall LoginState_Hook(void* self, void*, int param_1, int param_2, const char* param_3, const char* stateStr, const char* resultStr, unsigned char param_6)
 {
     if (s_loginPending && stateStr && resultStr)
     {
@@ -47,7 +38,9 @@ static void __cdecl GruntLoginState_Hook(int param_1, int param_2, const char* p
             s_loginPending = false;
         }
     }
-    s_gruntOriginal(param_1, param_2, param_3, stateStr, resultStr, param_6);
+    auto original = reinterpret_cast<LoginStateFn>(s_loginStatus.original(Offsets::Login::LOGIN_STATUS_ON_STATE_SLOT));
+    if (original)
+        original(self, param_1, param_2, param_3, stateStr, resultStr, param_6);
 }
 
 static void GlueMgr_PostUpdate()
@@ -68,17 +61,29 @@ const char* getCapturedLoginResult()
     return s_capturedLoginResult;
 }
 
+static void AttachLoginStatus()
+{
+    void* object = *reinterpret_cast<void**>(Offsets::Login::LOGIN_STATUS_OBJECT);
+    if (!object)
+        return;
+    s_loginStatus.attach(object, reinterpret_cast<const void*>(Offsets::Login::LOGIN_STATUS_VTABLE),
+                         Offsets::Login::LOGIN_STATUS_VTABLE_SLOTS);
+}
+
+static void OnIdle()
+{
+    AttachLoginStatus();
+    s_queue.drainAll();
+    GlueMgr_PostUpdate();
+}
+
 void Initialize()
 {
     if (s_initialized) return;
 
-    s_original = (GlueMgrUpdateFn)Offsets::Login::GLUE_MGR_UPDATE;
-    s_gruntOriginal = (GruntPrintFn)Offsets::Login::GRUNT_PRINTER;
-
-    Detail::attachBatch(
-        Detail::DetourEntry{s_original, GlueMgrUpdate_Hook},
-        Detail::DetourEntry{s_gruntOriginal, GruntLoginState_Hook}
-    );
+    s_loginStatus.replace(Offsets::Login::LOGIN_STATUS_ON_STATE_SLOT, reinterpret_cast<void*>(LoginState_Hook));
+    GameScheduler::Initialize();
+    GameScheduler::addIdleHandler(OnIdle, GLUE_PRIORITY);
 
     s_initialized = true;
 }
@@ -87,10 +92,7 @@ void Shutdown()
 {
     if (!s_initialized) return;
 
-    Detail::detachBatch(
-        Detail::DetourEntry{s_original, GlueMgrUpdate_Hook},
-        Detail::DetourEntry{s_gruntOriginal, GruntLoginState_Hook}
-    );
+    s_loginStatus.detach();
 
     s_initialized = false;
 }
