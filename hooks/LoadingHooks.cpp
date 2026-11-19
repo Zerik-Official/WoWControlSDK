@@ -1,5 +1,8 @@
 #include "LoadingHooks.h"
 #include <Windows.h>
+#include "base/VTableHook.h"
+#include "memory/MemReader.h"
+#include "offsets/OffsetsFrame.h"
 #include "core/native/ClientState.h"
 #include "core/native/LoadingScreen.h"
 #include "runtime/events/EventPipe.h"
@@ -40,8 +43,12 @@ namespace Hooks::Loading
         s_mapId = -1;
     }
 
+    static void AttachDevice();
+
     void PollFlag()
     {
+        AttachDevice();
+
         bool     active  = LoadingScreen::isActive();
         bool     inWorld = WoW::IsInWorld();
         uint64_t now     = GetTickCount64();
@@ -94,6 +101,35 @@ namespace Hooks::Loading
         s_active = active;
     }
 
-    void Initialize() {}
-    void Shutdown() {}
+    using PresentFn = void(__thiscall*)(void* self);
+    static Detail::VTableHook s_device;
+
+    static void __fastcall Present_Hook(void* self, void*)
+    {
+        if (LoadingScreen::isActive())
+            PollFlag();
+
+        auto original = reinterpret_cast<PresentFn>(s_device.original(Offsets::Frame::GX_PRESENT_SLOT));
+        if (original)
+            original(self);
+    }
+
+    static void AttachDevice()
+    {
+        void* device = Memory::safeRead<void*>(Offsets::Frame::GX_DEVICE);
+        if (!device) return;
+
+        if (!s_device.attach(device, reinterpret_cast<const void*>(Offsets::Frame::GX_VTABLE_D3D), Offsets::Frame::GX_VTABLE_SLOTS))
+            s_device.attach(device, reinterpret_cast<const void*>(Offsets::Frame::GX_VTABLE_OPENGL), Offsets::Frame::GX_VTABLE_SLOTS);
+    }
+
+    void Initialize()
+    {
+        s_device.replace(Offsets::Frame::GX_PRESENT_SLOT, reinterpret_cast<void*>(Present_Hook));
+    }
+
+    void Shutdown()
+    {
+        s_device.detach();
+    }
 }
