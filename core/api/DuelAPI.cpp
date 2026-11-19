@@ -84,6 +84,7 @@ namespace CoreAPI
             if (!Get().pending) return DuelResult::NoDuel;
 
             callVoid(Offsets::Duel::ACCEPT);
+            Runtime::GameEventBridge::OnDuelAnswered(true);
             hideDuelPopup();
             return DuelResult::Ok;
         }
@@ -95,6 +96,7 @@ namespace CoreAPI
             if (!info.pending && !info.active) return DuelResult::NoDuel;
 
             callVoid(Offsets::Duel::CANCEL);
+            Runtime::GameEventBridge::OnDuelAnswered(false);
             if (info.pending)
                 hideDuelPopup();
             return DuelResult::Ok;
