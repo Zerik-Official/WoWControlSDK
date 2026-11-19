@@ -23,6 +23,8 @@ private:
 };
 
 void report(const std::string& event, const std::string& function);
+void collect();
+std::vector<LuaEngine::BlockedAction> takeReported();
 void apply(LuaEngine::LuaResult& result, Capture& capture);
 
 void setShowNotice(bool show);
