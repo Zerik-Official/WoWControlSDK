@@ -45,7 +45,7 @@ struct CallTarget {
     std::string method;
 };
 
-enum class BridgeKind { Emit, Hook, Error };
+enum class BridgeKind { Emit, Hook, Error, Internal };
 
 struct BridgeMessage {
     BridgeKind kind = BridgeKind::Emit;
