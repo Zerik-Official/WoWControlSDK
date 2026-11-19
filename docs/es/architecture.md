@@ -34,7 +34,7 @@ flowchart TD
         ipc["ipc/<br/>transporte named pipe"]
         rpc["rpc/<br/>protocolo y handlers JSON-RPC"]
         runtime["runtime/<br/>caché de estado, event bus, consola, ventana"]
-        hooks["hooks/<br/>Detours sobre funciones del juego"]
+        hooks["hooks/<br/>Scheduler, hooks de IAT y vtable"]
         client["client/<br/>wrappers finos del juego"]
         core["core/<br/>wrappers nativos y API"]
         offsets["offsets/<br/>constantes de direcciones"]
@@ -61,7 +61,7 @@ flowchart TD
 | `ipc/` | Transporte named pipe y lectura/escritura de JSON crudo | Ninguno |
 | `rpc/` | Parseo, dispatch, handlers y serialización JSON-RPC 2.0 | Ninguno |
 | `runtime/` | Caché de estado, event bus, pipe de eventos, consola, captura de logs, lista de reinos y servicio de ventana | Ninguno directo; lee a través de `core/` |
-| `hooks/` | Detours sobre funciones del juego y captura de señales de eventos | Solo a través de `core/` y `offsets/` |
+| `hooks/` | Callbacks del scheduler del juego, hooks de IAT y de vtable y un breakpoint por registros de depuración. Nunca se parchea código del juego | Solo a través de `core/` y `offsets/` |
 | `core/` | Wrappers nativos, capa API, lecturas y escrituras de memoria, resolvers | Sí, es la única capa autorizada |
 | `client/` | Wrappers finos sobre `core/` y el Lua del juego para login, consola y errores | Direcciones mínimas |
 | `offsets/` | Todas las direcciones y offsets de estructuras como `constexpr uintptr_t` | Solo constantes |
@@ -119,7 +119,7 @@ sequenceDiagram
 ```
 
 1. WoW dispara un evento UI como `PLAYER_LOGIN` o `PLAYER_ENTERING_WORLD`.
-2. `hooks/EventHooks` lo captura mediante un detour.
+2. El frame del puente Lua del SDK lo recibe mediante el propio despacho de eventos del juego.
 3. Si el evento está suscrito con `events.subscribe`, se envía a `\\.\pipe\WowGameEvent`.
 4. `StateCache` sondea el estado del jugador, el mundo y la pantalla en cada frame.
 5. Cuando cambia la pantalla glue, `StateCache` envía `client.screenChanged`.
@@ -131,11 +131,11 @@ Los eventos también se guardan en un búfer circular que `events.getHistory` pu
 
 | Hilo | Rol |
 | --- | --- |
-| Hilo del juego (main/frame) | Ejecuta el bucle de frames de WoW. Los callbacks de hooks y `StateCache::update()` se ejecutan aquí. Las lecturas de memoria ocurren en este hilo. |
+| Hilo del juego (main/frame) | Ejecuta el bucle de frames de WoW. El SDK se ejecuta en él mediante un handler idle registrado en el scheduler del juego. Los callbacks de hooks y `StateCache::update()` se ejecutan aquí. Las lecturas de memoria ocurren en este hilo. |
 | Hilo del pipe RPC | Acepta conexiones del pipe de comandos, lee una petición y la despacha. Bloquea en `ReadFile`. |
 | Hilo del pipe de eventos | Acepta un cliente del pipe de eventos y bloquea en `WriteFile` mientras envía eventos. |
 | Hilo de inicialización de la DLL | Se inicia desde `DllMain` e inicializa logging, hooks, motor Lua, runtime y pipes. |
-| Ejecución de handlers RPC | Algunos handlers encolan trabajo en el hilo del juego mediante `Hooks::Frame::Post`; otros bloquean el hilo RPC mientras sondean. |
+| Ejecución de handlers RPC | Algunos handlers encolan trabajo en el hilo del juego mediante `Hooks::Frame::Execute`; otros bloquean el hilo RPC mientras sondean. |
 
 !!! note
     Todos los métodos `lua.*` se ejecutan en el hilo del juego: el hilo RPC pasa la llamada al siguiente frame y espera su resultado. Las operaciones que cambian estado, como login, logout y entrar al mundo, se encolan en el hilo del juego para evitar condiciones de carrera.
@@ -147,12 +147,12 @@ Todas las direcciones del juego, punteros a función y offsets de estructuras se
 | Archivo | Contenido |
 | --- | --- |
 | `OffsetsClient.h` | Estado del cliente, net client y flag de dentro del mundo |
-| `OffsetsConsole.h` | Funciones de CVar |
-| `OffsetsFrame.h` | Frame de render y D3D |
+| `OffsetsConsole.h` | Funciones de CVar y lista de líneas de consola |
+| `OffsetsFrame.h` | Scheduler del juego y vtables del dispositivo gráfico |
 | `OffsetsGroup.h` | Estructuras de grupo y raid |
 | `OffsetsLoading.h` | Estado y progreso de la pantalla de carga y tablas `Map` / `LoadingScreens` |
 | `OffsetsLogin.h` | Autenticación, logout y lista de personajes |
-| `OffsetsLua.h` | Estado de Lua y handler de eventos de señal |
+| `OffsetsLua.h` | Estado de Lua y tabla de eventos |
 | `OffsetsMap.h` | Conversión de posición de mapa |
 | `OffsetsObjectMgr.h` | Object manager |
 | `OffsetsPlayer.h` | Offsets específicos del jugador |
@@ -164,7 +164,7 @@ El sistema tiene dos capas independientes.
 
 **EventBus** (`runtime/events/EventBus.h`) es el bus de publicación y suscripción en proceso. `StateCache` lo usa para emitir eventos como `player.healthChanged` y `world.zoneChanged`. Hoy ningún componente interno se suscribe a esos eventos; el bus queda disponible para uso futuro dentro del proceso.
 
-**EventPipe** (`runtime/events/EventPipe.h`) es el flujo externo en `\\.\pipe\WowGameEvent`. `StateCache` escribe `client.screenChanged` y `LoadingHooks` escribe los eventos de carga. Los eventos UI de WoW suscritos los escribe `EventHooks`. `EventHooks` también entrega los eventos sociales, de comercio, de duelo, de colas y de susurros a `runtime/events/GameEventBridge`, que lee los datos relacionados a través de `core/api/` y escribe los eventos `friends.*`, `group.invite*`, `summon.*`, `lfg.*`, `trade.*`, `duel.*`, `battlefield.*` y `chat.whisperReceived`. `hooks/SocialHooks` intercepta las funciones nativas que hay detrás de los botones de invitación, invocación, comercio y duelo, así que también se informan las respuestas dadas en el juego. El pipe funciona en modo byte y separa los mensajes con un salto de línea.
+**EventPipe** (`runtime/events/EventPipe.h`) es el flujo externo en `\\.\pipe\WowGameEvent`. `StateCache` escribe `client.screenChanged` y `LoadingHooks` escribe los eventos de carga. Los eventos UI de WoW suscritos los escribe `runtime/events/LuaEventBridge`, que los recibe del frame del puente Lua. También entrega los eventos sociales, de comercio, de duelo, de colas y de susurros a `runtime/events/GameEventBridge`, que lee los datos relacionados a través de `core/api/` y escribe los eventos `friends.*`, `group.invite*`, `summon.*`, `lfg.*`, `trade.*`, `duel.*`, `battlefield.*` y `chat.whisperReceived`. El puente Lua engancha las funciones de invitación, invocación, comercio y duelo con `hooksecurefunc`, así que también se informan las respuestas dadas en el juego. El pipe funciona en modo byte y separa los mensajes con un salto de línea.
 
 Los eventos que llegan al pipe se dividen en dos grupos:
 
