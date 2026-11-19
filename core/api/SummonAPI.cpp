@@ -6,6 +6,7 @@
 #include "core/native/GameClock.h"
 #include "memory/MemReader.h"
 #include "offsets/OffsetsSocial.h"
+#include "runtime/events/GameEventBridge.h"
 
 namespace
 {
@@ -79,6 +80,7 @@ namespace CoreAPI
             if (!CanTeleport()) return SummonResult::CannotTeleport;
 
             callScriptFunction(Offsets::Summon::CONFIRM);
+            Runtime::GameEventBridge::OnSummonAnswered(true);
             FrameScript::FireEvent("CANCEL_SUMMON");
             return SummonResult::Ok;
         }
@@ -89,6 +91,7 @@ namespace CoreAPI
             if (!Get().pending) return SummonResult::NoSummon;
 
             callScriptFunction(Offsets::Summon::CANCEL);
+            Runtime::GameEventBridge::OnSummonAnswered(false);
             FrameScript::FireEvent("CANCEL_SUMMON");
             return SummonResult::Ok;
         }
