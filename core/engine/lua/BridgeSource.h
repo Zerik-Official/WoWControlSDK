@@ -5,6 +5,7 @@ namespace LuaBridge {
 inline constexpr const char* SOURCE = R"lua(
 local bridge = {}
 local queueLimit = 256
+local eventQueueLimit = 4096
 local refLimit = 256
 
 bridge.queue = {}
@@ -15,7 +16,7 @@ bridge.hooks = {}
 
 local function push(kind, name, addon, ...)
     local queue = bridge.queue
-    if #queue >= queueLimit then
+    if #queue >= (kind == "event" and eventQueueLimit or queueLimit) then
         bridge.dropped = (bridge.dropped or 0) + 1
         return
     end
@@ -479,6 +480,55 @@ if type(hooksecurefunc) == "function" then
             end)
         end
     end
+end
+
+bridge.events = {}
+bridge.blocked = {}
+bridge.hideBlocked = true
+
+local blockedEvents = { ADDON_ACTION_FORBIDDEN = true, ADDON_ACTION_BLOCKED = true }
+local eventFrame = type(CreateFrame) == "function" and CreateFrame("Frame") or nil
+
+if eventFrame then
+    for name in pairs(blockedEvents) do
+        eventFrame:RegisterEvent(name)
+    end
+    eventFrame:SetScript("OnEvent", function(_, event, ...)
+        if bridge.events[event] then
+            push("event", event, nil, ...)
+        end
+        if blockedEvents[event] then
+            local source, func = ...
+            if source ~= nil and source == bridge.taint then
+                bridge.blocked[#bridge.blocked + 1] = { event = event, func = func }
+                if bridge.hideBlocked and event == "ADDON_ACTION_FORBIDDEN" and type(StaticPopup_Hide) == "function" then
+                    StaticPopup_Hide("ADDON_ACTION_FORBIDDEN")
+                end
+            end
+        end
+    end)
+end
+
+function bridge.setEvents(names)
+    if not eventFrame then
+        return false
+    end
+    local wanted = {}
+    for _, name in ipairs(names) do
+        wanted[name] = true
+    end
+    for name in pairs(bridge.events) do
+        if not wanted[name] and not blockedEvents[name] then
+            pcall(eventFrame.UnregisterEvent, eventFrame, name)
+        end
+    end
+    for name in pairs(wanted) do
+        if not bridge.events[name] and not blockedEvents[name] then
+            pcall(eventFrame.RegisterEvent, eventFrame, name)
+        end
+    end
+    bridge.events = wanted
+    return true
 end
 
 if type(DefaultServerLogin) == "function" then
