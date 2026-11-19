@@ -34,7 +34,7 @@ The common `token` parameter.
 | `dead` | boolean | Whether the unit is dead |
 | `ghost` | boolean | Whether the unit is a ghost |
 | `inCombat` | boolean | Whether the unit is in combat |
-| `moving` | boolean | Whether the unit is moving |
+| `moving` | boolean | Whether the unit is moving: its current speed, as `GetUnitSpeed` reports it, is above 0 |
 | `mounted` | boolean | Whether the unit is mounted |
 | `flying` | boolean | Whether the unit is flying |
 | `swimming` | boolean | Whether the unit is swimming |
@@ -106,7 +106,7 @@ The common `token` parameter.
 | `dead` | boolean | Whether the unit is dead |
 | `ghost` | boolean | Whether the unit is a ghost |
 | `inCombat` | boolean | Whether the unit is in combat |
-| `moving` | boolean | Whether the unit is moving |
+| `moving` | boolean | Whether the unit is moving: its current speed, as `GetUnitSpeed` reports it, is above 0 |
 | `mounted` | boolean | Whether the unit is mounted |
 | `flying` | boolean | Whether the unit is flying |
 | `swimming` | boolean | Whether the unit is swimming |

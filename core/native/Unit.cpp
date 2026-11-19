@@ -214,8 +214,9 @@ bool Unit::isAutoAttacking() const
 
 bool Unit::isMoving() const
 {
-    uint32_t flags = Memory::safeRead<uint32_t>(m_base + Offsets::Unit::MOVE_FLAGS);
-    return (flags & 0x1FF) != 0;
+    uintptr_t movePtr = Memory::safeRead<uintptr_t>(m_base + Offsets::Unit::MOVE_DATA_PTR);
+    if (!movePtr) return false;
+    return Memory::safeRead<float>(movePtr + Offsets::Unit::MOVE_DATA_CURRENT_SPEED) > 0.0f;
 }
 
 bool Unit::isSwimming() const

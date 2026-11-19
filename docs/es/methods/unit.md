@@ -34,7 +34,7 @@ El parámetro común `token`.
 | `dead` | boolean | Indica si la unidad está muerta |
 | `ghost` | boolean | Indica si la unidad es un fantasma |
 | `inCombat` | boolean | Indica si la unidad está en combate |
-| `moving` | boolean | Indica si la unidad se está moviendo |
+| `moving` | boolean | Indica si la unidad se está moviendo: su velocidad actual, la que devuelve `GetUnitSpeed`, es mayor que 0 |
 | `mounted` | boolean | Indica si la unidad va montada |
 | `flying` | boolean | Indica si la unidad está volando |
 | `swimming` | boolean | Indica si la unidad está nadando |
@@ -106,7 +106,7 @@ El parámetro común `token`.
 | `dead` | boolean | Indica si la unidad está muerta |
 | `ghost` | boolean | Indica si la unidad es un fantasma |
 | `inCombat` | boolean | Indica si la unidad está en combate |
-| `moving` | boolean | Indica si la unidad se está moviendo |
+| `moving` | boolean | Indica si la unidad se está moviendo: su velocidad actual, la que devuelve `GetUnitSpeed`, es mayor que 0 |
 | `mounted` | boolean | Indica si la unidad va montada |
 | `flying` | boolean | Indica si la unidad está volando |
 | `swimming` | boolean | Indica si la unidad está nadando |
