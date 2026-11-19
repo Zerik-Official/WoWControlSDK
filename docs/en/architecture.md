@@ -34,7 +34,7 @@ flowchart TD
         ipc["ipc/<br/>named pipe transport"]
         rpc["rpc/<br/>JSON-RPC protocol and handlers"]
         runtime["runtime/<br/>state cache, event bus, console, window"]
-        hooks["hooks/<br/>Detours on game functions"]
+        hooks["hooks/<br/>Scheduler, IAT and vtable hooks"]
         client["client/<br/>thin game wrappers"]
         core["core/<br/>native wrappers and API"]
         offsets["offsets/<br/>address constants"]
@@ -61,7 +61,7 @@ flowchart TD
 | `ipc/` | Named pipe transport and raw JSON read/write | None |
 | `rpc/` | JSON-RPC 2.0 parsing, dispatch, handlers and serialization | None |
 | `runtime/` | State cache, event bus, event pipe, console, log capture, realm list and window service | None directly; reads through `core/` |
-| `hooks/` | Detour hooks on game functions and event signal capture | Through `core/` and `offsets/` only |
+| `hooks/` | Game scheduler callbacks, IAT and vtable hooks and a debug register breakpoint. Game code is never patched | Through `core/` and `offsets/` only |
 | `core/` | Native wrappers, API layer, memory reads and writes, resolvers | Yes, the only layer allowed to do so |
 | `client/` | Thin wrappers around `core/` and game Lua for login, console and errors | Minimal addresses |
 | `offsets/` | Every hardcoded address and structure offset as `constexpr uintptr_t` | Constants only |
@@ -119,7 +119,7 @@ sequenceDiagram
 ```
 
 1. WoW fires a UI event such as `PLAYER_LOGIN` or `PLAYER_ENTERING_WORLD`.
-2. `hooks/EventHooks` captures it through a detour.
+2. The SDK Lua bridge frame receives it through the game's own event dispatch.
 3. If the event is subscribed with `events.subscribe`, it is pushed to `\\.\pipe\WowGameEvent`.
 4. `StateCache` polls player, world and screen state on every frame.
 5. When the glue screen changes, `StateCache` pushes `client.screenChanged`.
@@ -131,11 +131,11 @@ Events are also stored in a circular buffer that `events.getHistory` can read. T
 
 | Thread | Role |
 | --- | --- |
-| Game thread (main/frame) | Runs the WoW frame loop. Hook callbacks and `StateCache::update()` execute here. Game memory reads happen on this thread. |
+| Game thread (main/frame) | Runs the WoW frame loop. The SDK runs on it through an idle handler registered in the game scheduler. Hook callbacks and `StateCache::update()` execute here. Game memory reads happen on this thread. |
 | RPC pipe thread | Accepts command pipe connections, reads one request and dispatches it. Blocks on `ReadFile`. |
 | Event pipe thread | Accepts one event pipe client and blocks on `WriteFile` while pushing events. |
 | DLL initialization thread | Started from `DllMain`, initializes logging, hooks, the Lua engine, the runtime and the pipes. |
-| RPC handler execution | Some handlers post work to the game thread through `Hooks::Frame::Post`; others block the RPC thread while polling. |
+| RPC handler execution | Some handlers post work to the game thread through `Hooks::Frame::Execute`; others block the RPC thread while polling. |
 
 !!! note
     Every `lua.*` method runs on the game thread: the RPC thread hands the call to the next frame and waits for its result. State-changing operations such as login, logout and enter world are posted to the game thread to avoid races.
@@ -147,12 +147,12 @@ Every hardcoded game address, function pointer and structure offset is defined a
 | File | Contents |
 | --- | --- |
 | `OffsetsClient.h` | Client state, net client and the in-world flag |
-| `OffsetsConsole.h` | CVar functions |
-| `OffsetsFrame.h` | Render frame and D3D |
+| `OffsetsConsole.h` | CVar functions and the console line list |
+| `OffsetsFrame.h` | Game scheduler and graphics device vtables |
 | `OffsetsGroup.h` | Group and raid structures |
 | `OffsetsLoading.h` | Loading screen state, progress and the `Map` / `LoadingScreens` tables |
 | `OffsetsLogin.h` | Authentication, logout and character list |
-| `OffsetsLua.h` | Lua state and signal event handler |
+| `OffsetsLua.h` | Lua state and event table |
 | `OffsetsMap.h` | Map position conversion |
 | `OffsetsObjectMgr.h` | Object manager |
 | `OffsetsPlayer.h` | Player-specific offsets |
@@ -164,7 +164,7 @@ The event system has two independent layers.
 
 **EventBus** (`runtime/events/EventBus.h`) is the in-process publish/subscribe bus. `StateCache` uses it to emit events such as `player.healthChanged` and `world.zoneChanged`. No internal component subscribes to those events today; the bus is available for future in-process use.
 
-**EventPipe** (`runtime/events/EventPipe.h`) is the external stream at `\\.\pipe\WowGameEvent`. `StateCache` writes `client.screenChanged`, and `LoadingHooks` writes the loading events. Subscribed WoW UI events are written by `EventHooks`. `EventHooks` also hands social, trade, duel, queue and whisper events to `runtime/events/GameEventBridge`, which reads the related data through `core/api/` and writes the `friends.*`, `group.invite*`, `summon.*`, `lfg.*`, `trade.*`, `duel.*`, `battlefield.*` and `chat.whisperReceived` events. `hooks/SocialHooks` detours the native functions behind the invitation, summon, trade and duel buttons so answers given in the game are reported too. The pipe runs in byte mode and separates messages with a newline.
+**EventPipe** (`runtime/events/EventPipe.h`) is the external stream at `\\.\pipe\WowGameEvent`. `StateCache` writes `client.screenChanged`, and `LoadingHooks` writes the loading events. Subscribed WoW UI events are written by `runtime/events/LuaEventBridge`, which receives them from the Lua bridge frame. It also hands social, trade, duel, queue and whisper events to `runtime/events/GameEventBridge`, which reads the related data through `core/api/` and writes the `friends.*`, `group.invite*`, `summon.*`, `lfg.*`, `trade.*`, `duel.*`, `battlefield.*` and `chat.whisperReceived` events. The Lua bridge hooks the invitation, summon, trade and duel functions with `hooksecurefunc`, so answers given in the game are reported too. The pipe runs in byte mode and separates messages with a newline.
 
 Events pushed to the event pipe fall into two groups:
 
