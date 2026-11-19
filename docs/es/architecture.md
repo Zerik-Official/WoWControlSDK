@@ -55,6 +55,8 @@ flowchart TD
 
 ### Responsabilidades de las capas
 
+Todas las capas viven en `src/`. La raíz del repositorio conserva los archivos de compilación, `deps/`, `docs/` y `tools/`.
+
 | Capa | Rol | Acceso a memoria del juego |
 | --- | --- | --- |
 | `injector/` | Ejecutable independiente que lanza WoW e inyecta la DLL | Ninguno |
