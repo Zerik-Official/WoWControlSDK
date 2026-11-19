@@ -322,6 +322,11 @@ namespace Runtime
             return HANDLED_EVENTS.find(eventName) != HANDLED_EVENTS.end();
         }
 
+        std::vector<std::string> HandledEvents()
+        {
+            return std::vector<std::string>(HANDLED_EVENTS.begin(), HANDLED_EVENTS.end());
+        }
+
         void OnGameEvent(const std::string& eventName, const SDK::Json& args, uint64_t timeMs)
         {
             if (consumeSuppressed(eventName))
