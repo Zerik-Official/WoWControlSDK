@@ -32,4 +32,7 @@ std::vector<std::string> grantedAddons();
 
 LuaEngine::BridgeBatch drain(const LuaEngine::ReadLimits& limits);
 
+void configureEvents(const std::vector<std::string>& names, bool hideBlocked);
+std::vector<LuaEngine::BlockedAction> takeBlocked();
+
 }
