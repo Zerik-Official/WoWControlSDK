@@ -21,8 +21,14 @@ CharVector* GetChars()
 
 using FrameScriptExecFn = void(__cdecl*)(const char* code, const char* name, int context);
 
+static void TouchHardwareAction()
+{
+    *(uint32_t*)Offsets::Login::LAST_HARDWARE_ACTION = ((uint32_t(__cdecl*)())Offsets::Login::OS_GET_ASYNC_TIME_MS)();
+}
+
 void EnterWorld(int idx)
 {
+    TouchHardwareAction();
     *(int*)Offsets::Login::SELECTED_CHARACTER = idx;
     ((void(__cdecl*)())Offsets::Login::GLUE_ENTER_WORLD)();
 }

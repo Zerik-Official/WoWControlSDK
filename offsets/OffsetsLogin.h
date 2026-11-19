@@ -19,6 +19,8 @@ namespace Offsets
         constexpr uintptr_t SCAN_DLL_FINISHED       = 0x00B6B474;
         constexpr uintptr_t SELECTED_CHARACTER      = 0x00AC436C;
         constexpr uintptr_t GLUE_ENTER_WORLD        = 0x004D9BD0;
+        constexpr uintptr_t LAST_HARDWARE_ACTION    = 0x00B499A4;
+        constexpr uintptr_t OS_GET_ASYNC_TIME_MS    = 0x0086AE20;
 
         constexpr uintptr_t EULA_PENDING            = 0x00B6AF50;
         constexpr uintptr_t EULA_ACCEPTED           = 0x00B6AF54;
