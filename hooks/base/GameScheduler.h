@@ -13,5 +13,6 @@ void Shutdown();
 void addIdleHandler(IdleHandler handler, float priority);
 
 bool onMainThread();
+unsigned long mainThreadId();
 
 }
