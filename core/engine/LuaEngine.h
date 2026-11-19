@@ -38,6 +38,8 @@ void     setShowBlockedNotice(bool show);
 bool     showBlockedNotice();
 
 BridgeBatch drainBridge(const ReadLimits& limits);
+void configureEvents(const std::vector<std::string>& names);
+std::vector<BlockedAction> takeBlockedActions();
 
 LuaResult loadScript(const std::string& name, const std::string& code, bool persist, bool replace, ScriptInfo& info);
 LuaResult unloadScript(const std::string& name, ScriptResources& removed);
