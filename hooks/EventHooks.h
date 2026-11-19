@@ -12,4 +12,6 @@ namespace Hooks::Events
     void    ClearSubscriptions();
     void    GetSubscriptions(std::vector<std::string>& out);
     int     GetEventId(const char* eventName);
+    bool    IsSubscribed(const std::string& eventName);
+    std::vector<std::string> WantedEvents();
 }
