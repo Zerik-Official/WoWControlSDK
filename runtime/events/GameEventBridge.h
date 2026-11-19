@@ -9,6 +9,7 @@ namespace Runtime
     namespace GameEventBridge
     {
         bool Handles(const std::string& eventName);
+        std::vector<std::string> HandledEvents();
         void OnGameEvent(const std::string& eventName, const SDK::Json& args, uint64_t timeMs);
         void OnInviteAnswered(bool accepted, uint32_t roles);
         void OnSummonAnswered(bool accepted);
