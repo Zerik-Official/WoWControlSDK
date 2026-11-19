@@ -11,7 +11,7 @@ The project uses CMake to produce two artifacts: the injected DLL and the standa
 | CMake | 3.20 or later | Build system |
 | Git | 2.40 or later | Source control |
 
-The third-party sources are vendored under `deps/`, including Microsoft Detours, so no package manager or network fetch is required during the build.
+The third-party sources are vendored under `deps/`, so no package manager or network fetch is required during the build.
 
 ## Configure and build
 
@@ -52,7 +52,7 @@ The root `CMakeLists.txt` sets the following:
 | `/GS-` | Compiler option | Disables stack buffer security checks for the injected DLL |
 | `/utf-8` | Compiler option | Treats source files as UTF-8 |
 
-The DLL links against Detours. The injector links against `kernel32` only.
+The DLL has no third-party link dependencies. The injector links against `kernel32` only.
 
 ## Clean rebuild
 
