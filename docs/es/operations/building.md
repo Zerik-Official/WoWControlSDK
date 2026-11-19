@@ -11,7 +11,7 @@ El proyecto usa CMake para producir dos artefactos: la DLL que se inyecta y el i
 | CMake | 3.20 o posterior | Sistema de compilación |
 | Git | 2.40 o posterior | Control de versiones |
 
-Las fuentes de terceros están incluidas en `deps/`, entre ellas Microsoft Detours, así que la compilación no necesita ningún gestor de paquetes ni acceso a red.
+Las fuentes de terceros están incluidas en `deps/`, así que la compilación no necesita ningún gestor de paquetes ni acceso a red.
 
 ## Configurar y compilar
 
@@ -52,7 +52,7 @@ El `CMakeLists.txt` raíz define lo siguiente:
 | `/GS-` | Opción del compilador | Desactiva las comprobaciones de seguridad del búfer de pila en la DLL inyectada |
 | `/utf-8` | Opción del compilador | Trata los archivos fuente como UTF-8 |
 
-La DLL enlaza con Detours. El inyector solo enlaza con `kernel32`.
+La DLL no enlaza con bibliotecas de terceros. El inyector solo enlaza con `kernel32`.
 
 ## Recompilación limpia
 

@@ -8,137 +8,133 @@ add_compile_definitions(
     WIN32_LEAN_AND_MEAN
 )
 
-add_subdirectory(deps/Detours)
-add_subdirectory(injector)
+add_subdirectory(src/injector)
 
 add_library(WoWControlSDK SHARED
-    DllMain.cpp
+    src/DllMain.cpp
 
-    core/engine/LuaEngine.cpp
-    core/engine/lua/LuaBlocked.cpp
-    core/engine/lua/LuaBridge.cpp
-    core/engine/lua/LuaNative.cpp
-    core/engine/lua/LuaPath.cpp
-    core/engine/lua/LuaScripts.cpp
-    core/engine/lua/LuaStack.cpp
-    core/engine/lua/LuaTaint.cpp
+    src/core/engine/LuaEngine.cpp
+    src/core/engine/lua/LuaBlocked.cpp
+    src/core/engine/lua/LuaBridge.cpp
+    src/core/engine/lua/LuaNative.cpp
+    src/core/engine/lua/LuaPath.cpp
+    src/core/engine/lua/LuaScripts.cpp
+    src/core/engine/lua/LuaStack.cpp
+    src/core/engine/lua/LuaTaint.cpp
 
-    core/native/ObjectManager.cpp
-    core/native/ClientState.cpp
-    core/native/NetClient.cpp
-    core/native/Performance.cpp
-    core/native/AddonMemory.cpp
-    core/native/CrashReport.cpp
-    core/native/RealmListReader.cpp
-    core/native/WoWObject.cpp
-    core/native/Unit.cpp
-    core/native/Player.cpp
-    core/native/WorldInfo.cpp
-    core/native/LoadingScreen.cpp
-    core/native/WorldReader.cpp
-    core/native/GlueAPI.cpp
-    core/native/CharacterReader.cpp
-    core/native/ClientDb.cpp
-    core/native/NameCache.cpp
-    core/native/FrameScript.cpp
-    core/native/ClientPacket.cpp
+    src/core/native/ObjectManager.cpp
+    src/core/native/ClientState.cpp
+    src/core/native/NetClient.cpp
+    src/core/native/Performance.cpp
+    src/core/native/AddonMemory.cpp
+    src/core/native/CrashReport.cpp
+    src/core/native/RealmListReader.cpp
+    src/core/native/WoWObject.cpp
+    src/core/native/Unit.cpp
+    src/core/native/Player.cpp
+    src/core/native/WorldInfo.cpp
+    src/core/native/LoadingScreen.cpp
+    src/core/native/WorldReader.cpp
+    src/core/native/GlueAPI.cpp
+    src/core/native/CharacterReader.cpp
+    src/core/native/ClientDb.cpp
+    src/core/native/NameCache.cpp
+    src/core/native/FrameScript.cpp
+    src/core/native/ClientPacket.cpp
 
-    core/api/UnitAPI.cpp
-    core/api/PlayerAPI.cpp
-    core/api/WorldAPI.cpp
-    core/api/GroupAPI.cpp
-    core/api/ObjectAPI.cpp
-    core/api/FriendsAPI.cpp
-    core/api/SummonAPI.cpp
-    core/api/LfgAPI.cpp
-    core/api/TradeAPI.cpp
-    core/api/DuelAPI.cpp
-    core/api/BattlefieldAPI.cpp
-    core/api/ChatAPI.cpp
+    src/core/api/UnitAPI.cpp
+    src/core/api/PlayerAPI.cpp
+    src/core/api/WorldAPI.cpp
+    src/core/api/GroupAPI.cpp
+    src/core/api/ObjectAPI.cpp
+    src/core/api/FriendsAPI.cpp
+    src/core/api/SummonAPI.cpp
+    src/core/api/LfgAPI.cpp
+    src/core/api/TradeAPI.cpp
+    src/core/api/DuelAPI.cpp
+    src/core/api/BattlefieldAPI.cpp
+    src/core/api/ChatAPI.cpp
 
-    core/resolvers/NameResolver.cpp
-    core/resolvers/UnitResolver.cpp
+    src/core/resolvers/NameResolver.cpp
+    src/core/resolvers/UnitResolver.cpp
 
-    rpc/protocol/Request.cpp
-    rpc/protocol/Response.cpp
-    rpc/Dispatcher.cpp
-    rpc/handlers/core/ClientRpc.cpp
-    rpc/handlers/core/LuaRpc.cpp
-    rpc/handlers/player/PlayerRpc.cpp
-    rpc/handlers/core/WorldRpc.cpp
-    rpc/handlers/auth/AuthRpc.cpp
-    rpc/handlers/core/CharRpc.cpp
-    rpc/handlers/Handlers.cpp
-    rpc/handlers/core/UnitRpc.cpp
-    rpc/handlers/core/GroupRpc.cpp
-    rpc/handlers/core/ObjectRpc.cpp
+    src/rpc/protocol/Request.cpp
+    src/rpc/protocol/Response.cpp
+    src/rpc/Dispatcher.cpp
+    src/rpc/handlers/core/ClientRpc.cpp
+    src/rpc/handlers/core/LuaRpc.cpp
+    src/rpc/handlers/player/PlayerRpc.cpp
+    src/rpc/handlers/core/WorldRpc.cpp
+    src/rpc/handlers/auth/AuthRpc.cpp
+    src/rpc/handlers/core/CharRpc.cpp
+    src/rpc/handlers/Handlers.cpp
+    src/rpc/handlers/core/UnitRpc.cpp
+    src/rpc/handlers/core/GroupRpc.cpp
+    src/rpc/handlers/core/ObjectRpc.cpp
 
-    rpc/MethodRegistry.cpp
-    runtime/events/EventBus.cpp
-    runtime/state/GlueState.cpp
-    runtime/state/StateCache.cpp
-    runtime/Runtime.cpp
-    runtime/console/ConsoleManager.cpp
-    runtime/console/LogCapture.cpp
-    runtime/realm/RealmList.cpp
-    runtime/events/EventPipe.cpp
-    runtime/events/GameEventBridge.cpp
-    runtime/events/LuaEventBridge.cpp
+    src/rpc/MethodRegistry.cpp
+    src/runtime/events/EventBus.cpp
+    src/runtime/state/GlueState.cpp
+    src/runtime/state/StateCache.cpp
+    src/runtime/Runtime.cpp
+    src/runtime/console/ConsoleManager.cpp
+    src/runtime/console/LogCapture.cpp
+    src/runtime/realm/RealmList.cpp
+    src/runtime/events/EventPipe.cpp
+    src/runtime/events/GameEventBridge.cpp
+    src/runtime/events/LuaEventBridge.cpp
 
-    runtime/diagnostics/CrashMonitor.cpp
-    runtime/diagnostics/AddonMemoryMonitor.cpp
+    src/runtime/diagnostics/CrashMonitor.cpp
+    src/runtime/diagnostics/AddonMemoryMonitor.cpp
 
-    runtime/window/WindowService.cpp
+    src/runtime/window/WindowService.cpp
 
-    hooks/Hooks.cpp
-    hooks/AddonHooks.cpp
-    hooks/ErrorHooks.cpp
-    hooks/lua/LuaHooks.cpp
-    hooks/glue/GlueLoadHooks.cpp
-    hooks/EndSceneHook.cpp
-    hooks/ConsoleHooks.cpp
-    hooks/FrameHooks.cpp
-    hooks/GlueHooks.cpp
-    hooks/EventHooks.cpp
-    hooks/LoadingHooks.cpp
-    hooks/SocialHooks.cpp
-    hooks/WindowHooks.cpp
+    src/hooks/Hooks.cpp
+    src/hooks/base/GameScheduler.cpp
+    src/hooks/base/HardwareBreakpoint.cpp
+    src/hooks/base/IatHook.cpp
+    src/hooks/base/VTableHook.cpp
+    src/hooks/AddonHooks.cpp
+    src/hooks/ErrorHooks.cpp
+    src/hooks/glue/GlueLoadHooks.cpp
+    src/hooks/ConsoleHooks.cpp
+    src/hooks/FrameHooks.cpp
+    src/hooks/GlueHooks.cpp
+    src/hooks/EventHooks.cpp
+    src/hooks/LoadingHooks.cpp
+    src/hooks/WindowHooks.cpp
 
-    ipc/CommandPipe.cpp
-    ipc/Auth.cpp
-    ipc/PipeSecurity.cpp
+    src/ipc/CommandPipe.cpp
+    src/ipc/Auth.cpp
+    src/ipc/PipeSecurity.cpp
 
-    rpc/handlers/control/ControlRpc.cpp
-    rpc/handlers/event/EventRpc.cpp
+    src/rpc/handlers/control/ControlRpc.cpp
+    src/rpc/handlers/event/EventRpc.cpp
 
-    rpc/handlers/window/WindowRpc.cpp
-    rpc/handlers/social/SocialRpc.cpp
+    src/rpc/handlers/window/WindowRpc.cpp
+    src/rpc/handlers/social/SocialRpc.cpp
 
-    utils/json/JsonIPC.cpp
+    src/utils/json/JsonIPC.cpp
 
-    client/strings/RCString.cpp
-    client/login/LoginAPI.cpp
-    client/console/ConsoleAPI.cpp
-    client/lua/LuaAPI.cpp
-    client/game/ErrorAPI.cpp
-    client/utils/CString.cpp
+    src/client/strings/RCString.cpp
+    src/client/login/LoginAPI.cpp
+    src/client/console/ConsoleAPI.cpp
+    src/client/lua/LuaAPI.cpp
+    src/client/game/ErrorAPI.cpp
+    src/client/utils/CString.cpp
 )
 
 target_include_directories(WoWControlSDK PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/core
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/api
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/native
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/types
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/resolvers
-    ${CMAKE_CURRENT_SOURCE_DIR}/rpc
-    ${CMAKE_CURRENT_SOURCE_DIR}/runtime
-    ${CMAKE_CURRENT_SOURCE_DIR}/offsets
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/api
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/native
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/types
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/resolvers
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/rpc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/runtime
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/offsets
     ${CMAKE_CURRENT_SOURCE_DIR}/deps
-)
-
-target_link_libraries(WoWControlSDK PRIVATE
-    Detours
 )
 
 target_compile_options(WoWControlSDK PRIVATE

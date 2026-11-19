@@ -22,7 +22,7 @@ sequenceDiagram
 
 1. **Launch suspended.** `Wow.exe` starts with `CREATE_SUSPENDED`, so no game code runs yet.
 2. **Inject the DLL.** The injector allocates memory in the target process, writes the DLL path and calls `LoadLibrary` through `CreateRemoteThread`.
-3. **Initialize the SDK.** `DllMain` starts a dedicated thread that initializes log capture, Detours hooks, the Lua engine, the runtime, the command pipe and the event pipe.
+3. **Initialize the SDK.** `DllMain` starts a dedicated thread that initializes log capture, the hooks, the Lua engine, the runtime, the command pipe and the event pipe.
 4. **Wait for the pipe.** The game remains frozen while the injector waits up to 15 seconds for `\\.\pipe\WowGameCommand` to accept a connection. If the game closes during the wait, the injector stops at once.
 5. **Configure authentication.** The injector registers the session token (or `--no-auth`) with `auth.init` while the game is still frozen. If the SDK rejects it, the game is terminated.
 6. **Resume the game.** The injector resumes the main thread and the game runs normally.

@@ -2,7 +2,7 @@
 
 Manage the SDK DLL itself: the in-game console overlay, log capture and diagnostics.
 
-The SDK hooks WoW's internal `PrintMessage` function at `0x00765270` to capture console output. Most entries come from the game itself, such as Lua errors, debug messages and CVar changes.
+The SDK reads WoW's console line list on every frame to capture console output. Most entries come from the game itself, such as Lua errors, debug messages and CVar changes.
 
 ## dll.toggleConsole
 

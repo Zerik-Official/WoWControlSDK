@@ -167,8 +167,8 @@ Después de un error:
 | `description` | string | Descripción corta, como la excepción y su dirección |
 | `details` | string | Explicación más larga escrita por el juego |
 | `exception` | object o `null` | `{"code", "address", "module", "offset"}` de la excepción; `null` en otros errores |
-| `logPath` | string o `null` | Ruta del log en la carpeta `Errors` |
-| `log` | string o `null` | Contenido del log, hasta 64 KB |
+| `logPath` | string o `null` | Ruta del log en la carpeta `Errors`. `null` cuando el juego no escribió ningún log. Un crash que dañe la memoria del proceso también puede dejar la ruta ilegible |
+| `log` | string o `null` | Contenido del log, hasta 64 KB. `null` cuando no se puede leer el log, por ejemplo si `logPath` es `null` o está dañada |
 | `logTruncated` | boolean | Presente y `true` cuando el log ocupaba más de 64 KB |
 | `time` | integer | Milisegundos desde que se inició Windows |
 
