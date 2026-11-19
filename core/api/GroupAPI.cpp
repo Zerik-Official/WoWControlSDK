@@ -7,6 +7,7 @@
 #include "memory/MemReader.h"
 #include "offsets/OffsetsGroup.h"
 #include "offsets/OffsetsSocial.h"
+#include "runtime/events/GameEventBridge.h"
 #include <Windows.h>
 #include <algorithm>
 
@@ -382,6 +383,7 @@ namespace CoreAPI
 
             using AcceptFn = void(__thiscall*)(uintptr_t, uint32_t);
             reinterpret_cast<AcceptFn>(Offsets::Group::ACCEPT_INVITE)(player, flags);
+            Runtime::GameEventBridge::OnInviteAnswered(true, flags);
             FrameScript::FireEvent("PARTY_INVITE_CANCEL");
             return true;
         }
@@ -393,6 +395,7 @@ namespace CoreAPI
 
             using DeclineFn = void(__thiscall*)(uintptr_t);
             reinterpret_cast<DeclineFn>(Offsets::Group::DECLINE_INVITE)(player);
+            Runtime::GameEventBridge::OnInviteAnswered(false, 0);
             FrameScript::FireEvent("PARTY_INVITE_CANCEL");
             return true;
         }
