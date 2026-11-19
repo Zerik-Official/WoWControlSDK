@@ -55,6 +55,8 @@ flowchart TD
 
 ### Layer responsibilities
 
+Every layer lives under `src/`. The repository root keeps the build files, `deps/`, `docs/` and `tools/`.
+
 | Layer | Role | Game memory access |
 | --- | --- | --- |
 | `injector/` | Standalone executable that launches WoW and injects the DLL | None |
