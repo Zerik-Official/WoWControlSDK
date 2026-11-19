@@ -199,6 +199,17 @@ BridgeBatch drainBridge(const ReadLimits& limits)
     return LuaBridge::drain(limits);
 }
 
+void configureEvents(const std::vector<std::string>& names)
+{
+    LuaBridge::configureEvents(names, !LuaBlocked::showNotice());
+}
+
+std::vector<BlockedAction> takeBlockedActions()
+{
+    LuaBlocked::collect();
+    return LuaBlocked::takeReported();
+}
+
 LuaResult loadScript(const std::string& name, const std::string& code, bool persist, bool replace, ScriptInfo& info)
 {
     return LuaScripts::load(name, code, persist, replace, info);
