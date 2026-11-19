@@ -98,6 +98,11 @@ void addIdleHandler(IdleHandler handler, float priority)
         registerPending();
 }
 
+unsigned long mainThreadId()
+{
+    return s_mainThreadId.load();
+}
+
 bool onMainThread()
 {
     DWORD id = s_mainThreadId.load();
