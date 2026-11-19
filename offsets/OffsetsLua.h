@@ -52,6 +52,9 @@ namespace Lua
 
     constexpr uintptr_t SIGNAL_EVENT_HANDLER     = 0x0081AC90;
     constexpr uintptr_t FRAMESCRIPT_FILL_EVENTS  = 0x0081B5F0;
+    constexpr uintptr_t EVENT_TABLE_COUNT        = 0x00D3F7D4;
+    constexpr uintptr_t EVENT_TABLE              = 0x00D3F7D8;
+    constexpr uintptr_t EVENT_OBJECT_NAME        = 0x14;
     constexpr uintptr_t FRAMESCRIPT_FIRE_ON_UPDATE = 0x00495810;
     constexpr uintptr_t GET_GUID_BY_KEYWORD      = 0x0060AFAA;
     constexpr uintptr_t GET_KEYWORDS_BY_GUID     = 0x0060BB70;
