@@ -5,6 +5,7 @@
 #include "core/native/ObjectManager.h"
 #include "memory/MemReader.h"
 #include "offsets/OffsetsSocial.h"
+#include "runtime/events/GameEventBridge.h"
 #include <Windows.h>
 #include <cstdlib>
 
@@ -205,6 +206,7 @@ namespace CoreAPI
             if (!GetRequest().pending) return TradeResult::NoRequest;
 
             callVoid(T::BEGIN);
+            Runtime::GameEventBridge::OnTradeRequestAnswered(true);
             FrameScript::FireEvent("TRADE_REQUEST_CANCEL");
             return TradeResult::Ok;
         }
@@ -215,6 +217,7 @@ namespace CoreAPI
             if (!GetRequest().pending) return TradeResult::NoRequest;
 
             callVoid(T::CANCEL);
+            Runtime::GameEventBridge::OnTradeRequestAnswered(false);
             FrameScript::FireEvent("TRADE_REQUEST_CANCEL");
             return TradeResult::Ok;
         }
