@@ -20,6 +20,9 @@ static ULONGLONG s_retryAt = 0;
 static std::optional<std::vector<std::string>> s_allowed;
 static std::vector<std::string> s_granted;
 static uint64_t s_generation = 0;
+static std::vector<std::string> s_eventNames;
+static bool s_eventsHideBlocked = true;
+static uint64_t s_eventsGeneration = 0;
 
 static bool isAllowed(const std::string& addon)
 {
@@ -204,6 +207,95 @@ bool grantAddon(const char* addon)
     return granted;
 }
 
+void configureEvents(const std::vector<std::string>& names, bool hideBlocked)
+{
+    lua_State* L = LuaNative::state();
+    if (!L || !ensure(L))
+        return;
+    if (s_eventsGeneration == s_generation && names == s_eventNames && hideBlocked == s_eventsHideBlocked)
+        return;
+
+    int top = LuaNative::gettop(L);
+    if (!LuaNative::checkstack(L, 8))
+        return;
+
+    bool ok = false;
+    {
+        LuaTaint::Scope scope(true);
+        pushField(L, "errorHandler");
+        int errorIndex = top + 1;
+        LuaNative::getfield(L, Offsets::Lua::REGISTRY_INDEX, REGISTRY_KEY);
+        int bridge = top + 2;
+
+        LuaNative::pushstring(L, LuaTaint::sdkSource());
+        LuaNative::setfield(L, bridge, "taint");
+        LuaNative::pushboolean(L, hideBlocked ? 1 : 0);
+        LuaNative::setfield(L, bridge, "hideBlocked");
+
+        LuaNative::getfield(L, bridge, "setEvents");
+        LuaNative::createtable(L, static_cast<int>(names.size()), 0);
+        for (size_t i = 0; i < names.size(); ++i)
+        {
+            LuaNative::pushstring(L, names[i].c_str());
+            LuaNative::rawseti(L, -2, static_cast<int>(i + 1));
+        }
+        ok = LuaNative::pcall(L, 1, 0, errorIndex) == 0;
+    }
+    LuaNative::settop(L, top);
+
+    if (ok)
+    {
+        s_eventNames = names;
+        s_eventsHideBlocked = hideBlocked;
+        s_eventsGeneration = s_generation;
+    }
+}
+
+std::vector<LuaEngine::BlockedAction> takeBlocked()
+{
+    std::vector<LuaEngine::BlockedAction> actions;
+    lua_State* L = LuaNative::state();
+    if (!L || !LuaNative::checkstack(L, 6))
+        return actions;
+
+    int top = LuaNative::gettop(L);
+    LuaNative::getfield(L, Offsets::Lua::REGISTRY_INDEX, REGISTRY_KEY);
+    int bridge = top + 1;
+    if (LuaNative::type(L, bridge) != LuaNative::TYPE_TABLE)
+    {
+        LuaNative::settop(L, top);
+        return actions;
+    }
+
+    LuaNative::getfield(L, bridge, "blocked");
+    int list = bridge + 1;
+    size_t count = LuaNative::type(L, list) == LuaNative::TYPE_TABLE ? LuaNative::objlen(L, list) : 0;
+    for (size_t i = 1; i <= count; ++i)
+    {
+        LuaNative::rawgeti(L, list, static_cast<int>(i));
+        int item = LuaNative::gettop(L);
+        if (LuaNative::type(L, item) == LuaNative::TYPE_TABLE)
+        {
+            LuaNative::getfield(L, item, "event");
+            std::string event = LuaStack::readString(L, -1);
+            LuaNative::settop(L, item);
+            LuaNative::getfield(L, item, "func");
+            std::string function = LuaStack::readString(L, -1);
+            actions.push_back({event, function});
+        }
+        LuaNative::settop(L, item - 1);
+    }
+
+    if (count > 0)
+    {
+        LuaTaint::Scope scope(true);
+        LuaNative::createtable(L, 0, 0);
+        LuaNative::setfield(L, bridge, "blocked");
+    }
+    LuaNative::settop(L, top);
+    return actions;
+}
+
 void setAllowedAddons(std::optional<std::vector<std::string>> addons)
 {
     s_allowed = std::move(addons);
@@ -226,6 +318,7 @@ static void readMessage(lua_State* L, int item, const LuaEngine::ReadLimits& lim
     message.kind = kind == "hook" ? LuaEngine::BridgeKind::Hook
         : kind == "error" ? LuaEngine::BridgeKind::Error
         : kind == "internal" ? LuaEngine::BridgeKind::Internal
+        : kind == "event" ? LuaEngine::BridgeKind::Event
         : LuaEngine::BridgeKind::Emit;
     LuaNative::settop(L, item);
 
