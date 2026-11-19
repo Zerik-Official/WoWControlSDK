@@ -1,22 +1,19 @@
 #include "FrameHooks.h"
-#include "base/DetourHelper.h"
-#include "offsets/OffsetsFrame.h"
+#include "base/GameScheduler.h"
 #include "utils/TaskQueue.h"
 
 namespace Hooks::Frame
 {
 
-using RenderFrameFn = void(__cdecl*)();
-static RenderFrameFn s_original = nullptr;
+static constexpr float FRAME_PRIORITY = 1.0f;
+
 static std::function<void()> s_onFrame = nullptr;
 static bool s_initialized = false;
 
 static Utils::TaskQueue s_queue;
 
-static void __cdecl RenderFrame_Hook()
+static void OnIdle()
 {
-    s_original();
-
     if (s_onFrame)
         s_onFrame();
 
@@ -27,9 +24,8 @@ void Initialize()
 {
     if (s_initialized) return;
 
-    s_original = (RenderFrameFn)Offsets::Frame::RENDER_FRAME;
-
-    Detail::attach(s_original, RenderFrame_Hook);
+    GameScheduler::Initialize();
+    GameScheduler::addIdleHandler(OnIdle, FRAME_PRIORITY);
 
     s_initialized = true;
 }
@@ -38,7 +34,7 @@ void Shutdown()
 {
     if (!s_initialized) return;
 
-    Detail::detach(s_original, RenderFrame_Hook);
+    GameScheduler::Shutdown();
 
     s_initialized = false;
 }
