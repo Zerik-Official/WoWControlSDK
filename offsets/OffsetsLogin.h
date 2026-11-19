@@ -16,6 +16,10 @@ namespace Offsets
 
         constexpr uintptr_t GLUE_MGR_UPDATE         = 0x004DAB40;
         constexpr uintptr_t GRUNT_PRINTER           = 0x004DA4B0;
+        constexpr uintptr_t LOGIN_STATUS_OBJECT     = 0x00C79CE4;
+        constexpr uintptr_t LOGIN_STATUS_VTABLE     = 0x009F418C;
+        constexpr size_t    LOGIN_STATUS_VTABLE_SLOTS  = 8;
+        constexpr size_t    LOGIN_STATUS_ON_STATE_SLOT = 6;
         constexpr uintptr_t SCAN_DLL_FINISHED       = 0x00B6B474;
         constexpr uintptr_t SELECTED_CHARACTER      = 0x00AC436C;
         constexpr uintptr_t GLUE_ENTER_WORLD        = 0x004D9BD0;
