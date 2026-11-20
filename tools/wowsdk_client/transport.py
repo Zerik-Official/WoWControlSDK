@@ -44,6 +44,7 @@ class RpcResult:
     response: dict[str, Any] | None
     error: str | None
     elapsed_ms: float
+    offline: bool = False
 
     @property
     def ok(self) -> bool:
