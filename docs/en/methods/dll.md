@@ -58,7 +58,7 @@ The commit and its date are written into the DLL at build time, so two builds of
 ### Example
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "dll.getInfo"}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "dll.getInfo"}
 ```
 
 ```json
@@ -157,4 +157,4 @@ Omitted parameters keep their current value. When `showInConsole` turns on, or t
 | `showInConsole` | boolean | Configured echo setting |
 
 !!! note
-    Reducing `maxEntries` does not trim the buffer immediately. Old entries are overwritten as new ones arrive.
+    Reducing `maxEntries` trims the oldest entries immediately.

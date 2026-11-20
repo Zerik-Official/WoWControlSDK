@@ -97,7 +97,7 @@ Call it before the game creates its window: [`WowInjector.exe --hidden`](../inje
 ### Example
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "window.setStartHidden", "params": {"hidden": true}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "window.setStartHidden", "params": {"hidden": true}}
 ```
 
 ```json
@@ -375,7 +375,7 @@ Changes the window icon: the title bar icon (`ICON_SMALL`, 16×16) and the Alt+T
 
 ## Window events
 
-The window service subclasses `GWLP_WNDPROC` and emits these events to the event pipe:
+The window service subclasses `GWLP_WNDPROC` and emits these events to the in-process `EventBus`. They are not sent to the external event pipe or stored in the event history.
 
 | Event | Payload | Trigger |
 | --- | --- | --- |

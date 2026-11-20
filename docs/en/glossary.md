@@ -12,7 +12,7 @@
 :   `\\.\pipe\WowGameCommand`. Accepts one request per connection, dispatches it and returns one response.
 
 **Event pipe**
-:   `\\.\pipe\WowGameEvent`. A write-only stream of newline-delimited JSON events. It accepts one client at a time.
+:   `\\.\pipe\WowGameEvent`. A duplex pipe that streams newline-delimited JSON events to one client at a time. When authentication is enabled, the client first sends a `{"auth":"<token>"}` handshake and the SDK answers with `auth.ok` or `auth.failed` before streaming.
 
 **Message mode**
 :   A named pipe mode that preserves write boundaries. The command pipe uses it so one write is one request. The event pipe uses byte mode instead.
@@ -35,7 +35,7 @@
 :   The numeric address or field displacement of a structure inside the game binary. Every offset lives in `offsets/` as a `constexpr uintptr_t`.
 
 **Lua VM**
-:   The Lua interpreter embedded in WoW. `lua.*` methods execute code in this VM and only serialize boolean, number and string values.
+:   The Lua interpreter embedded in WoW. `lua.*` methods execute code in this VM and serialize booleans, numbers and strings as JSON; tables become arrays or objects, and other types are represented with `$type` markers.
 
 ## Game state
 

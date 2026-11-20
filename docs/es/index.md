@@ -14,7 +14,7 @@ La DLL se ejecuta dentro de `Wow.exe`. Un cliente se conecta a `\\.\pipe\WowGame
 | Protocolo | JSON-RPC 2.0, una petición por conexión |
 | Pipe de comandos | `\\.\pipe\WowGameCommand` |
 | Pipe de eventos | `\\.\pipe\WowGameEvent` |
-| Dominios RPC | `lua`, `unit`, `group`, `player`, `world`, `object`, `client`, `events`, `dll`, `window` |
+| Dominios RPC | `lua`, `unit`, `group`, `player`, `world`, `object`, `client`, `events`, `dll`, `window`, `friends`, `summon`, `lfg`, `trade`, `duel`, `battlefield`, `chat` |
 | Lenguajes | Cualquier lenguaje capaz de abrir un named pipe |
 
 ## Por dónde empezar
@@ -43,7 +43,7 @@ La DLL se ejecuta dentro de `Wow.exe`. Un cliente se conecta a `\\.\pipe\WowGame
 **Referencia**
 
 - [Métodos](methods/index.md): convenciones comunes a todos los dominios y enlaces a cada página.
-- [lua.*](methods/lua.md), [unit.*](methods/unit.md), [group.*](methods/group.md), [player.*](methods/player.md), [world.*](methods/world.md), [object.*](methods/object.md), [client.*](methods/client.md), [events.*](methods/events.md), [dll.*](methods/dll.md) y [window.*](methods/window.md).
+- [lua.*](methods/lua.md), [unit.*](methods/unit.md), [group.*](methods/group.md), [player.*](methods/player.md), [world.*](methods/world.md), [object.*](methods/object.md), [client.*](methods/client.md), [events.*](methods/events.md), [dll.*](methods/dll.md), [window.*](methods/window.md), [friends.*](methods/friends.md), [summon.*](methods/summon.md), [lfg.*](methods/lfg.md), [trade.*](methods/trade.md), [duel.*](methods/duel.md), [battlefield.*](methods/battlefield.md) y [chat.*](methods/chat.md).
 - [Glosario](glossary.md): términos de transporte, del juego y de ingeniería.
 
 **Operación**

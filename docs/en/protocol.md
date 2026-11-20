@@ -13,14 +13,14 @@ The command pipe reads one message of up to **1 MiB** (1,048,576 bytes), dispatc
 
 - Open a new pipe handle for each request.
 - Write the whole JSON object in a single `WriteFile`.
-- Keep requests under 1 MiB. A larger request returns the JSON-RPC error `-32600` with `Request too large`.
+- Keep requests under 1 MiB. A larger request returns the JSON-RPC error `-32600` with `Request too large: the limit is 1048576 bytes`.
 - Read the response before closing the handle.
 
-The event pipe is different. It is a long-lived connection: the client authenticates first, then the SDK writes one JSON object per line and the client keeps reading until the pipe closes.
+The event pipe is different. It is a long-lived connection: when authentication is enabled the client authenticates first, then the SDK writes one JSON object per line and the client keeps reading until the pipe closes.
 
 ## Authentication
 
-Since SDK 2.0 both pipes require a session token, and they only accept local connections from the Windows user that runs the game (remote clients are rejected and other users have no access).
+Since SDK 2.0 both pipes are authenticated by default: they require a session token, and they only accept local connections from the Windows user that runs the game (remote clients are rejected and other users have no access). With `--no-auth` the token check is disabled: requests need no `auth` field and event clients connect without a handshake.
 
 1. The launcher generates a random token of 32 to 128 hexadecimal characters for each game session.
 2. It passes the token to `WowInjector.exe` through standard input with `--token-stdin`, so it never appears in a command line.
@@ -32,7 +32,7 @@ Since SDK 2.0 both pipes require a session token, and they only accept local con
 
 | Method | Authentication | Description |
 | --- | --- | --- |
-| `auth.init` | Not required | Configure authentication once. Params: `{"token": "<hex>"}` or `{"disabled": true}`. Result: `{"ok": true, "state": "enabled"}` or `{"ok": false, "error": "<reason>"}`. |
+| `auth.init` | Not required | Configure authentication once. Params: `{"token": "<hex>"}` or `{"disabled": true}`. Result: `{"ok": true, "state": "enabled"}` or `{"ok": true, "state": "disabled"}`, or `{"ok": false, "error": "<reason>"}`. |
 | `auth.status` | Not required | Result: `{"state": "pending" \| "enabled" \| "disabled"}`. |
 
 ## Request
