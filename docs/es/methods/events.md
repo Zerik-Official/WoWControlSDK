@@ -31,7 +31,7 @@ Se suscribe a uno o varios eventos de WoW.
 ### Ejemplo
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "events.subscribe", "params": {"events": ["PLAYER_LOGIN", "PLAYER_ENTERING_WORLD", "UNIT_HEALTH"]}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "events.subscribe", "params": {"events": ["PLAYER_LOGIN", "PLAYER_ENTERING_WORLD", "UNIT_HEALTH"]}}
 ```
 
 ```json
@@ -61,7 +61,7 @@ Cancela la suscripción a uno o varios eventos de WoW.
 ### Ejemplo
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "events.unsubscribe", "params": {"events": ["UNIT_HEALTH"]}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "events.unsubscribe", "params": {"events": ["UNIT_HEALTH"]}}
 ```
 
 ```json
@@ -85,7 +85,7 @@ Ninguno.
 ### Ejemplo
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "events.list"}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "events.list"}
 ```
 
 ```json
@@ -137,7 +137,7 @@ Devuelve una porción del búfer circular de historial.
 ### Ejemplo
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "events.getHistory", "params": {"offset": 0, "count": 2}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "events.getHistory", "params": {"offset": 0, "count": 2}}
 ```
 
 ```json
@@ -191,7 +191,7 @@ Define el tamaño máximo del búfer de historial.
 | `maxBuffer` | integer | Máximo configurado |
 
 !!! note
-    Reducir el tamaño no recorta las entradas existentes de inmediato. Se van sobrescribiendo a medida que llegan eventos nuevos.
+    Reducir el tamaño recorta de inmediato las entradas más antiguas.
 
 ## events.isReady
 
