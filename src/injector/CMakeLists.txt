@@ -8,6 +8,7 @@ add_executable(WowInjector
     args.cpp
     process.cpp
     inject.cpp
+    manualmap.cpp
     pipe.cpp
 )
 
