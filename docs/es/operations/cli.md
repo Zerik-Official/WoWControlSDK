@@ -42,16 +42,55 @@ El cliente se genera en `dist/WoWControlClient/`. `--windowed` oculta la ventana
 
 | Zona | Contenido |
 | --- | --- |
-| Cabecera | Estado del SDK (si existe el pipe de comandos), estado del token de sesión, **Ajustes** e **Iniciar WoW** |
-| Explorador de métodos | Una barra con un icono por dominio y los métodos del dominio elegido como tarjetas con su descripción. El buscador busca en todos los dominios |
-| Formulario | El método seleccionado con un campo por parámetro: texto, contraseña, número, interruptor, lista, código Lua o JSON. Los parámetros obligatorios llevan `*` |
-| Respuesta | La respuesta JSON con colores, el estado de la llamada y lo que tardó |
-| Historial | Las últimas 100 llamadas; al seleccionar una se muestran su petición y su respuesta |
+| Barra de título | La barra de título propia del cliente: estado del SDK (si existe el pipe de comandos), estado del token de sesión, versión y commit de la DLL configurada, **Secuencia**, **Ajustes**, **Iniciar WoW** y los botones de la ventana. Se arrastra para mover la ventana y un doble clic la maximiza; los bordes cambian su tamaño |
+| Explorador de métodos | Una barra con un icono por dominio y los métodos del dominio elegido como tarjetas con su descripción. Al dejar el ratón sobre un icono se muestra el nombre de su dominio. El buscador busca en todos los dominios |
+| Formulario | El método seleccionado con un campo por parámetro: texto, contraseña, número, interruptor, lista, código Lua o JSON. Los parámetros obligatorios llevan `*`. Un método vuelve a mostrar los valores con los que se envió la última vez |
+| Respuesta | La respuesta JSON con colores, el estado de la llamada y lo que tardó, con **Repetir** y un botón para copiar la respuesta |
+| Historial | Las últimas 100 llamadas; al seleccionar una se muestran su petición y su respuesta, y su botón de repetir la carga en el formulario |
 | Eventos | Vista en vivo del pipe de eventos con filtro por nombre, pausa y limpieza |
 | Procesos | Todos los `Wow.exe` y `WowInjector.exe` en ejecución, con la opción de cerrarlos |
 | Actividad | Salida del inyector, estado del pipe de eventos y mensajes del cliente |
 
-Pulsa **Enviar** o `Ctrl+Enter` para enviar la petición. Las llamadas se ejecutan en un hilo aparte, así que los métodos lentos como `client.login` o `client.enterWorld` no congelan la ventana. **Copiar petición** copia la petición JSON con el token sustituido por un marcador. `client.quit` pide confirmación.
+Pulsa **Enviar** o `Ctrl+Enter` para enviar la petición. Las llamadas se ejecutan en un hilo aparte, así que los métodos lentos como `client.login` o `client.enterWorld` no congelan la ventana. El botón de copiar junto a **Enviar** copia la petición JSON con el token y los parámetros secretos, como las contraseñas, sustituidos por marcadores. El **Historial** y la consola de la secuencia los ocultan igual. `client.quit` pide confirmación.
+
+| Atajo | Acción |
+| --- | --- |
+| `Ctrl+Enter` | Enviar la petición |
+| `Ctrl+Mayús+Enter` | Añadir la petición a la secuencia |
+| `Ctrl+R` | Repetir la llamada que se muestra en **Respuesta** |
+| `Ctrl+F` | Buscar métodos |
+
+### Repetir una llamada
+
+**Repetir**, en **Respuesta**, y el botón de repetir de cada fila del **Historial** seleccionan el método de esa llamada y rellenan el formulario con los valores con los que se envió. No se envía nada hasta pulsar **Enviar**, así que se pueden cambiar los valores antes.
+
+### Secuencias
+
+Una secuencia encadena varias llamadas que se ejecutan una tras otra, por ejemplo `client.login` y después `client.enterWorld`. **Añadir a secuencia** añade la petición del formulario como último paso, y **Secuencia** en la barra de título abre la ventana de la secuencia.
+
+![Ventana de secuencia después de una ejecución, con la consola mostrando cada paso](../assets/client/client-sequence.png)
+
+| Elemento | Descripción |
+| --- | --- |
+| Asa | Arrastra un bloque por su asa para cambiar el orden. Una copia del bloque sigue al puntero, el hueco se mueve entre los demás bloques y la lista se desplaza cerca de sus bordes; `Esc` cancela |
+| Retraso | Segundos que se esperan antes de que empiece el paso, por ejemplo `3` para enviar `client.enterWorld` tres segundos después de que respondiera el login |
+| Editar | Carga el paso en el formulario; **Añadir a secuencia** pasa a ser **Actualizar paso** hasta que se guarda el paso o se cancela la edición |
+| Estado | Pendiente, la cuenta atrás del retraso, en curso, OK con su tiempo, error, omitido o no ejecutado. Al seleccionar un paso terminado se muestra su respuesta |
+| Reintentar | Aparece en un paso que falló, se omitió o no se ejecutó, y lo vuelve a ejecutar enseguida, sin su retraso |
+| **Ejecutar todo** y **Detener** | Ejecutan los pasos en orden, o se detienen antes del siguiente; una llamada ya enviada termina igualmente |
+| Detener si hay un error | Si está activado, el primer paso que falla termina la ejecución |
+| Abrir y guardar | Leen o escriben la secuencia como archivo JSON |
+| Pestaña **Consola** | Cada paso de cada ejecución con su hora, estado, petición y respuesta como JSON con colores, con botones para copiarla y limpiarla. Se abre sola cuando termina una ejecución de varios pasos |
+
+Cuando una ejecución anterior dejó pasos que fallaron o no se ejecutaron, **Ejecutar todo** pregunta si ejecutar todos los pasos, solo los completados o solo los que fallaron. Si todos los pasos se completaron, los vuelve a ejecutar todos sin preguntar.
+
+Cada paso terminado aparece también en **Respuesta** y en el **Historial**. Cerrar la ventana detiene una ejecución en curso.
+
+La secuencia se guarda en `%APPDATA%\WoWControlClient\sequence.json` y se recupera al abrir el cliente. Los parámetros secretos, como la contraseña de `client.login`, solo se guardan en memoria: nunca se escriben en disco, así que al volver a abrir el cliente o al abrir un archivo el paso los muestra como pendientes hasta que se edita.
+
+### dll.getInfo sin el juego
+
+Cuando el SDK no está en ejecución, `dll.getInfo` lo responde `WowInjector.exe --call dll.getInfo`, que carga la DLL configurada sin iniciar el juego (consulta [Leer la DLL sin el juego](../methods/dll.md#leer-la-dll-sin-el-juego)). La respuesta muestra `sin el juego` junto a su tiempo. La misma llamada rellena la versión de la DLL en la barra de título al abrir el cliente y al cambiar la ruta de la DLL o del inyector; al dejar el ratón encima se muestran el commit completo, su fecha y la ruta. Necesita el inyector del SDK 2.3 o posterior.
 
 ### Buscar un método
 
@@ -70,6 +109,7 @@ Elige un dominio en la barra para ver sus métodos, o escribe en el buscador par
 | Abrir la consola del SDK en el juego | Envía `dll.toggleConsole` cuando el SDK está listo |
 | Mostrar los logs capturados en la consola | Envía `dll.setLogConfig` con `showInConsole`. También se muestran los mensajes capturados antes de abrir la consola, como los archivos que el juego carga al iniciar |
 | Iniciar el juego oculto | Pasa `--hidden` al inyector; envía `window.show` para mostrar la ventana |
+| Conectarse al pipe de eventos después de lanzar | Abre **Eventos** automáticamente cuando el inyector termina. Activado por defecto |
 | Argumentos de Wow.exe | Se pasan con `--wow-args`; `-console` por defecto |
 | Token | Token que se usa en las peticiones y en el pipe de eventos. Pega uno para controlar un juego iniciado desde otro programa |
 | Apariencia | Tema oscuro, claro o del sistema |
@@ -116,7 +156,7 @@ La pestaña **Procesos** lista todos los `Wow.exe` (o el ejecutable indicado en 
 
 ## Eventos en vivo
 
-**Eventos → Conectar** abre `\\.\pipe\WowGameEvent`, envía el saludo de autenticación y lista cada evento con su hora, nombre y argumentos. El filtro compara los nombres de los eventos, por ejemplo `trade.` o `UNIT_`.
+**Eventos → Conectar** abre `\\.\pipe\WowGameEvent`, envía el saludo de autenticación y lista cada evento con su hora, nombre y argumentos. El filtro compara los nombres de los eventos, por ejemplo `trade.` o `UNIT_`. Con **Conectarse al pipe de eventos después de lanzar** activado, el cliente se conecta solo cuando el juego arrancó con el SDK.
 
 ![Pestaña Eventos con eventos sociales, de comercio, de addons y de colas](../assets/client/client-events.png)
 
@@ -152,6 +192,8 @@ Los textos de la interfaz están en `tools/wowsdk_client/data/locales/en.json` y
 | `launcher.py` | Línea de comandos del inyector, generación del token, reenvío de su salida y explicación de los fallos |
 | `processes.py` | Juegos e inyectores en ejecución, el estado del SDK en cada uno y su cierre |
 | `settings.py` | Archivo de ajustes y búsqueda de los binarios incluidos |
-| `ui/` | Ventana, explorador de métodos, formulario de método, vista JSON, paneles de eventos y procesos y diálogo de ajustes |
+| `sequence.py` | Pasos de la secuencia, el archivo sin secretos y la ejecución en un hilo aparte |
+| `offline.py` | Métodos que se responden sin el juego con `WowInjector.exe --call` y la versión de la DLL |
+| `ui/` | Ventana, explorador de métodos, formulario de método, vista JSON, paneles de eventos y procesos, ventana de secuencia, diálogo de ajustes y tooltips |
 
 Los iconos vienen del conjunto Lucide de [react-icons](https://react-icons.github.io/react-icons/). Se guardan como PNG blancos en `tools/wowsdk_client/data/icons/` y el cliente los colorea según el tema.

@@ -15,6 +15,10 @@ SURFACE = ("#ececec", "#1f1f23")
 SURFACE_ALT = ("#e2e2e2", "#26262b")
 TEXT = ("#1a1a1a", "#e6e6e6")
 ON_ACCENT = "#1a1a1a"
+ON_ACCENT_DISABLED = "#6e5a30"
+TITLEBAR = ("#dcdcdc", "#18181c")
+WINDOW_BORDER = ("#c4c4c4", "#3a3a41")
+WINDOW_BACKGROUND = ("gray92", "gray14")
 SIDEBAR_WIDTH = 340
 
 JSON_COLORS: dict[str, str] = {
