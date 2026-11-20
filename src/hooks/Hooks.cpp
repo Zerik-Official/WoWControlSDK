@@ -7,4 +7,5 @@ void Hooks::initialize()
     Hooks::Loading::Initialize();
     Hooks::WindowStart::Initialize();
     Hooks::Addons::Initialize();
+    Hooks::Disconnect::Initialize();
 }
