@@ -109,6 +109,7 @@ Select a domain on the rail to list its methods, or type in the search box to lo
 | Open the in-game SDK console | Sends `dll.toggleConsole` once the SDK is ready |
 | Show captured logs in the console | Sends `dll.setLogConfig` with `showInConsole`. Messages captured before the console opened, such as the archives loaded at startup, are shown too |
 | Start the game hidden | Passes `--hidden` to the injector; send `window.show` to reveal the window |
+| Use manual map (experimental) | Passes `--manual-map` to map the DLL in memory without `LoadLibrary`. It can fail during SDK startup on some game builds |
 | Connect to the event pipe after launching | Opens **Events** automatically once the injector finished. On by default |
 | Wow.exe arguments | Passed with `--wow-args`; `-console` by default |
 | Token | Token used for requests and the event pipe. Paste one to control a game started elsewhere |
