@@ -16,6 +16,7 @@ struct Args
     bool                     tokenStdin = false;
     bool                     noAuth    = false;
     bool                     hidden    = false;
+    bool                     manualMap = false;
     std::vector<std::string> pipeCommands;
 };
 
