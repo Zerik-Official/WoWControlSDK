@@ -25,7 +25,7 @@ El parámetro común `token`.
 ### Ejemplo
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "object.exists", "params": {"token": "target"}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "object.exists", "params": {"token": "target"}}
 ```
 
 ## object.getType
@@ -78,7 +78,7 @@ El parámetro común `token`.
 ### Ejemplo
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "object.isPlayer", "params": {"token": "player"}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "object.isPlayer", "params": {"token": "player"}}
 ```
 
 ```json
