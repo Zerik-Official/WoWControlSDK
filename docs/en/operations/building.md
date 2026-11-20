@@ -74,7 +74,9 @@ The `build/`, `bin/` and `obj/` folders are ignored by Git.
 
 ## Continuous integration
 
-The `CI` workflow runs on every pull request and push to `dev` and `main`. It compiles the DLL and the injector with the Win32 toolchain and validates both documentation languages with `mkdocs build --strict`.
+The `CI` workflow runs on every pull request and push to `dev` and `main`. It has three jobs: build the DLL and the injector with the Win32 toolchain and verify both outputs, compile and package the [desktop client](cli.md), and validate both documentation languages with `mkdocs build --strict`.
+
+The separate `docs` workflow runs on pushes to `main`. It validates the site in both languages, rebuilds the binaries and publishes the result to GitHub Pages. See [Documentation site](documentation.md).
 
 The `Build and Release` workflow runs on every `v*` tag. It configures CMake, builds the Release configuration, verifies the expected outputs and packages the release. See [Releases](releases.md) for the artifact list and the manifest.
 

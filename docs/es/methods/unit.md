@@ -1,6 +1,6 @@
 # Métodos unit.*
 
-Leen datos de una unidad del mundo del juego: salud, poder, posición, rotación, auras y flags de estado.
+Leen datos de una unidad del mundo del juego: salud, poder, posición, rotación y flags de estado.
 
 Los métodos aceptan un parámetro `token` que identifica la unidad:
 
@@ -49,7 +49,7 @@ El parámetro común `token`.
 ### Ejemplo
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "unit.get", "params": {"token": "player"}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "unit.get", "params": {"token": "player"}}
 ```
 
 ```json
@@ -116,7 +116,7 @@ El parámetro común `token`.
 ### Ejemplo
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "unit.state", "params": {"token": "target"}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "unit.state", "params": {"token": "target"}}
 ```
 
 ```json

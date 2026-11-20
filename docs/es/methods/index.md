@@ -6,6 +6,7 @@ Cada método RPC pertenece a un dominio. Cada dominio tiene su propia página co
 
 - **Nombres de método** con el formato `dominio.acción`, por ejemplo `unit.get` o `window.setBounds`.
 - **Parámetros** en un objeto JSON dentro de `params`. Todos son opcionales salvo que la tabla indique lo contrario.
+- **Autenticación**: cada petición lleva un campo `auth` de primer nivel con el token de sesión, mostrado como `<session token>` en los ejemplos, salvo que el juego se haya iniciado con `--no-auth`. Si el token falta o es incorrecto, la respuesta es `-32001 Unauthorized`; consulta [Autenticación](../protocol.md#autenticacion).
 - **Respuestas** como objetos JSON. Salvo que una página indique otra cosa, los campos siempre están presentes, incluso con valor `null`.
 - **Tokens de unidad** que aceptan `"player"`, `"target"`, `"focus"`, `"mouseover"`, `"partyN"`, `"raidN"` o una cadena GUID. El token por defecto es `"player"`.
 - **GUIDs** devueltos como arreglos `[high, low]` de dos enteros sin signo de 32 bits.
@@ -75,7 +76,7 @@ Cada método se documenta con las mismas secciones:
 
 ```json
 {
-  "jsonrpc": "2.0",
+  "jsonrpc": "2.0", "auth": "<session token>",
   "id": 1,
   "method": "unit.get",
   "params": {

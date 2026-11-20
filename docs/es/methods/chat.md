@@ -28,7 +28,7 @@ Envía un mensaje en un canal.
 ### Ejemplo
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "chat.send", "params": {"channel": "WHISPER", "target": "Jaina", "text": "¡Voy para allá!"}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "chat.send", "params": {"channel": "WHISPER", "target": "Jaina", "text": "¡Voy para allá!"}}
 ```
 
 ```json
@@ -74,7 +74,7 @@ La misma que [`chat.send`](#chatsend).
 ### Ejemplo
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "chat.reply", "params": {"text": "Dame 5 minutos"}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "chat.reply", "params": {"text": "Dame 5 minutos"}}
 ```
 
 ```json
@@ -120,7 +120,7 @@ Ninguno.
 ### Ejemplo
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "chat.getRecentWhispers"}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "chat.getRecentWhispers"}
 ```
 
 ```json

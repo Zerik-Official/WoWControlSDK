@@ -1,6 +1,6 @@
 # unit.* methods
 
-Read unit data from the game world: health, power, position, rotation, auras and state flags.
+Read unit data from the game world: health, power, position, rotation and state flags.
 
 The methods accept a `token` parameter that identifies the unit:
 
@@ -49,7 +49,7 @@ The common `token` parameter.
 ### Example
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "unit.get", "params": {"token": "player"}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "unit.get", "params": {"token": "player"}}
 ```
 
 ```json
@@ -116,7 +116,7 @@ The common `token` parameter.
 ### Example
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "unit.state", "params": {"token": "target"}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "unit.state", "params": {"token": "target"}}
 ```
 
 ```json

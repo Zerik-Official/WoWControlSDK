@@ -63,7 +63,7 @@ MkDocs watches the files and rebuilds the site when a page or `mkdocs.yml` chang
 mkdocs build --strict
 ```
 
-`--strict` turns every warning into an error. A build fails when a page is not in `nav`, a link points to a missing file or a translation is absent. The CI uses the same command, so a local strict build is the closest check to the pipeline.
+`--strict` turns warnings into errors, so broken links or unreadable files fail the build. Pages that exist but are not listed in `nav` are only reported as an informational message, and a missing translation does not fail the build by itself. The CI uses the same command, so a local strict build is the closest check to the pipeline.
 
 The output is written to `site/`, which is not tracked by Git.
 
@@ -78,10 +78,26 @@ nav:
   - Architecture: architecture.md
   - Injection: injection.md
   - RPC protocol: protocol.md
+  - Addon integration: addons.md
   - Methods:
       - methods/index.md
       - lua.*: methods/lua.md
       - unit.*: methods/unit.md
+      - group.*: methods/group.md
+      - player.*: methods/player.md
+      - world.*: methods/world.md
+      - friends.*: methods/friends.md
+      - summon.*: methods/summon.md
+      - lfg.*: methods/lfg.md
+      - trade.*: methods/trade.md
+      - duel.*: methods/duel.md
+      - battlefield.*: methods/battlefield.md
+      - chat.*: methods/chat.md
+      - object.*: methods/object.md
+      - client.*: methods/client.md
+      - events.*: methods/events.md
+      - dll.*: methods/dll.md
+      - window.*: methods/window.md
   - Operations:
       - Building: operations/building.md
       - Desktop client: operations/cli.md

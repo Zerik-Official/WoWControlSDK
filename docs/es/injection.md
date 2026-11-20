@@ -31,9 +31,13 @@ Este orden elimina la carrera entre el primer frame y la instalación de los hoo
 
 ## Uso
 
+Genera un token aleatorio de 32 a 128 caracteres hexadecimales para cada sesión de juego —por ejemplo con `python -c "import secrets; print(secrets.token_hex(32))"`— y pásalo por la entrada estándar. Conserva ese token: es el valor que tu cliente envía en el campo `auth` de cada comando y en el saludo del pipe de eventos.
+
 ```bash
-echo %ZFORGE_TOKEN% | WowInjector.exe --wow "C:\World of Warcraft\Wow.exe" --dll "bin\release\WoWControlSDK.dll" --token-stdin
+echo %WOW_SDK_TOKEN% | WowInjector.exe --wow "C:\World of Warcraft\Wow.exe" --dll "bin\release\WoWControlSDK.dll" --token-stdin
 ```
+
+Usa `--no-auth` en su lugar para herramientas de desarrollo locales. Registra `{"disabled": true}` y permite que cualquier proceso de tu usuario de Windows controle el juego sin token.
 
 ### Argumentos
 
@@ -85,10 +89,13 @@ El SDK no depende del inyector incluido. El inyector solo automatiza el lanzamie
 `--pipe-cmd` encola comandos JSON-RPC que se ejecutan en cuanto el SDK se inicializa. Los comandos se envían en orden y cada uno espera su respuesta antes de enviar el siguiente.
 
 ```cmd
-WowInjector.exe --wow "..." --dll "..." ^
+echo %WOW_SDK_TOKEN% | WowInjector.exe --wow "..." --dll "..." ^
+    --token-stdin ^
     --pipe-cmd "{\"jsonrpc\":\"2.0\",\"method\":\"dll.setLogConfig\",\"params\":{\"showInConsole\":true},\"id\":1}" ^
     --pipe-cmd "{\"jsonrpc\":\"2.0\",\"method\":\"dll.toggleConsole\",\"id\":2}"
 ```
+
+El inyector necesita el token incluso cuando solo se usan comandos de arranque. Con `--no-auth`, omite la tubería y la opción `--token-stdin`.
 
 Los comandos seguros al arrancar son `dll.toggleConsole`, `dll.setLogConfig` y `dll.getInfo`. Los comandos que dependen del juego, como `lua.*`, `client.login` y `unit.*`, deben esperar a que el jugador llegue a la pantalla adecuada.
 
@@ -110,14 +117,19 @@ Solo está disponible [`dll.getInfo`](methods/dll.md#leer-la-dll-sin-el-juego). 
 
 Además del pipe de comandos, el SDK abre `\\.\pipe\WowGameEvent` para transmitir eventos. El SDK es el servidor y escribe JSON delimitado por saltos de línea; el cliente se conecta y lee el flujo hasta desconectarse. Solo se acepta un cliente de eventos a la vez.
 
+Cuando la autenticación está activada, el cliente debe enviar el saludo `{"auth":"<token>"}` seguido de un salto de línea en cuanto se conecte. El SDK responde con un evento de control `auth.ok` y empieza a transmitir, o con `auth.failed` y cierra la conexión. El saludo debe llegar en 5 segundos. Con `--no-auth` no hace falta el saludo.
+
 ```python
 import json
+import os
 
 import win32file
 
+TOKEN = os.environ["WOW_SDK_TOKEN"]
+
 pipe = win32file.CreateFile(
     r"\\.\pipe\WowGameEvent",
-    win32file.GENERIC_READ,
+    win32file.GENERIC_READ | win32file.GENERIC_WRITE,
     0,
     None,
     win32file.OPEN_EXISTING,
@@ -126,6 +138,8 @@ pipe = win32file.CreateFile(
 )
 
 try:
+    win32file.WriteFile(pipe, (json.dumps({"auth": TOKEN}) + "\n").encode("utf-8"))
+
     buffer = ""
     while True:
         _, data = win32file.ReadFile(pipe, 65536)
@@ -149,4 +163,6 @@ Consulta [events.*](methods/events.md) para los eventos disponibles y el listene
 | El juego se queda suspendido | El inyector sigue esperando el pipe. Ejecuta con `--no-pipe --wait 1000` para omitir la espera y diagnosticar. |
 | `LoadLibrary` falla | Falta una dependencia de la DLL o la arquitectura del proceso no coincide. Compila con la configuración de CMake incluida. |
 | No llegan eventos | El pipe de eventos acepta un cliente. Desconecta otros listeners y suscríbete a los eventos necesarios. |
+| El cliente de eventos es rechazado con `auth.failed` | Falta el saludo, llega tarde (más de 5 segundos) o lleva un token incorrecto. Envía `{"auth":"<token>"}` seguido de un salto de línea justo después de conectar. |
+| `auth.init rejected` / el juego se cierra al lanzar | El token no tiene entre 32 y 128 caracteres hexadecimales, o otro cliente ya configuró la autenticación. |
 | Faltan eventos anteriores a la inyección | Usa el inyector incluido con congelar-sincronizar o acepta que los eventos tempranos se pierden con un inyector de terceros. |

@@ -31,7 +31,7 @@ Subscribes to one or more WoW events.
 ### Example
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "events.subscribe", "params": {"events": ["PLAYER_LOGIN", "PLAYER_ENTERING_WORLD", "UNIT_HEALTH"]}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "events.subscribe", "params": {"events": ["PLAYER_LOGIN", "PLAYER_ENTERING_WORLD", "UNIT_HEALTH"]}}
 ```
 
 ```json
@@ -61,7 +61,7 @@ Unsubscribes from one or more WoW events.
 ### Example
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "events.unsubscribe", "params": {"events": ["UNIT_HEALTH"]}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "events.unsubscribe", "params": {"events": ["UNIT_HEALTH"]}}
 ```
 
 ```json
@@ -85,7 +85,7 @@ None.
 ### Example
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "events.list"}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "events.list"}
 ```
 
 ```json
@@ -137,7 +137,7 @@ Returns a slice of the circular history buffer.
 ### Example
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "events.getHistory", "params": {"offset": 0, "count": 2}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "events.getHistory", "params": {"offset": 0, "count": 2}}
 ```
 
 ```json
@@ -191,7 +191,7 @@ Sets the maximum size of the history buffer.
 | `maxBuffer` | integer | Configured maximum |
 
 !!! note
-    Reducing the size does not trim existing entries immediately. They are overwritten as new events arrive.
+    Reducing the size trims the oldest entries immediately.
 
 ## events.isReady
 
