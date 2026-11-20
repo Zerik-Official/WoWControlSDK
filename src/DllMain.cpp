@@ -38,6 +38,7 @@ static void OnDetach()
     Hooks::Events::Shutdown();
     Hooks::WindowStart::Shutdown();
     Hooks::Addons::Shutdown();
+    Hooks::Disconnect::Shutdown();
     Hooks::Loading::Shutdown();
     Hooks::Errors::Shutdown();
     Hooks::Frame::Shutdown();
