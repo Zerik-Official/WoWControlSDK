@@ -42,6 +42,8 @@
   "settings.console": "Open the in-game SDK console",
   "settings.logs": "Show captured logs in the console",
   "settings.hidden": "Start the game hidden (window.show reveals it)",
+  "settings.manual_map": "Use manual map instead of LoadLibrary (experimental)",
+  "settings.manual_map_help": "Maps the DLL in memory instead of registering it with LoadLibrary. It can fail during SDK initialization on some game builds; the injector falls back to LoadLibrary when mapping itself fails.",
   "settings.wow_args": "Wow.exe arguments",
   "settings.session": "Session",
   "settings.token": "Token",
