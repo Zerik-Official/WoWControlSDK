@@ -1,3 +1,4 @@
+#include "ExternalApi.h"
 #include "core/engine/LuaEngine.h"
 #include "hooks/Hooks.h"
 #include "hooks/FrameHooks.h"
@@ -10,6 +11,8 @@
 #include "runtime/events/EventPipe.h"
 
 #include <Windows.h>
+
+static bool s_inGame = false;
 
 static void OnAttach()
 {
@@ -53,6 +56,10 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved)
     if (reason == DLL_PROCESS_ATTACH) {
         DisableThreadLibraryCalls(hModule);
 
+        s_inGame = ExternalApi::isGameProcess();
+        if (!s_inGame)
+            return TRUE;
+
         CreateThread(
             nullptr,
             0,
@@ -66,7 +73,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved)
             nullptr
         );
     }
-    else if (reason == DLL_PROCESS_DETACH && reserved == nullptr) {
+    else if (reason == DLL_PROCESS_DETACH && reserved == nullptr && s_inGame) {
         OnDetach();
     }
 
