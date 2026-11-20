@@ -74,7 +74,9 @@ Las carpetas `build/`, `bin/` y `obj/` están ignoradas por Git.
 
 ## Integración continua
 
-El flujo `CI` se ejecuta en cada pull request y push a `dev` y `main`. Compila la DLL y el inyector con la cadena de herramientas de 32 bits y valida ambos idiomas de la documentación con `mkdocs build --strict`.
+El flujo `CI` se ejecuta en cada pull request y push a `dev` y `main`. Tiene tres trabajos: compilar la DLL y el inyector con la cadena de herramientas de 32 bits y verificar ambas salidas, compilar y empaquetar el [cliente de escritorio](cli.md), y validar ambos idiomas de la documentación con `mkdocs build --strict`.
+
+El flujo `docs`, independiente, se ejecuta con los push a `main`. Valida el sitio en ambos idiomas, recompila los binarios y publica el resultado en GitHub Pages. Consulta [Sitio de documentación](documentation.md).
 
 El flujo `Build and Release` se ejecuta con cada etiqueta `v*`. Configura CMake, compila la configuración Release, verifica las salidas esperadas y empaqueta la versión. Consulta [Versiones](releases.md) para la lista de artefactos y el manifiesto.
 
