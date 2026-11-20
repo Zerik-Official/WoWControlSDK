@@ -13,6 +13,7 @@ from ..catalog import DOMAINS, Domain, Method, find_domain
 from ..i18n import tr
 from . import theme
 from .icons import icon
+from .tooltip import tooltip
 
 RAIL_BUTTON_SIZE = 36
 RAIL_ICON_SIZE = 18
@@ -90,6 +91,7 @@ class Sidebar(ctk.CTkFrame):
         self._search.bind("<KeyRelease>", lambda _event: self._schedule_search())
         self._clear = ctk.CTkButton(box, text="", image=icon("x", theme.MUTED, 14), width=26, height=26,
                                     fg_color="transparent", hover_color=theme.SURFACE, command=self._clear_search)
+        tooltip(self._clear, tr("sidebar.clear_search"))
 
     def _build_rail(self) -> None:
         rail = ctk.CTkScrollableFrame(self, width=RAIL_BUTTON_SIZE + 8, fg_color="transparent")
@@ -105,6 +107,9 @@ class Sidebar(ctk.CTkFrame):
             )
             button.grid(row=row, column=0, pady=2)
             self._rail_buttons[domain.name] = button
+            count = len(domain.methods)
+            methods = tr("sidebar.count_one") if count == 1 else tr("sidebar.count", count=count)
+            tooltip(button, f"{domain.title}\n{methods}")
 
     def _build_list(self) -> None:
         panel = ctk.CTkFrame(self, fg_color="transparent")
@@ -132,6 +137,7 @@ class Sidebar(ctk.CTkFrame):
             selected = domain.name == active
             self._rail_buttons[domain.name].configure(
                 fg_color=theme.ACCENT if selected else "transparent",
+                hover_color=theme.ACCENT_HOVER if selected else theme.SURFACE_ALT,
                 image=icon(domain.icon, theme.ON_ACCENT if selected else theme.TEXT, RAIL_ICON_SIZE),
             )
 
@@ -211,6 +217,11 @@ class Sidebar(ctk.CTkFrame):
         for card in self._cards:
             card.set_selected(card.method.name == method.name)
         self._on_select(method)
+
+    def focus_search(self) -> None:
+        """Move the keyboard focus to the search box and select its text."""
+        self._search.focus_set()
+        self._search.select_range(0, "end")
 
     def search(self, text: str) -> None:
         """Fill the search box and show its results."""
