@@ -42,6 +42,8 @@
   "settings.console": "Abrir la consola del SDK en el juego",
   "settings.logs": "Mostrar los logs capturados en la consola",
   "settings.hidden": "Iniciar el juego oculto (window.show lo muestra)",
+  "settings.manual_map": "Usar manual map en lugar de LoadLibrary (experimental)",
+  "settings.manual_map_help": "Mapea la DLL en memoria en lugar de registrarla con LoadLibrary. Puede fallar durante la inicialización del SDK en algunas versiones del juego; el inyector vuelve a LoadLibrary si el mapeo falla.",
   "settings.wow_args": "Argumentos de Wow.exe",
   "settings.session": "Sesión",
   "settings.token": "Token",
