@@ -47,6 +47,7 @@ class Settings:
     open_console: bool = False
     show_logs_in_console: bool = False
     start_hidden: bool = False
+    auto_connect_events: bool = True
     appearance: str = "dark"
     language: str = ""
 
