@@ -12,7 +12,7 @@
 :   `\\.\pipe\WowGameCommand`. Acepta una petición por conexión, la despacha y devuelve una respuesta.
 
 **Pipe de eventos**
-:   `\\.\pipe\WowGameEvent`. Flujo de solo escritura con eventos JSON delimitados por saltos de línea. Acepta un cliente a la vez.
+:   `\\.\pipe\WowGameEvent`. Pipe dúplex que envía eventos JSON delimitados por saltos de línea a un cliente a la vez. Cuando la autenticación está activada, el cliente envía primero el saludo `{"auth":"<token>"}` y el SDK responde con `auth.ok` o `auth.failed` antes de transmitir.
 
 **Modo mensaje**
 :   Modo de named pipe que conserva los límites de escritura. El pipe de comandos lo usa para que una escritura sea una petición. El pipe de eventos usa modo byte.
@@ -35,7 +35,7 @@
 :   Dirección numérica o desplazamiento de un campo dentro de una estructura del binario del juego. Todos los offsets viven en `offsets/` como `constexpr uintptr_t`.
 
 **Lua VM**
-:   Intérprete Lua embebido en WoW. Los métodos `lua.*` ejecutan código en esta VM y solo serializan valores boolean, number y string.
+:   Intérprete Lua embebido en WoW. Los métodos `lua.*` ejecutan código en esta VM y serializan booleanos, números y cadenas como JSON; las tablas se convierten en arreglos u objetos, y los demás tipos se representan con marcadores `$type`.
 
 ## Estado del juego
 
