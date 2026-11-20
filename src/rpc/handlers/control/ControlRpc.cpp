@@ -3,6 +3,7 @@
 #include "core/native/GlueAPI.h"
 #include "runtime/console/ConsoleManager.h"
 #include "runtime/console/LogCapture.h"
+#include "utils/BuildInfo.h"
 #include "utils/json/Json.h"
 
 namespace
@@ -51,8 +52,8 @@ namespace Rpc
         Runtime::ConsoleInfo ci = Runtime::ConsoleManager::GetInfo();
         Runtime::LogConfig lc = Runtime::LogCapture::GetConfig();
 
-        Json j;
-        j["version"] = ci.version;
+        Json j = SDK::BuildInfo::toJson();
+        j["inGame"] = true;
         j["uptimeMs"] = (int64_t)ci.uptimeMs;
         j["console"] = ci.initialized;
         j["consoleVisible"] = ci.visible;

@@ -9,6 +9,7 @@ struct Args
     const char*              dllPath   = nullptr;
     const char*              pipeName  = "WowGameCommand";
     const char*              wowArgs   = nullptr;
+    const char*              callMethod = nullptr;
     DWORD                    waitMs    = 500;
     bool                     usePipe   = true;
     bool                     kill      = false;

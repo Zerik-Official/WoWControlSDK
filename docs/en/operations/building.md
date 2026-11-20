@@ -54,6 +54,12 @@ The root `CMakeLists.txt` sets the following:
 
 The DLL has no third-party link dependencies. The injector links against `kernel32` only.
 
+## Version and commit
+
+The SDK version is defined once in `project(WoWControlSDK VERSION …)` of the root `CMakeLists.txt`. On every build, the `WoWControlSDKBuildInfo` target runs `cmake/BuildInfo.cmake`, which reads with Git the current commit, its date and whether `src/`, `cmake/` or `CMakeLists.txt` have uncommitted changes, and writes `build/generated/BuildVersion.h`. The file is only rewritten when something changed, so it does not force a rebuild.
+
+Those values reach [`dll.getInfo`](../methods/dll.md#dllgetinfo), the console header and the Windows version resource of the DLL. When building outside a Git repository, for example from a ZIP of the source code, `commit` is `null` and only the version remains.
+
 ## Clean rebuild
 
 Remove the generated build folder and configure again:

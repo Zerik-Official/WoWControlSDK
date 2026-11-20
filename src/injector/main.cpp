@@ -107,6 +107,53 @@ static int abortLaunch(HANDLE process, HANDLE thread)
     return 1;
 }
 
+static bool isMethodName(const char* method)
+{
+    if (!method || !*method)
+        return false;
+
+    for (const char* c = method; *c; ++c)
+    {
+        bool valid = (*c >= 'a' && *c <= 'z') || (*c >= 'A' && *c <= 'Z') || (*c >= '0' && *c <= '9') || *c == '.';
+        if (!valid)
+            return false;
+    }
+    return true;
+}
+
+static int callDll(const char* dllPath, const char* method)
+{
+    using InvokeFn = int(__cdecl*)(const char*, char*, int);
+
+    if (!isMethodName(method))
+    {
+        fprintf(stderr, "[injector] error: invalid method name\n");
+        return 1;
+    }
+
+    HMODULE module = LoadLibraryA(dllPath);
+    if (!module)
+        die("LoadLibrary");
+
+    auto invoke = reinterpret_cast<InvokeFn>(GetProcAddress(module, "WoWControlSDK_Invoke"));
+    if (!invoke)
+    {
+        fprintf(stderr, "[injector] error: the DLL does not export WoWControlSDK_Invoke\n");
+        FreeLibrary(module);
+        return 1;
+    }
+
+    std::string request = std::string("{\"jsonrpc\":\"2.0\",\"method\":\"") + method + "\",\"id\":1}";
+    int needed = invoke(request.c_str(), nullptr, 0);
+    std::string response(static_cast<size_t>(needed), '\0');
+    invoke(request.c_str(), response.data(), needed);
+    response.resize(static_cast<size_t>(needed) - 1);
+    FreeLibrary(module);
+
+    fprintf(stdout, "%s\n", response.c_str());
+    return response.find("\"error\"") == std::string::npos ? 0 : 1;
+}
+
 int main(int argc, char* argv[])
 {
     setvbuf(stdout, nullptr, _IONBF, 0);
@@ -118,6 +165,9 @@ int main(int argc, char* argv[])
         printUsage(argv[0]);
         return 1;
     }
+
+    if (args.callMethod)
+        return callDll(args.dllPath, args.callMethod);
 
     std::string token;
     if (args.tokenStdin)

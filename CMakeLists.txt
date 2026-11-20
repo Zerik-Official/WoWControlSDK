@@ -1,7 +1,23 @@
 cmake_minimum_required(VERSION 3.20)
-project(WoWControlSDK)
+project(WoWControlSDK VERSION 2.3.0)
 
 set(CMAKE_CXX_STANDARD 17)
+
+set(BUILD_INFO_DIR ${CMAKE_BINARY_DIR}/generated)
+set(BUILD_INFO_HEADER ${BUILD_INFO_DIR}/BuildVersion.h)
+set(BUILD_INFO_COMMAND
+    ${CMAKE_COMMAND}
+    -DSOURCE_DIR=${CMAKE_SOURCE_DIR}
+    -DOUTPUT=${BUILD_INFO_HEADER}
+    -DVERSION=${WoWControlSDK_VERSION}
+    -P ${CMAKE_SOURCE_DIR}/cmake/BuildInfo.cmake
+)
+execute_process(COMMAND ${BUILD_INFO_COMMAND})
+add_custom_target(WoWControlSDKBuildInfo
+    COMMAND ${BUILD_INFO_COMMAND}
+    BYPRODUCTS ${BUILD_INFO_HEADER}
+    VERBATIM
+)
 
 add_compile_definitions(
     _WIN32_WINNT=0x0601
@@ -12,6 +28,8 @@ add_subdirectory(src/injector)
 
 add_library(WoWControlSDK SHARED
     src/DllMain.cpp
+    src/ExternalApi.cpp
+    src/WoWControlSDK.rc
 
     src/core/engine/LuaEngine.cpp
     src/core/engine/lua/LuaBlocked.cpp
@@ -116,6 +134,7 @@ add_library(WoWControlSDK SHARED
     src/rpc/handlers/social/SocialRpc.cpp
 
     src/utils/json/JsonIPC.cpp
+    src/utils/BuildInfo.cpp
 
     src/client/strings/RCString.cpp
     src/client/login/LoginAPI.cpp
@@ -136,7 +155,10 @@ target_include_directories(WoWControlSDK PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/runtime
     ${CMAKE_CURRENT_SOURCE_DIR}/src/offsets
     ${CMAKE_CURRENT_SOURCE_DIR}/deps
+    ${BUILD_INFO_DIR}
 )
+
+add_dependencies(WoWControlSDK WoWControlSDKBuildInfo)
 
 target_compile_options(WoWControlSDK PRIVATE
     /arch:IA32

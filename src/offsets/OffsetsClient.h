@@ -12,6 +12,7 @@ namespace Offsets
         constexpr uintptr_t RCSTRING_HASH       = 0x0076F640;
         constexpr uintptr_t SET_LAST_ERROR     = 0x00771870;
         constexpr uintptr_t GC_ATOI            = 0x0076F190;
+        constexpr uintptr_t BUILD_NAME         = 0x009E2A18;
     }
 
     namespace NetClient

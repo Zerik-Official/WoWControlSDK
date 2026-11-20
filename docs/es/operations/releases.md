@@ -109,4 +109,4 @@ Una compilación local produce los mismos binarios, pero no el zip ni el manifie
 
 ## Versionado
 
-Las etiquetas no están vinculadas a una cadena de versión dentro de la DLL. El método `dll.getInfo` informa la versión compilada en el SDK, así que mantén ambas en sincronía cuando una versión cambie la superficie RPC pública.
+Las etiquetas no están vinculadas a una cadena de versión dentro de la DLL. El método `dll.getInfo` informa la versión definida en `project(WoWControlSDK VERSION …)` del `CMakeLists.txt` raíz, así que actualízala antes de etiquetar una versión. El commit de la etiqueta se graba en la DLL automáticamente (consulta [Versión y commit](building.md#version-y-commit)).
