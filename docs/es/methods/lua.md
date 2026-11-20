@@ -116,7 +116,7 @@ Los errores de Lua no se devuelven: el juego los muestra como cualquier otro err
 ### Ejemplo
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "lua.execute", "params": {"code": "CastSpellByName('Attack')"}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "lua.execute", "params": {"code": "CastSpellByName('Attack')"}}
 ```
 
 ```json
@@ -144,7 +144,7 @@ Consulta [Campos del resultado](#campos-del-resultado).
 ### Ejemplo
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "lua.evaluate", "params": {"code": "return UnitName('player'), UnitLevel('player'), {UnitClass('player')}"}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "lua.evaluate", "params": {"code": "return UnitName('player'), UnitLevel('player'), {UnitClass('player')}"}}
 ```
 
 ```json
@@ -180,7 +180,7 @@ Consulta [Campos del resultado](#campos-del-resultado).
 ### Ejemplo
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "lua.call", "params": {"function": "UnitClass", "args": ["player"]}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "lua.call", "params": {"function": "UnitClass", "args": ["player"]}}
 ```
 
 ```json
@@ -206,7 +206,7 @@ Consulta [Campos del resultado](#campos-del-resultado). Un valor que no existe d
 ### Ejemplo
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "lua.getGlobal", "params": {"name": "RAID_CLASS_COLORS.MAGE"}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "lua.getGlobal", "params": {"name": "RAID_CLASS_COLORS.MAGE"}}
 ```
 
 ```json
@@ -233,7 +233,7 @@ Escribe un valor en una ruta. Las tablas de la ruta ya deben existir.
 ### Ejemplo
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "lua.setGlobal", "params": {"name": "MyAddonDB.options", "value": {"volume": 0.5, "channels": ["GUILD", "PARTY"]}}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "lua.setGlobal", "params": {"name": "MyAddonDB.options", "value": {"volume": 0.5, "channels": ["GUILD", "PARTY"]}}}
 ```
 
 !!! note
@@ -279,7 +279,7 @@ Guarda el valor de una ruta y devuelve un número que lo identifica. Usa las ref
 ### Ejemplo
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "lua.getRef", "params": {"path": "PlayerFrame"}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "lua.getRef", "params": {"path": "PlayerFrame"}}
 ```
 
 ```json
@@ -287,7 +287,7 @@ Guarda el valor de una ruta y devuelve un número que lo identifica. Usa las ref
 ```
 
 ```json
-{"jsonrpc": "2.0", "id": 2, "method": "lua.call", "params": {"ref": 1, "method": "SetAlpha", "args": [0.5]}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 2, "method": "lua.call", "params": {"ref": 1, "method": "SetAlpha", "args": [0.5]}}
 ```
 
 !!! note
@@ -331,7 +331,7 @@ Vigila una función de Lua. Cada llamada que hacen el juego o un addon se envía
 ### Ejemplo
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "lua.hook", "params": {"function": "AcceptQuest"}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "lua.hook", "params": {"function": "AcceptQuest"}}
 ```
 
 El juego no permite quitar un hook. `lua.unhook` detiene los eventos, y `lua.hook` sobre la misma ruta los vuelve a activar.
@@ -387,7 +387,7 @@ Ejecuta varios métodos `lua.*` en el mismo frame y devuelve todos los resultado
 ### Ejemplo
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "lua.batch", "params": {"operations": [
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "lua.batch", "params": {"operations": [
   {"method": "lua.call", "params": {"function": "UnitName", "args": ["player"]}},
   {"method": "lua.call", "params": {"function": "GetMoney"}},
   {"method": "lua.getGlobal", "params": {"name": "MyAddonDB.options"}}
@@ -411,7 +411,7 @@ Igual que [`lua.getAddons`](#luagetaddons).
 ### Ejemplo
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "lua.setAllowedAddons", "params": {"addons": ["WoWControlSDKExample"]}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "lua.setAllowedAddons", "params": {"addons": ["WoWControlSDKExample"]}}
 ```
 
 !!! tip
@@ -457,7 +457,7 @@ Carga código Lua enviado por el pipe como un addon virtual. El script recibe su
 ### Ejemplo
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "lua.loadScript", "params": {"name": "MyTool", "code": "local name, ns = ...\nlocal frame = CreateFrame('Frame')\nframe:RegisterEvent('PLAYER_TARGET_CHANGED')\nframe:SetScript('OnEvent', function() ns.SDK.Emit('tool.target', UnitName('target')) end)"}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "lua.loadScript", "params": {"name": "MyTool", "code": "local name, ns = ...\nlocal frame = CreateFrame('Frame')\nframe:RegisterEvent('PLAYER_TARGET_CHANGED')\nframe:SetScript('OnEvent', function() ns.SDK.Emit('tool.target', UnitName('target')) end)"}}
 ```
 
 ```json
