@@ -54,6 +54,12 @@ El `CMakeLists.txt` raíz define lo siguiente:
 
 La DLL no enlaza con bibliotecas de terceros. El inyector solo enlaza con `kernel32`.
 
+## Versión y commit
+
+La versión del SDK se define una sola vez en `project(WoWControlSDK VERSION …)` del `CMakeLists.txt` raíz. En cada compilación, el objetivo `WoWControlSDKBuildInfo` ejecuta `cmake/BuildInfo.cmake`, que lee con Git el commit actual, su fecha y si `src/`, `cmake/` o `CMakeLists.txt` tienen cambios sin commitear, y escribe `build/generated/BuildVersion.h`. El archivo solo se reescribe cuando algo cambió, así que no fuerza una recompilación.
+
+Esos valores llegan a [`dll.getInfo`](../methods/dll.md#dllgetinfo), a la cabecera de la consola y al recurso de versión de Windows de la DLL. Al compilar fuera de un repositorio Git, por ejemplo desde un ZIP del código, `commit` es `null` y solo queda la versión.
+
 ## Recompilación limpia
 
 Elimina la carpeta de compilación generada y vuelve a configurar:
