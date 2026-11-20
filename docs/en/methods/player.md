@@ -86,7 +86,7 @@ None.
 ### Example
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "player.getState"}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "player.getState"}
 ```
 
 ```json
