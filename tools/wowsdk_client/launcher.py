@@ -66,6 +66,8 @@ def build_command(settings: Settings, use_token: bool) -> list[str]:
         "--dll", settings.resolved_dll(),
         "--token-stdin" if use_token else "--no-auth",
     ]
+    if settings.manual_map:
+        command.append("--manual-map")
     if settings.kill_existing:
         command.append("--kill")
     if settings.start_hidden:
