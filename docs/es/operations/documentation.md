@@ -63,7 +63,7 @@ MkDocs vigila los archivos y recompila el sitio cuando cambia una página o `mkd
 mkdocs build --strict
 ```
 
-`--strict` convierte cada advertencia en un error. La compilación falla cuando una página no está en `nav`, cuando un enlace apunta a un archivo inexistente o cuando falta una traducción. El CI usa el mismo comando, así que una compilación estricta local es la comprobación más cercana al pipeline.
+`--strict` convierte las advertencias en errores, así que los enlaces rotos o los archivos ilegibles hacen fallar la compilación. Las páginas que existen pero no están en `nav` solo se informan como mensaje informativo, y una traducción ausente no hace fallar la compilación por sí sola. El CI usa el mismo comando, así que una compilación estricta local es la comprobación más cercana al pipeline.
 
 La salida se escribe en `site/`, que no está bajo control de versiones.
 
@@ -78,10 +78,26 @@ nav:
   - Architecture: architecture.md
   - Injection: injection.md
   - RPC protocol: protocol.md
+  - Addon integration: addons.md
   - Methods:
       - methods/index.md
       - lua.*: methods/lua.md
       - unit.*: methods/unit.md
+      - group.*: methods/group.md
+      - player.*: methods/player.md
+      - world.*: methods/world.md
+      - friends.*: methods/friends.md
+      - summon.*: methods/summon.md
+      - lfg.*: methods/lfg.md
+      - trade.*: methods/trade.md
+      - duel.*: methods/duel.md
+      - battlefield.*: methods/battlefield.md
+      - chat.*: methods/chat.md
+      - object.*: methods/object.md
+      - client.*: methods/client.md
+      - events.*: methods/events.md
+      - dll.*: methods/dll.md
+      - window.*: methods/window.md
   - Operations:
       - Building: operations/building.md
       - Desktop client: operations/cli.md
