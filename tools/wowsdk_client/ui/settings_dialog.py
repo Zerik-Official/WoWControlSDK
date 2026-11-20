@@ -80,43 +80,48 @@ class SettingsDialog(ctk.CTkToplevel):
         self._logs = self._switch(body, 8, tr("settings.logs"), settings.show_logs_in_console)
         self._hidden = self._switch(body, 9, tr("settings.hidden"), settings.start_hidden)
         self._auto_events = self._switch(body, 10, tr("settings.auto_events"), settings.auto_connect_events)
-        ctk.CTkLabel(body, text=tr("settings.wow_args"), anchor="w").grid(row=11, column=0, sticky="w", pady=4)
+        self._manual_map = self._switch(body, 11, tr("settings.manual_map"), settings.manual_map)
+        ctk.CTkLabel(
+            body, text=tr("settings.manual_map_help"),
+            font=theme.small(), text_color=theme.MUTED, anchor="w", justify="left", wraplength=520,
+        ).grid(row=12, column=0, columnspan=3, sticky="w")
+        ctk.CTkLabel(body, text=tr("settings.wow_args"), anchor="w").grid(row=13, column=0, sticky="w", pady=4)
         self._args = ctk.CTkEntry(body)
         self._args.insert(0, settings.wow_args)
-        self._args.grid(row=11, column=1, columnspan=2, sticky="ew", pady=4)
+        self._args.grid(row=13, column=1, columnspan=2, sticky="ew", pady=4)
 
         ctk.CTkLabel(body, text=tr("settings.session"), font=theme.title(15), anchor="w").grid(
-            row=12, column=0, columnspan=3, sticky="w", pady=(16, 6))
-        ctk.CTkLabel(body, text=tr("settings.token"), anchor="w").grid(row=13, column=0, sticky="w", pady=4)
+            row=14, column=0, columnspan=3, sticky="w", pady=(16, 6))
+        ctk.CTkLabel(body, text=tr("settings.token"), anchor="w").grid(row=15, column=0, sticky="w", pady=4)
         self._token = ctk.CTkEntry(body, show="\u2022", placeholder_text=tr("settings.token_placeholder"))
         if token:
             self._token.insert(0, token)
-        self._token.grid(row=13, column=1, columnspan=2, sticky="ew", pady=4)
+        self._token.grid(row=15, column=1, columnspan=2, sticky="ew", pady=4)
         ctk.CTkLabel(
             body, text=tr("settings.token_help"),
             font=theme.small(), text_color=theme.MUTED, anchor="w", justify="left", wraplength=520,
-        ).grid(row=14, column=0, columnspan=3, sticky="w")
+        ).grid(row=16, column=0, columnspan=3, sticky="w")
 
         self._appearance_labels = {tr(f"settings.appearance.{mode}"): mode for mode in APPEARANCES}
-        ctk.CTkLabel(body, text=tr("settings.appearance"), anchor="w").grid(row=15, column=0, sticky="w",
+        ctk.CTkLabel(body, text=tr("settings.appearance"), anchor="w").grid(row=17, column=0, sticky="w",
                                                                             pady=(16, 4))
         self._appearance = ctk.CTkSegmentedButton(body, values=list(self._appearance_labels),
                                                   selected_color=theme.ACCENT,
                                                   selected_hover_color=theme.ACCENT_HOVER)
         self._appearance.set(tr(f"settings.appearance.{settings.appearance}")
                              if settings.appearance in APPEARANCES else tr("settings.appearance.dark"))
-        self._appearance.grid(row=15, column=1, sticky="w", pady=(16, 4))
+        self._appearance.grid(row=17, column=1, sticky="w", pady=(16, 4))
 
         self._language_labels = {tr("settings.language.auto"): ""}
         self._language_labels.update({name: code for code, name in LANGUAGES.items()})
-        ctk.CTkLabel(body, text=tr("settings.language"), anchor="w").grid(row=16, column=0, sticky="w", pady=4)
+        ctk.CTkLabel(body, text=tr("settings.language"), anchor="w").grid(row=18, column=0, sticky="w", pady=4)
         self._language = ctk.CTkOptionMenu(body, values=list(self._language_labels), fg_color=theme.SURFACE_ALT,
                                            button_color=theme.ACCENT, button_hover_color=theme.ACCENT_HOVER)
         self._language.set(LANGUAGES.get(settings.language, tr("settings.language.auto")))
-        self._language.grid(row=16, column=1, sticky="w", pady=4)
+        self._language.grid(row=18, column=1, sticky="w", pady=4)
 
         buttons = ctk.CTkFrame(body, fg_color="transparent")
-        buttons.grid(row=17, column=0, columnspan=3, sticky="e", pady=(20, 0))
+        buttons.grid(row=19, column=0, columnspan=3, sticky="e", pady=(20, 0))
         ctk.CTkButton(buttons, text=tr("settings.cancel"), width=90, fg_color=theme.SURFACE_ALT, hover_color=theme.SURFACE,
                       text_color=("#1a1a1a", "#e6e6e6"), command=self.destroy).pack(side="left", padx=(0, 8))
         ctk.CTkButton(buttons, text=tr("settings.save"), width=90, fg_color=theme.ACCENT, hover_color=theme.ACCENT_HOVER,
@@ -149,6 +154,7 @@ class SettingsDialog(ctk.CTkToplevel):
             open_console=bool(self._console.get()),
             show_logs_in_console=bool(self._logs.get()),
             start_hidden=bool(self._hidden.get()),
+            manual_map=bool(self._manual_map.get()),
             auto_connect_events=bool(self._auto_events.get()),
             appearance=self._appearance_labels.get(self._appearance.get(), "dark"),
             language=self._language_labels.get(self._language.get(), ""),
