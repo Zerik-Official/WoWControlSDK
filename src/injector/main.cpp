@@ -169,6 +169,9 @@ int main(int argc, char* argv[])
     if (args.callMethod)
         return callDll(args.dllPath, args.callMethod);
 
+    if (args.manualMap)
+        fprintf(stderr, "[injector] warning: --manual-map is experimental and may fail during SDK startup\n");
+
     std::string token;
     if (args.tokenStdin)
     {
@@ -208,7 +211,17 @@ int main(int argc, char* argv[])
 
     fprintf(stdout, "[injector] pid=%lu tid=%lu\n", pi.dwProcessId, pi.dwThreadId);
 
-    if (!injectDll(pi.hProcess, args.dllPath))
+    bool injected = args.manualMap
+        ? injectManualMap(pi.hProcess, args.dllPath)
+        : injectDll(pi.hProcess, args.dllPath);
+
+    if (!injected && args.manualMap)
+    {
+        fprintf(stdout, "[injector] manual map failed, falling back to LoadLibrary\n");
+        injected = injectDll(pi.hProcess, args.dllPath);
+    }
+
+    if (!injected)
         return abortLaunch(pi.hProcess, pi.hThread);
 
     if (args.usePipe)
