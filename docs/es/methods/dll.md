@@ -58,7 +58,7 @@ El commit y su fecha se graban en la DLL al compilar, así que dos builds del mi
 ### Ejemplo
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "dll.getInfo"}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "dll.getInfo"}
 ```
 
 ```json
@@ -157,4 +157,4 @@ Los parámetros que no se envían mantienen su valor actual. Cuando `showInConso
 | `showInConsole` | boolean | Ajuste de eco configurado |
 
 !!! note
-    Reducir `maxEntries` no recorta el búfer de inmediato. Las entradas antiguas se sobrescriben a medida que llegan nuevas.
+    Reducir `maxEntries` recorta de inmediato las entradas más antiguas.
