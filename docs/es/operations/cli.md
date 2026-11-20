@@ -109,6 +109,7 @@ Elige un dominio en la barra para ver sus métodos, o escribe en el buscador par
 | Abrir la consola del SDK en el juego | Envía `dll.toggleConsole` cuando el SDK está listo |
 | Mostrar los logs capturados en la consola | Envía `dll.setLogConfig` con `showInConsole`. También se muestran los mensajes capturados antes de abrir la consola, como los archivos que el juego carga al iniciar |
 | Iniciar el juego oculto | Pasa `--hidden` al inyector; envía `window.show` para mostrar la ventana |
+| Usar manual map (experimental) | Pasa `--manual-map` al inyector para mapear la DLL en memoria sin `LoadLibrary`. Puede fallar durante la inicialización del SDK en algunas versiones del juego |
 | Conectarse al pipe de eventos después de lanzar | Abre **Eventos** automáticamente cuando el inyector termina. Activado por defecto |
 | Argumentos de Wow.exe | Se pasan con `--wow-args`; `-console` por defecto |
 | Token | Token que se usa en las peticiones y en el pipe de eventos. Pega uno para controlar un juego iniciado desde otro programa |
