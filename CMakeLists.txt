@@ -95,6 +95,7 @@ add_library(WoWControlSDK SHARED
     src/hooks/base/IatHook.cpp
     src/hooks/base/VTableHook.cpp
     src/hooks/AddonHooks.cpp
+    src/hooks/DisconnectHooks.cpp
     src/hooks/ErrorHooks.cpp
     src/hooks/glue/GlueLoadHooks.cpp
     src/hooks/ConsoleHooks.cpp

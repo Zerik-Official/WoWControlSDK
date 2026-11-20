@@ -8,6 +8,7 @@
 #include "hooks/LoadingHooks.h"
 #include "hooks/WindowHooks.h"
 #include "hooks/AddonHooks.h"
+#include "hooks/DisconnectHooks.h"
 #include "hooks/ErrorHooks.h"
 
 namespace Hooks

@@ -7,7 +7,7 @@ Events fall into two groups:
 | Group | Delivery | Examples |
 | --- | --- | --- |
 | WoW UI events | Pushed only after `events.subscribe` | `PLAYER_LOGIN`, `PLAYER_ENTERING_WORLD`, `UNIT_HEALTH`, `ZONE_CHANGED` |
-| SDK events | Pushed automatically | `client.screenChanged`, `loading.*`, `friends.*`, `group.invite*`, `summon.*`, `lfg.*`, `trade.*`, `duel.*`, `battlefield.*`, `chat.whisperReceived`, `lua.*` |
+| SDK events | Pushed automatically | `client.screenChanged`, `client.disconnected`, `loading.*`, `friends.*`, `group.invite*`, `summon.*`, `lfg.*`, `trade.*`, `duel.*`, `battlefield.*`, `chat.whisperReceived`, `lua.*` |
 
 Every event that reaches the event pipe is also stored in the history buffer.
 
@@ -212,6 +212,7 @@ None.
 | Event | Description | Arguments |
 | --- | --- | --- |
 | `client.screenChanged` | The glue screen changed | `{"old": <int>, "new": <int>}` where `0` is unknown, `1` is login, `2` is character select and `3` is world |
+| `client.disconnected` | The connection to the server was lost and the client is returning to the login screen | `{"screen", "loggingIn", "kickReason"}`; see [Disconnections](#disconnections) |
 | `loading.startup` | A loading screen appeared | `{"mapId": <int>, "background": <object or null>}` |
 | `loading.progress` | Loading progress update | `{"progress": <float>}` between `0.0` and `1.0` |
 | `loading.finished` | Loading completed and the world was entered | `{"mapId": <int>}` |
@@ -259,6 +260,20 @@ None.
 Social, trade, duel, queue and whisper events are built from the matching WoW events (`PARTY_INVITE_REQUEST`, `CONFIRM_SUMMON`, `LFG_PROPOSAL_SHOW`, `FRIENDLIST_UPDATE`, `TRADE_*`, `DUEL_*`, `UPDATE_BATTLEFIELD_STATUS`, `CHAT_MSG_WHISPER`…) without subscribing to them, and their data is read from memory. Answers given with the game's own buttons are also reported, because the SDK follows the native functions behind those buttons. Friend events only compare entries already known in the same session, so logging in does not report every online friend. When the SDK closes a game dialog after answering for you, the WoW event it uses for that is not reported as a new SDK event.
 
 Loading events are polled from memory once per frame rather than hooked from Lua, and `loading.progress` is emitted at most once every 100 milliseconds. A loading screen is reported only while the client's loading bar exists, so the screen drawn and destroyed in the same frame when logging out to the character list does not produce events.
+
+### Disconnections
+
+`client.disconnected` is sent when the client loses its connection to the server without having asked for it: the internet connection dropped, the server closed or the server kicked the character. The SDK follows the native handler that takes the client back to the login screen (`CGlueMgr::NetDisconnectHandler`), so the event arrives before the game shows its "You have been disconnected from the server" dialog. Logging out of the world or quitting the game do not send it.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `screen` | integer | Screen where the connection was lost, with the codes of `client.screenChanged`. `3` means the character was in the world |
+| `loggingIn` | boolean | `true` when the connection was lost while the client was still logging in. In that case the game shows the login error instead of the disconnection dialog |
+| `kickReason` | integer | Code of the last kick notice sent by the server (opcode `0x3C5`), which the game passes to `DISCONNECTED_FROM_SERVER`. `0` when the server sent none; `4` makes the game show the parental controls dialog |
+
+```json
+{"event": "client.disconnected", "args": {"screen": 3, "loggingIn": false, "kickReason": 0}, "time": 1712345690000}
+```
 
 ## Live event streaming
 
