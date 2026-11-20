@@ -1,6 +1,8 @@
 #include "ConsoleManager.h"
+#include "utils/BuildInfo.h"
 #include <Windows.h>
 #include <cstdio>
+#include <string>
 
 #pragma execution_character_set("utf-8")
 
@@ -77,7 +79,8 @@ namespace Runtime
             freopen_s(&f, "CONOUT$", "w", stderr);
             freopen_s(&f, "CONIN$", "r", stdin);
 
-            SetConsoleTitleA("WoWControlSDK v2.2.0");
+            std::string title = std::string("WoWControlSDK v") + SDK::BuildInfo::version();
+            SetConsoleTitleA(title.c_str());
 
             s_initialized = true;
             s_visible = true;
@@ -85,7 +88,14 @@ namespace Runtime
 
             ColorPrint(CYN, LOGO);
             ColorPrint(DIM, "────────────────────────────────────────────────────────");
-            ColorPrint(WHT, "  Version : 2.2.0");
+            std::string version = std::string("  Version : ") + SDK::BuildInfo::version();
+            ColorPrint(WHT, version.c_str());
+            if (SDK::BuildInfo::commitShort()[0] != '\0')
+            {
+                std::string commit = std::string("  Commit  : ") + SDK::BuildInfo::commitShort()
+                    + (SDK::BuildInfo::dirty() ? "-dirty" : "") + " (" + SDK::BuildInfo::commitDate() + ")";
+                ColorPrint(WHT, commit.c_str());
+            }
             ColorPrint(WHT, "  Author  : Zerik-Official");
             ColorPrint(WHT, "  License : Apache License, Version 2.0");
             ColorPrint(WHT, "  Repo    : https://github.com/Zerik-Official/WoWControlSDK");
@@ -147,7 +157,7 @@ namespace Runtime
             info.initialized = s_initialized;
             info.visible = s_visible;
             info.uptimeMs = s_initialized ? (nowMs() - s_startMs) : 0;
-            info.version = "2.2.0";
+            info.version = SDK::BuildInfo::version();
             return info;
         }
 
