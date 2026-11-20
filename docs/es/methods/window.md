@@ -97,7 +97,7 @@ Llámalo antes de que el juego cree su ventana: [`WowInjector.exe --hidden`](../
 ### Ejemplo
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "window.setStartHidden", "params": {"hidden": true}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "window.setStartHidden", "params": {"hidden": true}}
 ```
 
 ```json
@@ -375,7 +375,7 @@ Cambia el icono de la ventana: el icono de la barra de título (`ICON_SMALL`, 16
 
 ## Eventos de ventana
 
-El servicio de ventana subclasifica `GWLP_WNDPROC` y emite estos eventos al pipe de eventos:
+El servicio de ventana subclasifica `GWLP_WNDPROC` y emite estos eventos al `EventBus` interno. No se envían al pipe de eventos externo ni se guardan en el historial de eventos.
 
 | Evento | Carga útil | Disparador |
 | --- | --- | --- |
