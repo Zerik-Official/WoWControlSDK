@@ -42,7 +42,7 @@ None.
 ### Example
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "friends.list"}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "friends.list"}
 ```
 
 ```json
