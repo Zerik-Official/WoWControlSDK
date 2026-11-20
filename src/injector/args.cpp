@@ -7,6 +7,7 @@ void printUsage(const char* argv0)
 {
     fprintf(stderr,
         "usage: %s --wow <path> --dll <path> (--token-stdin | --no-auth) [options]\n"
+        "       %s --dll <path> --call <method>\n"
         "\n"
         "required:\n"
         "  --wow <path>        path to WoW.exe\n"
@@ -21,8 +22,12 @@ void printUsage(const char* argv0)
         "  --wow-args <str>    extra arguments for WoW.exe\n"
         "  --kill              kill existing WoW.exe before starting\n"
         "  --hidden            keep the game window hidden until window.show (needs the pipe)\n"
-        "  --pipe-cmd <json>   send a JSON-RPC command after pipe is ready (repeatable)\n",
-        argv0
+        "  --pipe-cmd <json>   send a JSON-RPC command after pipe is ready (repeatable)\n"
+        "\n"
+        "without the game:\n"
+        "  --call <method>     load the DLL in this process, call a method that works without\n"
+        "                      the game (dll.getInfo) and print the JSON-RPC response\n",
+        argv0, argv0
     );
 }
 
@@ -35,6 +40,7 @@ bool parseArgs(int argc, char* argv[], Args& out)
         else if (strcmp(argv[i], "--pipe")     == 0 && i + 1 < argc) out.pipeName = argv[++i];
         else if (strcmp(argv[i], "--wait")     == 0 && i + 1 < argc) out.waitMs   = (DWORD)atoi(argv[++i]);
         else if (strcmp(argv[i], "--wow-args") == 0 && i + 1 < argc) out.wowArgs  = argv[++i];
+        else if (strcmp(argv[i], "--call")     == 0 && i + 1 < argc) out.callMethod = argv[++i];
         else if (strcmp(argv[i], "--kill")     == 0) out.kill = true;
         else if (strcmp(argv[i], "--no-pipe")  == 0) out.usePipe = false;
         else if (strcmp(argv[i], "--token-stdin") == 0) out.tokenStdin = true;
@@ -48,6 +54,9 @@ bool parseArgs(int argc, char* argv[], Args& out)
             return false;
         }
     }
+
+    if (out.callMethod)
+        return out.dllPath != nullptr;
 
     if (!out.wowPath || !out.dllPath)
         return false;
