@@ -167,3 +167,20 @@ def find_method(name: str) -> Method | None:
 def find_domain(name: str) -> Domain | None:
     """The domain with this name, if it exists."""
     return next((domain for domain in DOMAINS if domain.name == name), None)
+
+
+TOKEN_PLACEHOLDER = "<session token>"
+SECRET_PLACEHOLDER = "<hidden>"
+
+
+def mask_request(request: dict[str, Any]) -> dict[str, Any]:
+    """Copy of a request that is safe to show or copy: the token and secret parameters are replaced."""
+    masked = dict(request)
+    if "auth" in masked:
+        masked["auth"] = TOKEN_PLACEHOLDER
+    method = find_method(str(masked.get("method", "")))
+    params = masked.get("params")
+    if method is not None and isinstance(params, dict):
+        secrets = {param.name for param in method.params if param.type is ParamType.SECRET}
+        masked["params"] = {name: SECRET_PLACEHOLDER if name in secrets else value for name, value in params.items()}
+    return masked
