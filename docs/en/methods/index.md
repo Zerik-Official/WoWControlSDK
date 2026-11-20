@@ -6,6 +6,7 @@ Every RPC method belongs to a domain. Each domain has its own page with the para
 
 - **Method names** use `domain.action`, for example `unit.get` or `window.setBounds`.
 - **Parameters** are passed as a JSON object in `params`. Every parameter is optional unless the table marks it as required.
+- **Authentication**: every request carries a top-level `auth` field with the session token, shown as `<session token>` in the examples below, unless the game was launched with `--no-auth`. A missing or wrong token returns `-32001 Unauthorized`; see [Authentication](../protocol.md#authentication).
 - **Responses** are JSON objects. Unless a page says otherwise, fields are always present, even when their value is `null`.
 - **Unit tokens** accept `"player"`, `"target"`, `"focus"`, `"mouseover"`, `"partyN"`, `"raidN"` or a GUID string. The default token is `"player"`.
 - **GUIDs** are returned as `[high, low]` arrays of two 32-bit unsigned integers.
@@ -75,7 +76,7 @@ Each method is documented with the same sections:
 
 ```json
 {
-  "jsonrpc": "2.0",
+  "jsonrpc": "2.0", "auth": "<session token>",
   "id": 1,
   "method": "unit.get",
   "params": {
