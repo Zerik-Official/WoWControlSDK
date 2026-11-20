@@ -1,0 +1,33 @@
+#include <winver.h>
+#include "BuildVersion.h"
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION SDK_VERSION_MAJOR,SDK_VERSION_MINOR,SDK_VERSION_PATCH,0
+ PRODUCTVERSION SDK_VERSION_MAJOR,SDK_VERSION_MINOR,SDK_VERSION_PATCH,0
+ FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
+ FILEFLAGS 0x0L
+ FILEOS VOS_NT_WINDOWS32
+ FILETYPE VFT_DLL
+ FILESUBTYPE VFT2_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "CompanyName", "Zerik-Official"
+            VALUE "FileDescription", "WoWControlSDK"
+            VALUE "FileVersion", SDK_VERSION
+            VALUE "InternalName", "WoWControlSDK"
+            VALUE "LegalCopyright", "Apache License, Version 2.0"
+            VALUE "OriginalFilename", "WoWControlSDK.dll"
+            VALUE "ProductName", "WoWControlSDK"
+            VALUE "ProductVersion", SDK_PRODUCT_VERSION
+            VALUE "Commit", SDK_COMMIT
+            VALUE "CommitDate", SDK_COMMIT_DATE
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END

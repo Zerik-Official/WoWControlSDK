@@ -22,7 +22,7 @@ sequenceDiagram
 
 1. **Launch suspended.** `Wow.exe` starts with `CREATE_SUSPENDED`, so no game code runs yet.
 2. **Inject the DLL.** The injector allocates memory in the target process, writes the DLL path and calls `LoadLibrary` through `CreateRemoteThread`.
-3. **Initialize the SDK.** `DllMain` starts a dedicated thread that initializes log capture, Detours hooks, the Lua engine, the runtime, the command pipe and the event pipe.
+3. **Initialize the SDK.** `DllMain` starts a dedicated thread that initializes log capture, the hooks, the Lua engine, the runtime, the command pipe and the event pipe.
 4. **Wait for the pipe.** The game remains frozen while the injector waits up to 15 seconds for `\\.\pipe\WowGameCommand` to accept a connection. If the game closes during the wait, the injector stops at once.
 5. **Configure authentication.** The injector registers the session token (or `--no-auth`) with `auth.init` while the game is still frozen. If the SDK rejects it, the game is terminated.
 6. **Resume the game.** The injector resumes the main thread and the game runs normally.
@@ -50,6 +50,7 @@ echo %ZFORGE_TOKEN% | WowInjector.exe --wow "C:\World of Warcraft\Wow.exe" --dll
 | `--hidden` | Keep the game window hidden until [`window.show`](methods/window.md#windowsetstarthidden), for headless launches. Sent while the game is still frozen; cannot be combined with `--no-pipe`. |
 | `--wow-args <str>` | Extra arguments passed to `Wow.exe`. |
 | `--pipe-cmd <json>` | Send a JSON-RPC command after the pipe is ready. Repeatable. The session token is added to each command automatically. |
+| `--call <method>` | Load the DLL without starting the game and print the response of a method that works outside it. Only needs `--dll`. See [Reading the DLL without the game](#reading-the-dll-without-the-game). |
 
 ### Example with options
 
@@ -90,6 +91,20 @@ WowInjector.exe --wow "..." --dll "..." ^
 ```
 
 Safe startup commands include `dll.toggleConsole`, `dll.setLogConfig` and `dll.getInfo`. Game-dependent commands such as `lua.*`, `client.login` and `unit.*` should wait until the player reaches the appropriate screen.
+
+## Reading the DLL without the game
+
+`--call <method>` loads the DLL in the injector process, without starting the game, calls a method that works outside it and prints the JSON-RPC response. Only `--dll` is needed; `--wow` and the authentication options are ignored. The exit code is `0` when the response has no error.
+
+```powershell
+.\WowInjector.exe --dll .\WoWControlSDK.dll --call dll.getInfo
+```
+
+```json
+{"id":1,"jsonrpc":"2.0","result":{"commit":{"date":"2026-11-19T12:55:26-05:00","dirty":false,"hash":"4f09723ebef967c9c66e5ed16a19eb7a42a14d97","shortHash":"4f09723","timestamp":1795110926},"inGame":false,"version":"2.3.0"}}
+```
+
+Only [`dll.getInfo`](methods/dll.md#reading-the-dll-without-the-game) is available. It is the way for a 64-bit program, such as a launcher, to know which build of the DLL it is about to inject.
 
 ## Event pipe
 

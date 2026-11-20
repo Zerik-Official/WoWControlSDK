@@ -167,8 +167,8 @@ After an error:
 | `description` | string | Short description, such as the exception and its address |
 | `details` | string | Longer explanation written by the game |
 | `exception` | object or `null` | `{"code", "address", "module", "offset"}` of the exception; `null` for other errors |
-| `logPath` | string or `null` | Path of the log in the `Errors` folder |
-| `log` | string or `null` | Contents of the log, up to 64 KB |
+| `logPath` | string or `null` | Path of the log in the `Errors` folder. `null` when the game wrote no log. A crash that damages the process memory can also leave the path unreadable |
+| `log` | string or `null` | Contents of the log, up to 64 KB. `null` when the log cannot be read, for example when `logPath` is `null` or damaged |
 | `logTruncated` | boolean | Present and `true` when the log was longer than 64 KB |
 | `time` | integer | Milliseconds since Windows started |
 
@@ -194,6 +194,8 @@ After an error:
 ## client.login
 
 Performs a complete login sequence. It optionally sets the realm list and realm name CVars, sends the credentials and waits for the login result.
+
+The login screen ignores credentials until the client finishes its startup checks and accepts the user agreements, so a login sent as soon as the screen appears would be lost. The method waits up to 30 seconds for the client to accept a login before sending the credentials, so it can be called as soon as the login screen is reported.
 
 ### Parameters
 
@@ -229,6 +231,7 @@ When the login succeeds but a later wait fails, the response also contains `ok: 
 | Error | Meaning |
 | --- | --- |
 | `not on login screen` | The client is not on the login screen |
+| `login screen not ready` | The client did not accept a login within 30 seconds |
 | `username and password required` | One of the credentials is empty |
 | `login failed` | Generic authentication failure |
 | `server down` | The login server is offline |
@@ -261,7 +264,7 @@ When the login succeeds but a later wait fails, the response also contains `ok: 
 ```
 
 !!! note
-    The login wait is 20 seconds. When `realmName` is provided, the method also waits up to 5 seconds for the realm list and up to 15 seconds for the character select screen.
+    The method first waits up to 30 seconds for the login screen to accept a login, then up to 20 seconds for the login result. When `realmName` is provided, the method also waits up to 5 seconds for the realm list and up to 15 seconds for the character select screen.
 
 !!! warning
     This method blocks the RPC thread while polling with `Sleep(50)`. Do not call it from time-sensitive code.
@@ -269,6 +272,8 @@ When the login succeeds but a later wait fails, the response also contains `ok: 
 ## client.enterWorld
 
 Selects a character and enters the world.
+
+Right after the login the client is still receiving the character list, and entering at that moment sends it back to the character list. The method waits for the list: it enters as soon as the character select screen is ready or, when the list has not arrived yet, at the moment the client receives it. With `wait`, it then checks that the character stays in the world for 1.5 seconds and enters again, up to two more times, if the client returned to the character list.
 
 ### Parameters
 
@@ -292,6 +297,7 @@ Selects a character and enters the world.
 | The name does not exist | `character not found` |
 | The index is out of range | `index out of range` |
 | The world did not load within 30 seconds | `enter world timeout` |
+| The client returned to the character list after three attempts | `the game returned to the character list after entering the world` |
 
 ## client.logout
 

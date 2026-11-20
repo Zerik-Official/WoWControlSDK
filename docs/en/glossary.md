@@ -28,8 +28,8 @@
 **Freeze-sync**
 :   The injection strategy used by `WowInjector.exe`: start the game suspended, inject the DLL, wait for the command pipe and only then resume the game.
 
-**Detour**
-:   A function hook installed with Microsoft Detours. The SDK detours game functions to capture events, console output and frame callbacks.
+**VTable hook**
+:   Gives one game object a copy of its virtual table with a slot replaced. The game code stays untouched. The SDK combines it with IAT hooks, game scheduler callbacks and a debug register breakpoint instead of patching game functions.
 
 **Offset**
 :   The numeric address or field displacement of a structure inside the game binary. Every offset lives in `offsets/` as a `constexpr uintptr_t`.

@@ -28,6 +28,9 @@ class JsonView(ctk.CTkTextbox):
         super().__init__(master, font=theme.mono(), wrap="none", **kwargs)
         for name, color in theme.JSON_COLORS.items():
             self.tag_config(name, foreground=color)
+        self.tag_config("header", foreground=theme.ACCENT)
+        self.tag_config("success", foreground=theme.SUCCESS)
+        self.tag_config("danger", foreground=theme.DANGER)
         self.configure(state="disabled")
 
     def show_value(self, value: Any) -> None:
@@ -53,6 +56,20 @@ class JsonView(ctk.CTkTextbox):
         self.see("end")
         self.configure(state="disabled")
 
+    def append_block(self, header: str, value: Any = None, text: str | None = None, tag: str = "header") -> None:
+        """Add a colored header line followed by a JSON value or a plain text, and scroll to it."""
+        self.configure(state="normal")
+        self.insert("end", header + "\n", (tag,))
+        if text is not None or value is not None:
+            body = text if text is not None else json.dumps(value, indent=2, ensure_ascii=False)
+            start = self.index("end-1c")
+            self.insert("end", body + "\n")
+            if text is None:
+                self._colorize(body, start)
+        self.insert("end", "\n")
+        self.see("end")
+        self.configure(state="disabled")
+
     def clear(self) -> None:
         """Remove all content."""
         self.show_text("")
@@ -61,9 +78,9 @@ class JsonView(ctk.CTkTextbox):
         """Current content."""
         return self.get("1.0", "end-1c")
 
-    def _colorize(self, text: str) -> None:
+    def _colorize(self, text: str, start: str = "1.0") -> None:
         for match in TOKEN_PATTERN.finditer(text):
             kind = match.lastgroup
             if kind is None:
                 continue
-            self.tag_add(kind, f"1.0+{match.start()}c", f"1.0+{match.end()}c")
+            self.tag_add(kind, f"{start}+{match.start()}c", f"{start}+{match.end()}c")

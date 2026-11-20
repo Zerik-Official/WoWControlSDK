@@ -42,16 +42,55 @@ The client is written to `dist/WoWControlClient/`. `--windowed` hides the consol
 
 | Area | Content |
 | --- | --- |
-| Header | SDK status (whether the command pipe exists), session token state, **Settings** and **Launch WoW** |
-| Method browser | A rail with one icon per domain and the methods of the selected domain as cards with their description. The search box looks in every domain |
-| Form | The selected method with one input per parameter: text, password, number, switch, list, Lua code or JSON. Required parameters are marked with `*` |
-| Response | The JSON response with colors, the call status and the time it took |
-| History | The last 100 calls; selecting one shows its request and response |
+| Title bar | The client's own title bar: SDK status (whether the command pipe exists), session token state, version and commit of the configured DLL, **Sequence**, **Settings**, **Launch WoW** and the window buttons. Drag it to move the window and double-click it to maximize; the edges resize the window |
+| Method browser | A rail with one icon per domain and the methods of the selected domain as cards with their description. Resting the mouse on an icon shows the name of its domain. The search box looks in every domain |
+| Form | The selected method with one input per parameter: text, password, number, switch, list, Lua code or JSON. Required parameters are marked with `*`. A method shows again the values it was last sent with |
+| Response | The JSON response with colors, the call status and the time it took, with **Repeat** and a button to copy the response |
+| History | The last 100 calls; selecting one shows its request and response, and its repeat button loads it into the form |
 | Events | Live view of the event pipe with a name filter, pause and clear |
 | Processes | Every `Wow.exe` and `WowInjector.exe` that is running, with the option to close them |
 | Activity | Injector output, event pipe status and client messages |
 
-Press **Send** or `Ctrl+Enter` to send the request. Calls run on a worker thread, so slow methods such as `client.login` or `client.enterWorld` do not freeze the window. **Copy request** copies the JSON request with the token replaced by a placeholder. `client.quit` asks for confirmation.
+Press **Send** or `Ctrl+Enter` to send the request. Calls run on a worker thread, so slow methods such as `client.login` or `client.enterWorld` do not freeze the window. The copy button next to **Send** copies the JSON request with the token and secret parameters, such as passwords, replaced by placeholders. **History** and the sequence console hide them the same way. `client.quit` asks for confirmation.
+
+| Shortcut | Action |
+| --- | --- |
+| `Ctrl+Enter` | Send the request |
+| `Ctrl+Shift+Enter` | Add the request to the sequence |
+| `Ctrl+R` | Repeat the call shown in **Response** |
+| `Ctrl+F` | Search methods |
+
+### Repeating a call
+
+**Repeat**, in **Response**, and the repeat button of each **History** row select the method of that call and fill the form with the values it was sent with. Nothing is sent until **Send** is pressed, so the values can be changed first.
+
+### Sequences
+
+A sequence chains several calls that run one after another, for example `client.login` and then `client.enterWorld`. **Add to sequence** adds the request of the form as the last step, and **Sequence** in the title bar opens the sequence window.
+
+![Sequence window after a run, with the console showing each step](../assets/client/client-sequence.png)
+
+| Element | Description |
+| --- | --- |
+| Handle | Drag a block by its handle to change the order. A copy of the block follows the pointer, the gap moves between the other blocks and the list scrolls near its edges; `Esc` cancels |
+| Delay | Seconds to wait before the step starts, for example `3` to send `client.enterWorld` three seconds after the login answered |
+| Edit | Loads the step into the form; **Add to sequence** becomes **Update step** until the step is saved or the edit is cancelled |
+| Status | Pending, the countdown of the delay, running, OK with its time, error, skipped or not run. Selecting a finished step shows its response |
+| Retry | Appears on a step that failed, was skipped or did not run, and runs that step again at once, without its delay |
+| **Run all** and **Stop** | Run the steps in order, or stop before the next one; a call already sent still finishes |
+| Stop on error | When on, the first failed step ends the run |
+| Open and save | Read or write the sequence as a JSON file |
+| **Console** tab | Every step of every run with its time, status, request and response as colored JSON, with buttons to copy and clear it. It opens by itself when a run of several steps ends |
+
+When an earlier run left steps that failed or did not run, **Run all** asks whether to run every step, only the completed ones or only the failed ones. When every step completed, it runs them all again without asking.
+
+Each finished step also appears in **Response** and **History**. Closing the window stops a run in progress.
+
+The sequence is saved in `%APPDATA%\WoWControlClient\sequence.json` and restored when the client starts. Secret parameters, such as the password of `client.login`, are kept in memory only: they are never written to disk, so after reopening the client or opening a file the step shows them as missing until it is edited.
+
+### dll.getInfo without the game
+
+When the SDK is not running, `dll.getInfo` is answered by `WowInjector.exe --call dll.getInfo`, which loads the configured DLL without starting the game (see [Reading the DLL without the game](../methods/dll.md#reading-the-dll-without-the-game)). The response shows `without the game` next to its time. The same call fills the DLL version in the title bar when the client starts and when the DLL or injector path changes; resting the mouse on it shows the full commit, its date and the path. It needs the injector of SDK 2.3 or later.
 
 ### Finding a method
 
@@ -70,6 +109,7 @@ Select a domain on the rail to list its methods, or type in the search box to lo
 | Open the in-game SDK console | Sends `dll.toggleConsole` once the SDK is ready |
 | Show captured logs in the console | Sends `dll.setLogConfig` with `showInConsole`. Messages captured before the console opened, such as the archives loaded at startup, are shown too |
 | Start the game hidden | Passes `--hidden` to the injector; send `window.show` to reveal the window |
+| Connect to the event pipe after launching | Opens **Events** automatically once the injector finished. On by default |
 | Wow.exe arguments | Passed with `--wow-args`; `-console` by default |
 | Token | Token used for requests and the event pipe. Paste one to control a game started elsewhere |
 | Appearance | Dark, light or system theme |
@@ -116,7 +156,7 @@ The **Processes** tab lists every running `Wow.exe` (or the executable set in th
 
 ## Live events
 
-**Events → Connect** opens `\\.\pipe\WowGameEvent`, sends the authentication handshake and lists each event with its time, name and arguments. The filter matches event names, for example `trade.` or `UNIT_`.
+**Events → Connect** opens `\\.\pipe\WowGameEvent`, sends the authentication handshake and lists each event with its time, name and arguments. The filter matches event names, for example `trade.` or `UNIT_`. With **Connect to the event pipe after launching** on, the client connects by itself once the game started with the SDK.
 
 ![Events tab with social, trade, addon and queue events](../assets/client/client-events.png)
 
@@ -152,6 +192,8 @@ The interface texts live in `tools/wowsdk_client/data/locales/en.json` and `es.j
 | `launcher.py` | Injector command line, token generation, output forwarding and failure hints |
 | `processes.py` | Running games and injectors, the SDK state of each one and closing them |
 | `settings.py` | Settings file and bundled binary lookup |
-| `ui/` | Window, method browser, method form, JSON view, events and processes panels and settings dialog |
+| `sequence.py` | Sequence steps, the file without secrets and the runner on a worker thread |
+| `offline.py` | Methods answered without the game through `WowInjector.exe --call` and the DLL version |
+| `ui/` | Window, method browser, method form, JSON view, events and processes panels, sequence window, settings dialog and tooltips |
 
 The icons come from the Lucide set of [react-icons](https://react-icons.github.io/react-icons/). They are stored as white PNG files in `tools/wowsdk_client/data/icons/` and the client tints them for each theme.

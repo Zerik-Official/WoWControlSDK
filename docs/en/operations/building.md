@@ -11,7 +11,7 @@ The project uses CMake to produce two artifacts: the injected DLL and the standa
 | CMake | 3.20 or later | Build system |
 | Git | 2.40 or later | Source control |
 
-The third-party sources are vendored under `deps/`, including Microsoft Detours, so no package manager or network fetch is required during the build.
+The third-party sources are vendored under `deps/`, so no package manager or network fetch is required during the build.
 
 ## Configure and build
 
@@ -52,7 +52,13 @@ The root `CMakeLists.txt` sets the following:
 | `/GS-` | Compiler option | Disables stack buffer security checks for the injected DLL |
 | `/utf-8` | Compiler option | Treats source files as UTF-8 |
 
-The DLL links against Detours. The injector links against `kernel32` only.
+The DLL has no third-party link dependencies. The injector links against `kernel32` only.
+
+## Version and commit
+
+The SDK version is defined once in `project(WoWControlSDK VERSION …)` of the root `CMakeLists.txt`. On every build, the `WoWControlSDKBuildInfo` target runs `cmake/BuildInfo.cmake`, which reads with Git the current commit, its date and whether `src/`, `cmake/` or `CMakeLists.txt` have uncommitted changes, and writes `build/generated/BuildVersion.h`. The file is only rewritten when something changed, so it does not force a rebuild.
+
+Those values reach [`dll.getInfo`](../methods/dll.md#dllgetinfo), the console header and the Windows version resource of the DLL. When building outside a Git repository, for example from a ZIP of the source code, `commit` is `null` and only the version remains.
 
 ## Clean rebuild
 

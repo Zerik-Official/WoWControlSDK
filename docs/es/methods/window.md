@@ -77,7 +77,7 @@ Ninguno.
 
 ## window.setStartHidden
 
-Mantiene oculta la ventana del juego desde el momento en que el cliente la crea, para lanzamientos headless. Mientras está activo, el SDK quita `WS_VISIBLE` al crear la ventana del juego y convierte cada intento del cliente de mostrarla (`ShowWindow`, `SetWindowPos` con `SWP_SHOWWINDOW`) en una ventana oculta. Solo afecta a la ventana del juego `GxWindowClass*`, no a otras como la consola del SDK.
+Mantiene invisible la ventana del juego desde el momento en que el cliente la crea, para lanzamientos headless. La ventana no se oculta de verdad: el SDK la crea totalmente transparente (`WS_EX_LAYERED` con alpha 0), fuera de la barra de tareas y de Alt+Tab (`WS_EX_TOOLWINDOW`) y sin poder recibir el foco ni el ratón (`WS_EX_NOACTIVATE`, `WS_EX_TRANSPARENT`). El cliente la trata como una ventana visible, así que la interfaz, el login y la selección de personajes siguen funcionando aunque nadie los vea. Solo afecta a la ventana del juego `GxWindowClass*`, no a otras como la consola del SDK.
 
 Llámalo antes de que el juego cree su ventana: [`WowInjector.exe --hidden`](../injection.md#argumentos) lo envía con el juego todavía congelado. `window.show`, `window.restore`, `window.maximize` y `window.focus` terminan el arranque oculto y muestran la ventana, por ejemplo cuando el personaje ya está en el mundo.
 
@@ -111,7 +111,7 @@ Llámalo antes de que el juego cree su ventana: [`WowInjector.exe --hidden`](../
 | Falta `hidden` o no es booleano | `{"error": "hidden must be a boolean"}` |
 
 !!! note
-    Una ventana oculta no tiene botón en la barra de tareas. El juego sigue ejecutándose y cargando con normalidad; el modo pantalla completa puede no iniciarse bien con la ventana oculta, así que se recomienda el modo ventana para los lanzamientos headless.
+    Mientras el arranque oculto está activo, la ventana no tiene botón en la barra de tareas y no se puede pulsar. El modo pantalla completa puede no iniciarse bien con una ventana transparente, así que se recomienda el modo ventana para los lanzamientos headless.
 
 ## window.minimize
 

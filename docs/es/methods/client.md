@@ -167,8 +167,8 @@ Después de un error:
 | `description` | string | Descripción corta, como la excepción y su dirección |
 | `details` | string | Explicación más larga escrita por el juego |
 | `exception` | object o `null` | `{"code", "address", "module", "offset"}` de la excepción; `null` en otros errores |
-| `logPath` | string o `null` | Ruta del log en la carpeta `Errors` |
-| `log` | string o `null` | Contenido del log, hasta 64 KB |
+| `logPath` | string o `null` | Ruta del log en la carpeta `Errors`. `null` cuando el juego no escribió ningún log. Un crash que dañe la memoria del proceso también puede dejar la ruta ilegible |
+| `log` | string o `null` | Contenido del log, hasta 64 KB. `null` cuando no se puede leer el log, por ejemplo si `logPath` es `null` o está dañada |
 | `logTruncated` | boolean | Presente y `true` cuando el log ocupaba más de 64 KB |
 | `time` | integer | Milisegundos desde que se inició Windows |
 
@@ -194,6 +194,8 @@ Después de un error:
 ## client.login
 
 Realiza una secuencia de login completa. Opcionalmente define las CVars de lista de reinos y nombre de reino, envía las credenciales y espera el resultado del login.
+
+La pantalla de login ignora las credenciales hasta que el cliente termina sus comprobaciones de inicio y acepta los acuerdos de usuario, así que un login enviado en cuanto aparece la pantalla se perdería. El método espera hasta 30 segundos a que el cliente acepte un login antes de enviar las credenciales, así que se puede llamar en cuanto se informa de la pantalla de login.
 
 ### Parámetros
 
@@ -229,6 +231,7 @@ Cuando el login se completa pero falla una espera posterior, la respuesta tambi�
 | Error | Significado |
 | --- | --- |
 | `not on login screen` | El cliente no está en la pantalla de login |
+| `login screen not ready` | El cliente no aceptó un login en 30 segundos |
 | `username and password required` | Una de las credenciales está vacía |
 | `login failed` | Fallo genérico de autenticación |
 | `server down` | El servidor de login está caído |
@@ -261,7 +264,7 @@ Cuando el login se completa pero falla una espera posterior, la respuesta tambi�
 ```
 
 !!! note
-    La espera del login es de 20 segundos. Cuando se indica `realmName`, el método también espera hasta 5 segundos a la lista de reinos y hasta 15 segundos a la pantalla de selección de personajes.
+    El método espera primero hasta 30 segundos a que la pantalla de login acepte un login y después hasta 20 segundos al resultado. Cuando se indica `realmName`, el método también espera hasta 5 segundos a la lista de reinos y hasta 15 segundos a la pantalla de selección de personajes.
 
 !!! warning
     Este método bloquea el hilo RPC mientras sondea con `Sleep(50)`. No lo llames desde código sensible al tiempo.
@@ -269,6 +272,8 @@ Cuando el login se completa pero falla una espera posterior, la respuesta tambi�
 ## client.enterWorld
 
 Selecciona un personaje y entra en el mundo.
+
+Justo después del login el cliente todavía está recibiendo la lista de personajes, y entrar en ese momento lo devuelve a la lista. El método espera a la lista: entra en cuanto la pantalla de selección de personajes está lista o, si la lista aún no llegó, en el momento en que el cliente la recibe. Con `wait`, comprueba después que el personaje sigue en el mundo durante 1,5 segundos y vuelve a entrar, hasta dos veces más, si el cliente regresó a la lista de personajes.
 
 ### Parámetros
 
@@ -292,6 +297,7 @@ Selecciona un personaje y entra en el mundo.
 | El nombre no existe | `character not found` |
 | El índice está fuera de rango | `index out of range` |
 | El mundo no se cargó en 30 segundos | `enter world timeout` |
+| El cliente volvió a la lista de personajes tras tres intentos | `the game returned to the character list after entering the world` |
 
 ## client.logout
 

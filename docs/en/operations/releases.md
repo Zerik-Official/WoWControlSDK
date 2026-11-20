@@ -109,4 +109,4 @@ A local build produces the same binaries, but not the zip or the manifest. Run t
 
 ## Versioning
 
-Tags are not tied to a version string inside the DLL. The `dll.getInfo` method reports the version compiled into the SDK, so keep both in sync when a release changes the public RPC surface.
+Tags are not tied to a version string inside the DLL. The `dll.getInfo` method reports the version set in `project(WoWControlSDK VERSION …)` of the root `CMakeLists.txt`, so update it before tagging a release. The commit of the tag is written into the DLL automatically (see [Version and commit](building.md#version-and-commit)).

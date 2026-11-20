@@ -107,6 +107,33 @@ class ParamField:
         """Move the keyboard focus to the input."""
         self.widget.focus_set()
 
+    def set(self, value: Any) -> None:
+        """Show a value in the input, or empty it when the value is ``None``."""
+        param = self.param
+        if param.type is ParamType.BOOLEAN:
+            if value is True or (value is None and param.default is True):
+                self.widget.select()
+            else:
+                self.widget.deselect()
+            return
+        if param.type is ParamType.CHOICE:
+            self.widget.set(str(value) if value not in (None, "") else tr("form.default"))
+            return
+        if value is None:
+            text = ""
+        elif param.type is ParamType.STRING_LIST and isinstance(value, list):
+            text = ", ".join(str(item) for item in value)
+        elif param.type is ParamType.JSON and not isinstance(value, str):
+            text = json.dumps(value, ensure_ascii=False)
+        else:
+            text = str(value)
+        if param.type is ParamType.TEXT:
+            self.widget.delete("1.0", "end")
+            self.widget.insert("1.0", text)
+        else:
+            self.widget.delete(0, "end")
+            self.widget.insert(0, text)
+
 
 class MethodForm(ctk.CTkScrollableFrame):
     """Shows the selected method and the inputs for its parameters."""
@@ -147,6 +174,11 @@ class MethodForm(ctk.CTkScrollableFrame):
             field.frame.grid(row=row, column=0, sticky="ew", pady=(0, 12))
             self._fields.append(field)
         self._fields[0].focus()
+
+    def fill(self, params: dict[str, Any]) -> None:
+        """Show the values of a request; parameters it did not send are left empty."""
+        for field in self._fields:
+            field.set(params.get(field.param.name))
 
     def params(self) -> dict[str, Any]:
         """Parameters to send, validated."""
