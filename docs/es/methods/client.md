@@ -260,7 +260,7 @@ Cuando el login se completa pero falla una espera posterior, la respuesta tambi√
 ### Ejemplo
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "client.login", "params": {"username": "myuser", "password": "mypass", "realmName": "MyServer"}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "client.login", "params": {"username": "myuser", "password": "mypass", "realmName": "MyServer"}}
 ```
 
 !!! note
