@@ -31,7 +31,7 @@ Este orden elimina la carrera entre el primer frame y la instalación de los hoo
 
 ## Uso
 
-Genera un token aleatorio de 32 a 128 caracteres hexadecimales para cada sesión de juego —por ejemplo con `python -c "import secrets; print(secrets.token_hex(32))"`— y páasalo por la entrada estándar. Conserva ese token: es el valor que tu cliente envía en el campo `auth` de cada comando y en el saludo del pipe de eventos.
+Genera un token aleatorio de 32 a 128 caracteres hexadecimales para cada sesión de juego —por ejemplo con `python -c "import secrets; print(secrets.token_hex(32))"`— y pásalo por la entrada estándar. Conserva ese token: es el valor que tu cliente envía en el campo `auth` de cada comando y en el saludo del pipe de eventos.
 
 ```bash
 echo %WOW_SDK_TOKEN% | WowInjector.exe --wow "C:\World of Warcraft\Wow.exe" --dll "bin\release\WoWControlSDK.dll" --token-stdin
