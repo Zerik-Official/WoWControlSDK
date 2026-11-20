@@ -63,6 +63,12 @@ class EventsPanel(ctk.CTkFrame):
             self._stream.start(self._token())
             self._toggle.configure(text=tr("events.disconnect"))
 
+    def connect(self) -> None:
+        """Connect when not connected yet."""
+        if not self._stream.running:
+            self._stream.start(self._token())
+            self._toggle.configure(text=tr("events.disconnect"))
+
     def disconnect(self) -> None:
         """Stop reading events."""
         self._stream.stop()
