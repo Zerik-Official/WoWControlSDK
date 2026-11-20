@@ -92,7 +92,7 @@ None.
 ### Example
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "group.get"}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "group.get"}
 ```
 
 ```json
@@ -208,7 +208,7 @@ None.
 ### Example
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "group.combatSummary"}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "group.combatSummary"}
 ```
 
 ```json
@@ -245,7 +245,7 @@ None.
 ### Example
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "group.getInvite"}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "group.getInvite"}
 ```
 
 ```json
@@ -273,7 +273,7 @@ Accepts the pending invitation the same way as the dialog's **Accept** button (`
 ### Example
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "group.acceptInvite", "params": {"damage": true}}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "group.acceptInvite", "params": {"damage": true}}
 ```
 
 ### Errors
