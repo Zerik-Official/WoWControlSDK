@@ -52,6 +52,7 @@ Use `--no-auth` instead for local development tools. It registers `{"disabled": 
 | `--wait <ms>` | Milliseconds to wait when `--no-pipe` is active. Defaults to `500`. |
 | `--kill` | Kill an existing `Wow.exe` process before launching. |
 | `--hidden` | Keep the game window hidden until [`window.show`](methods/window.md#windowsetstarthidden), for headless launches. Sent while the game is still frozen; cannot be combined with `--no-pipe`. |
+| `--manual-map` | Map the DLL in memory instead of using `LoadLibrary`. See [Manual map](#manual-map). |
 | `--wow-args <str>` | Extra arguments passed to `Wow.exe`. |
 | `--pipe-cmd <json>` | Send a JSON-RPC command after the pipe is ready. Repeatable. The session token is added to each command automatically. |
 | `--call <method>` | Load the DLL without starting the game and print the response of a method that works outside it. Only needs `--dll`. See [Reading the DLL without the game](#reading-the-dll-without-the-game). |
@@ -83,6 +84,27 @@ Any DLL injector can be used, such as [Cheat Engine](https://www.cheatengine.org
 - The first client that calls `auth.init` configures authentication.
 
 The SDK itself does not depend on the included injector. The injector only automates the launch, injection and pipe synchronization.
+
+## Manual map (experimental)
+
+`--manual-map` is experimental: it loads `WoWControlSDK.dll` without calling `LoadLibrary`. The injector reads the PE file, reserves `SizeOfImage` bytes in the game process, copies the headers and sections, applies `IMAGE_REL_BASED_HIGHLOW` relocations, loads every dependency inside the game and resolves the IAT, sets the page protections of each section and calls the DLL entry point with `DLL_PROCESS_ATTACH`. The freeze-sync flow is unchanged: the pipe and `auth.init` are completed before `ResumeThread`.
+
+```cmd
+WowInjector.exe --wow "C:\World of Warcraft\Wow.exe" --dll "bin\release\WoWControlSDK.dll" --manual-map --no-auth
+```
+
+The DLL is not registered in the PEB module lists, so `LoadLibrary` and `GetModuleHandle` cannot find it by name. The image only exists in the game's memory and is discarded when the process ends. The injector also exposes `injectManualMapFromBuffer` to load a PE image from a memory buffer without writing a temporary file to disk.
+
+### Known limitations
+
+- **x86 only.** PE32 images with `HIGHLOW` relocations are supported; other relocation types are skipped. If the preferred base is unavailable, the DLL must have a relocation table.
+- **Imports.** Every imported DLL is also loaded in the game process: resolving only in the injector leaves addresses that may not exist in the target. When a module has the same base in both processes, the local `GetProcAddress` result is reused; if the bases differ, resolution runs inside the game. System DLLs usually match, and a third-party DLL with ASLR no longer breaks the IAT.
+- **TLS.** If the DLL has a TLS directory, an index is allocated with `TlsAlloc` in the target and the `DLL_PROCESS_ATTACH` callbacks run before the entry point. Callbacks run on a thread created by the injector, not on the game's main thread; there are no `DLL_THREAD_ATTACH` or `DLL_THREAD_DETACH` callbacks for later threads, and no `DLL_PROCESS_DETACH`, because the image is never unloaded.
+- **No unload.** There is no `FreeLibrary` equivalent: the mapped image stays until the process exits.
+- `--manual-map` does not affect `--call`: that mode still loads the DLL in the injector with `LoadLibraryA`.
+- If mapping fails, the injector warns and retries with `LoadLibrary`, so the game is not closed. On clients that protect their CRT DLLs (such as some `Wow.exe` 3.3.5a builds), threads created by the SDK can fail while initializing the CRT `_onexit` table; the classic path is used then.
+
+If the DLL calls `GetModuleHandle` with its own name, it returns `NULL`: without a PEB entry, the loader does not know the module.
 
 ## Startup commands
 
