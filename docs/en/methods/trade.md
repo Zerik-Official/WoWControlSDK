@@ -47,7 +47,7 @@ None.
 ### Example
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "trade.get"}
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "trade.get"}
 ```
 
 ```json
