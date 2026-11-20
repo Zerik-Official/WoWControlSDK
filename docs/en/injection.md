@@ -31,9 +31,13 @@ This order removes the race between the first game frame and hook installation, 
 
 ## Usage
 
+Generate a random token of 32 to 128 hexadecimal characters for each game session — for example with `python -c "import secrets; print(secrets.token_hex(32))"` — and pass it through standard input. Keep that token: it is the value your client sends in the `auth` field of every command and in the event pipe handshake.
+
 ```bash
-echo %ZFORGE_TOKEN% | WowInjector.exe --wow "C:\World of Warcraft\Wow.exe" --dll "bin\release\WoWControlSDK.dll" --token-stdin
+echo %WOW_SDK_TOKEN% | WowInjector.exe --wow "C:\World of Warcraft\Wow.exe" --dll "bin\release\WoWControlSDK.dll" --token-stdin
 ```
+
+Use `--no-auth` instead for local development tools. It registers `{"disabled": true}` and lets any process of your Windows user control the game without a token.
 
 ### Arguments
 
@@ -85,10 +89,13 @@ The SDK itself does not depend on the included injector. The injector only autom
 `--pipe-cmd` queues JSON-RPC commands that run immediately after the SDK initializes. Commands are sent in order, and each one waits for its response before the next is sent.
 
 ```cmd
-WowInjector.exe --wow "..." --dll "..." ^
+echo %WOW_SDK_TOKEN% | WowInjector.exe --wow "..." --dll "..." ^
+    --token-stdin ^
     --pipe-cmd "{\"jsonrpc\":\"2.0\",\"method\":\"dll.setLogConfig\",\"params\":{\"showInConsole\":true},\"id\":1}" ^
     --pipe-cmd "{\"jsonrpc\":\"2.0\",\"method\":\"dll.toggleConsole\",\"id\":2}"
 ```
+
+The token is required by the injector even when only startup commands are used. With `--no-auth`, omit the pipe and the `--token-stdin` flag.
 
 Safe startup commands include `dll.toggleConsole`, `dll.setLogConfig` and `dll.getInfo`. Game-dependent commands such as `lua.*`, `client.login` and `unit.*` should wait until the player reaches the appropriate screen.
 
@@ -110,14 +117,19 @@ Only [`dll.getInfo`](methods/dll.md#reading-the-dll-without-the-game) is availab
 
 In addition to the command pipe, the SDK opens `\\.\pipe\WowGameEvent` for streaming events. The SDK is the server and writes newline-delimited JSON; a client connects and reads the stream until it disconnects. Only one event client is accepted at a time.
 
+When authentication is enabled, the client must send the `{"auth":"<token>"}` handshake followed by a newline as soon as it connects. The SDK replies with an `auth.ok` control event and starts streaming, or with `auth.failed` and closes the connection. The handshake must arrive within 5 seconds. With `--no-auth`, no handshake is needed.
+
 ```python
 import json
+import os
 
 import win32file
 
+TOKEN = os.environ["WOW_SDK_TOKEN"]
+
 pipe = win32file.CreateFile(
     r"\\.\pipe\WowGameEvent",
-    win32file.GENERIC_READ,
+    win32file.GENERIC_READ | win32file.GENERIC_WRITE,
     0,
     None,
     win32file.OPEN_EXISTING,
@@ -126,6 +138,8 @@ pipe = win32file.CreateFile(
 )
 
 try:
+    win32file.WriteFile(pipe, (json.dumps({"auth": TOKEN}) + "\n").encode("utf-8"))
+
     buffer = ""
     while True:
         _, data = win32file.ReadFile(pipe, 65536)
@@ -149,4 +163,6 @@ See [events.*](methods/events.md) for the available events and the CLI listener.
 | The game stays suspended | The injector is still waiting for the pipe. Run with `--no-pipe --wait 1000` to skip the wait for diagnosis. |
 | `LoadLibrary` fails | The DLL is missing a dependency, or the process architecture does not match. Build with the provided CMake configuration. |
 | No events arrive | The event pipe accepts one client. Disconnect other listeners and subscribe to the events you need. |
+| The event client is rejected with `auth.failed` | The handshake is missing, late (over 5 seconds) or carries the wrong token. Send `{"auth":"<token>"}` plus a newline right after connecting. |
+| `auth.init rejected` / the game closes during launch | The token is not 32-128 hexadecimal characters, or authentication was already configured by another client. |
 | Events fired before injection are missing | Use the included injector with freeze-sync, or accept that early events are lost with a third-party injector. |
