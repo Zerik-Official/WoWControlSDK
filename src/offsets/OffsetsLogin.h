@@ -25,6 +25,8 @@ namespace Offsets
         constexpr uintptr_t GLUE_ENTER_WORLD        = 0x004D9BD0;
         constexpr uintptr_t LAST_HARDWARE_ACTION    = 0x00B499A4;
         constexpr uintptr_t OS_GET_ASYNC_TIME_MS    = 0x0086AE20;
+        constexpr uintptr_t NET_DISCONNECT_RESET    = 0x004DAA8A;
+        constexpr uintptr_t KICK_REASON             = 0x00B6AF98;
 
         constexpr uintptr_t EULA_PENDING            = 0x00B6AF50;
         constexpr uintptr_t EULA_ACCEPTED           = 0x00B6AF54;
