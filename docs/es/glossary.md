@@ -29,7 +29,7 @@
 :   Estrategia de inyección de `WowInjector.exe`: iniciar el juego suspendido, inyectar la DLL, esperar el pipe de comandos y solo entonces reanudar el juego.
 
 **Hook de vtable**
-:   Da a un objeto del juego una copia de su tabla virtual con un slot reemplazado. El código del juego queda intacto. El SDK lo combina con hooks de IAT, callbacks del scheduler del juego y un breakpoint por registros de depuración en lugar de parchear funciones del juego.
+:   Da a un objeto del juego una copia de su tabla virtual con un slot reemplazado. El código del juego queda intacto. El SDK lo combina con callbacks del scheduler del juego, hooks de eventos y CBT de Windows y breakpoints por registros de depuración en lugar de parchear funciones del juego.
 
 **Offset**
 :   Dirección numérica o desplazamiento de un campo dentro de una estructura del binario del juego. Todos los offsets viven en `offsets/` como `constexpr uintptr_t`.
