@@ -11,8 +11,15 @@ local DEFAULTS = {
     greeting = "Hello from WoWControlSDK",
 }
 
+-- SDK.Print writes to the chat with the chat frame's own AddMessage, so
+-- addons that replace ChatFrame1.AddMessage to read or change messages do not
+-- see it. Without the SDK the addon falls back to the default chat frame.
 function ns.Print(text)
-    DEFAULT_CHAT_FRAME:AddMessage(PREFIX .. tostring(text))
+    if SDK then
+        SDK.Print(PREFIX .. tostring(text))
+    else
+        DEFAULT_CHAT_FRAME:AddMessage(PREFIX .. tostring(text))
+    end
 end
 
 if not SDK then
@@ -31,25 +38,38 @@ function ns.Emit(name, ...)
     return ok
 end
 
-function ns.Options()
-    return WoWControlSDKExampleDB.options
+-- The options live in the SDK storage instead of SavedVariables, which the
+-- game can only keep in a global. SDK.Load returns a copy of the saved value,
+-- or the default; SDK.Save writes it to disk at once.
+local options = SDK.Load("options", {})
+for key, value in pairs(DEFAULTS) do
+    if options[key] == nil then
+        options[key] = value
+    end
 end
 
+function ns.Options()
+    return options
+end
+
+function ns.SaveOptions()
+    SDK.Save("options", options)
+end
+
+-- The launcher can change the options with lua.setStorage while the game runs.
+SDK.OnDataChanged(function(key, value)
+    if key == "options" and type(value) == "table" then
+        options = value
+        ns.Print("Options changed by the application")
+    end
+end)
+
 local frame = CreateFrame("Frame")
-frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("PLAYER_LOGIN")
 frame:RegisterEvent("PLAYER_LEVEL_UP")
 
 frame:SetScript("OnEvent", function(_, event, arg1)
-    if event == "ADDON_LOADED" and arg1 == addonName then
-        WoWControlSDKExampleDB = WoWControlSDKExampleDB or {}
-        WoWControlSDKExampleDB.options = WoWControlSDKExampleDB.options or {}
-        for key, value in pairs(DEFAULTS) do
-            if WoWControlSDKExampleDB.options[key] == nil then
-                WoWControlSDKExampleDB.options[key] = value
-            end
-        end
-    elseif event == "PLAYER_LOGIN" then
+    if event == "PLAYER_LOGIN" then
         local _, class = UnitClass("player")
         ns.Emit("example.ready", {
             addon = SDK.addon,
@@ -70,6 +90,15 @@ local commands = {}
 function commands.status()
     ns.Print("SDK addon: " .. SDK.addon)
     ns.Print("Global SDK: " .. tostring(rawget(_G, "SDK")))
+    local leaked = {}
+    for _, name in ipairs({ "WoWControlSDKExample", "WoWControlSDKExampleFrame", "WoWControlSDKExampleDB",
+                            "SLASH_WOWCONTROLSDKEXAMPLE1" }) do
+        if rawget(_G, name) ~= nil then
+            leaked[#leaked + 1] = name
+        end
+    end
+    ns.Print("Globals of this addon: " .. (#leaked == 0 and "none" or table.concat(leaked, ", ")))
+    ns.Print("Saved keys: " .. table.concat(SDK.Keys(), ", "))
     local writable = pcall(function() SDK.Emit = nil end)
     ns.Print("SDK is read-only: " .. tostring(not writable))
 end
@@ -101,9 +130,11 @@ function commands.help()
     ns.Print("/wcs flood - test the per-frame event limit")
 end
 
-SLASH_WOWCONTROLSDKEXAMPLE1 = "/wcs"
-SlashCmdList.WOWCONTROLSDKEXAMPLE = function(message)
+-- SDK.RegisterCommand adds /wcs without SLASH_ globals or a SlashCmdList
+-- entry, so other code cannot find the handler and call it directly. It only
+-- runs when the chat or a macro sends the text; treat the message as untrusted.
+SDK.RegisterCommand("/wcs", function(message)
     local command, rest = string.match(message or "", "^(%S*)%s*(.-)$")
     local handler = commands[string.lower(command or "")] or commands.help
     handler(rest or "")
-end
+end)

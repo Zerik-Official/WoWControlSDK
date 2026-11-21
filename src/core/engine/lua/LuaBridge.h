@@ -25,7 +25,10 @@ LuaEngine::LuaResult runChunk(const std::string& code, const std::string& chunkN
 uint64_t generation();
 bool isAllowedName(const std::string& name);
 
+using StorageProvider = std::function<bool(const std::string& owner, LuaEngine::LuaValue& data)>;
+
 bool grantAddon(const char* addon);
+void setStorageProvider(StorageProvider provider);
 void setAllowedAddons(std::optional<std::vector<std::string>> addons);
 std::optional<std::vector<std::string>> allowedAddons();
 std::vector<std::string> grantedAddons();

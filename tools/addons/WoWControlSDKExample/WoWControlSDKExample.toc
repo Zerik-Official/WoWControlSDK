@@ -4,6 +4,5 @@
 ## Author: Zerik
 ## Version: 1.0.0
 ## X-WoWControlSDK: 1
-## SavedVariables: WoWControlSDKExampleDB
 Core.lua
 Api.lua

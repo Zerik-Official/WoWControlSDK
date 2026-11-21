@@ -73,12 +73,20 @@ LuaResult evaluate(const std::string& code, const std::string& chunkName, const 
 LuaResult call(const CallTarget& target, const std::vector<LuaValue>& args, const ReadLimits& limits, bool secure)
 {
     bool byRef = target.ref > 0;
-    return LuaBridge::run(byRef ? "callRef" : "call", [&](lua_State* L) -> int {
+    bool exposed = !byRef && !target.addon.empty();
+    const char* function = byRef ? "callRef" : exposed ? "callExposed" : "call";
+    return LuaBridge::run(function, [&](lua_State* L) -> int {
         if (!LuaNative::checkstack(L, static_cast<int>(args.size()) + 4))
             return -1;
 
         int count = 1;
-        if (byRef)
+        if (exposed)
+        {
+            LuaNative::pushstring(L, target.addon.c_str());
+            LuaNative::pushstring(L, target.path.c_str());
+            count = 2;
+        }
+        else if (byRef)
         {
             LuaNative::pushnumber(L, target.ref);
             if (target.method.empty())
@@ -157,6 +165,37 @@ LuaResult listHooks()
 bool grantAddon(const char* addon)
 {
     return LuaBridge::grantAddon(addon);
+}
+
+void setStorageProvider(std::function<bool(const std::string& owner, LuaValue& data)> provider)
+{
+    LuaBridge::setStorageProvider(std::move(provider));
+}
+
+LuaResult takeDirtyStorage()
+{
+    return LuaBridge::run("storageTakeDirty", [](lua_State*) -> int {
+        return 0;
+    }, ReadLimits{1, 1000}, false);
+}
+
+LuaResult readStorage(const std::string& owner)
+{
+    return LuaBridge::run("storageOf", [&](lua_State* L) -> int {
+        LuaNative::pushstring(L, owner.c_str());
+        return 1;
+    }, ReadLimits{16, 5000}, false);
+}
+
+LuaResult writeStorage(const std::string& owner, const std::string& key, const LuaValue& value)
+{
+    return LuaBridge::run("storageSet", [&](lua_State* L) -> int {
+        LuaNative::pushstring(L, owner.c_str());
+        LuaNative::pushstring(L, key.c_str());
+        if (!LuaStack::pushValue(L, value))
+            return -1;
+        return 3;
+    }, ReadLimits{1, 10}, false);
 }
 
 void setAllowedAddons(std::optional<std::vector<std::string>> addons)

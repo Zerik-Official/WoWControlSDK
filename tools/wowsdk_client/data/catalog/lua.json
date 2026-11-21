@@ -112,6 +112,14 @@
           "default": "GetItemInfo"
         },
         {
+          "name": "addon",
+          "type": "string",
+          "description": {
+            "en": "Addon or script whose SDK.Expose function to call; function is then the exposed name",
+            "es": "Addon o script cuya función de SDK.Expose se llama; function es entonces el nombre expuesto"
+          }
+        },
+        {
           "name": "args",
           "type": "json",
           "description": {
@@ -449,6 +457,69 @@
         "en": "Loaded and pending scripts with the resources they created.",
         "es": "Scripts cargados y pendientes con los recursos que crearon."
       }
+    },
+    {
+      "name": "lua.getStorage",
+      "description": {
+        "en": "Data an addon saved with SDK.Save, also while it is not loaded.",
+        "es": "Datos que un addon guardó con SDK.Save, también si no está cargado."
+      },
+      "params": [
+        {
+          "name": "addon",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Name of the addon",
+            "es": "Nombre del addon"
+          },
+          "default": "WoWControlSDKExample"
+        },
+        {
+          "name": "key",
+          "type": "string",
+          "description": {
+            "en": "Only this key",
+            "es": "Solo esta clave"
+          }
+        }
+      ]
+    },
+    {
+      "name": "lua.setStorage",
+      "description": {
+        "en": "Save or delete a key of an addon's data; a loaded addon receives it at once.",
+        "es": "Guarda o borra una clave de los datos de un addon; un addon cargado la recibe en el momento."
+      },
+      "params": [
+        {
+          "name": "addon",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Name of the addon",
+            "es": "Nombre del addon"
+          },
+          "default": "WoWControlSDKExample"
+        },
+        {
+          "name": "key",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Key of 1 to 128 characters",
+            "es": "Clave de 1 a 128 caracteres"
+          }
+        },
+        {
+          "name": "value",
+          "type": "json",
+          "description": {
+            "en": "New value as JSON; empty deletes the key",
+            "es": "Valor nuevo como JSON; vacío borra la clave"
+          }
+        }
+      ]
     },
     {
       "name": "lua.setBlockedNotice",

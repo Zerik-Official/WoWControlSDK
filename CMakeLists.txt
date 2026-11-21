@@ -101,6 +101,7 @@ add_library(WoWControlSDK SHARED
     src/runtime/events/EventPipe.cpp
     src/runtime/events/GameEventBridge.cpp
     src/runtime/events/LuaEventBridge.cpp
+    src/runtime/storage/AddonStorage.cpp
 
     src/runtime/diagnostics/CrashMonitor.cpp
     src/runtime/diagnostics/AddonMemoryMonitor.cpp
