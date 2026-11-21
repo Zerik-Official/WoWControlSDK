@@ -1,5 +1,6 @@
 #pragma once
 #include "lua/LuaValue.h"
+#include <functional>
 #include <optional>
 #include <utility>
 #include <string>
@@ -28,6 +29,10 @@ LuaResult unhook(const std::string& path);
 LuaResult listHooks();
 
 bool     grantAddon(const char* addon);
+void     setStorageProvider(std::function<bool(const std::string& owner, LuaValue& data)> provider);
+LuaResult takeDirtyStorage();
+LuaResult readStorage(const std::string& owner);
+LuaResult writeStorage(const std::string& owner, const std::string& key, const LuaValue& value);
 void     setAllowedAddons(std::optional<std::vector<std::string>> addons);
 std::optional<std::vector<std::string>> allowedAddons();
 std::vector<std::string> grantedAddons();
