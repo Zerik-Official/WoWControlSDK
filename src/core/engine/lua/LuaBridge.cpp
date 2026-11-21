@@ -36,7 +36,9 @@ static bool install(lua_State* L)
 {
     LuaTaint::Scope scope(true);
 
-    std::string source(SOURCE);
+    std::string source;
+    for (const char* part : SOURCE_PARTS)
+        source += part;
     bool ok = LuaNative::loadbuffer(L, source.c_str(), source.size(), "=WoWControlSDK") == 0
         && LuaNative::pcall(L, 0, 1, 0) == 0
         && LuaNative::type(L, -1) == LuaNative::TYPE_TABLE;
