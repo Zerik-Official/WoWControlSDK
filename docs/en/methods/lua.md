@@ -165,7 +165,8 @@ Calls a Lua function by path or by ref without writing Lua code. Arguments are p
 
 | Name | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `function` | string | Yes, without `ref` | | Path of the function, such as `GetItemInfo` or `PlayerFrame:Hide` |
+| `function` | string | Yes, without `ref` | | Path of the function, such as `GetItemInfo` or `PlayerFrame:Hide`. With `addon`, the name the addon gave to `SDK.Expose` |
+| `addon` | string | No | | Calls a function that this addon or script exposed with [`SDK.Expose`](../addons.md#application-to-addon-luacall) instead of a global |
 | `ref` | integer | Yes, without `function` | | Ref of a function, or of an object when `method` is set |
 | `method` | string | No | | With `ref`, name of the method to call on the object, which is passed as `self` |
 | `args` | array | No | `[]` | Arguments, converted as described in [Values](#values) |
@@ -186,6 +187,14 @@ See [Result fields](#result-fields).
 ```json
 {"jsonrpc": "2.0", "id": 1, "result": {"ok": true, "result": ["Mage", "MAGE"], "results": ["Mage", "MAGE"]}}
 ```
+
+A function exposed by an addon:
+
+```json
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 2, "method": "lua.call", "params": {"addon": "WoWControlSDKExample", "function": "Ping", "args": ["hi"]}}
+```
+
+When the addon did not expose that name, the response is `{"ok": false, "error": "WoWControlSDKExample does not expose Ping"}`.
 
 ## lua.getGlobal
 
@@ -501,6 +510,64 @@ Lists the loaded and pending scripts.
 ```
 
 `resources` is `null` for a script that is not running. The memory used by each script appears in [`client.getAddonMemory`](client.md#clientgetaddonmemory).
+
+## lua.getStorage
+
+Reads the data an addon saved with [`SDK.Save`](../addons.md#saved-data). It works while the addon is not loaded, and even before the game reaches the world, because the SDK reads the addon's file.
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `addon` | string | Yes | Name of the addon |
+| `key` | string | No | Read only this key. Without it, every key is returned |
+
+### Response
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `ok` | boolean | `true` |
+| `addon` | string | The addon |
+| `data` | object | Every saved key and its value, when `key` is not sent |
+| `key` | string | The key read, when `key` is sent |
+| `value` | any | Its value, or `null` |
+| `exists` | boolean | Whether the key is saved |
+
+### Example
+
+```json
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "lua.getStorage", "params": {"addon": "WoWControlSDKExample"}}
+```
+
+```json
+{"jsonrpc": "2.0", "id": 1, "result": {"ok": true, "addon": "WoWControlSDKExample", "data": {"options": {"forwardLevelUp": true, "greeting": "Hello from WoWControlSDK"}}}}
+```
+
+## lua.setStorage
+
+Saves or deletes a key in the data of an addon. When the addon is loaded, the new value reaches it at once and its [`SDK.OnDataChanged`](../addons.md#saved-data) functions run; otherwise the addon finds it with `SDK.Load` the next time it loads.
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `addon` | string | Yes | Name of the addon |
+| `key` | string | Yes | Key of 1 to 128 characters |
+| `value` | any | No | New value. Without it, or with `null`, the key is deleted |
+
+### Response
+
+```json
+{"jsonrpc": "2.0", "id": 1, "result": {"ok": true, "deleted": false}}
+```
+
+### Errors
+
+| Error | Cause |
+| --- | --- |
+| `addon must be the name of an addon` | Empty name or a name with characters not allowed in a file name |
+| `key must be a string of 1 to 128 characters` | Missing or too long key |
+| An error of the addon, such as `only strings, numbers, booleans and tables can be saved` | The loaded addon rejected the value; nothing was saved |
 
 ## lua.setBlockedNotice
 
