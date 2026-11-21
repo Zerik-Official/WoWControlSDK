@@ -34,7 +34,7 @@ flowchart TD
         ipc["ipc/<br/>named pipe transport"]
         rpc["rpc/<br/>JSON-RPC protocol and handlers"]
         runtime["runtime/<br/>state cache, event bus, console, window"]
-        hooks["hooks/<br/>Scheduler, IAT and vtable hooks"]
+        hooks["hooks/<br/>Scheduler, vtable and Windows hooks"]
         client["client/<br/>thin game wrappers"]
         core["core/<br/>native wrappers and API"]
         offsets["offsets/<br/>address constants"]
@@ -63,7 +63,7 @@ Every layer lives under `src/`. The repository root keeps the build files, `deps
 | `ipc/` | Named pipe transport and raw JSON read/write | None |
 | `rpc/` | JSON-RPC 2.0 parsing, dispatch, handlers and serialization | None |
 | `runtime/` | State cache, event bus, event pipe, console, log capture, realm list and window service | None directly; reads through `core/` |
-| `hooks/` | Game scheduler callbacks, IAT and vtable hooks and a debug register breakpoint. Game code is never patched | Through `core/` and `offsets/` only |
+| `hooks/` | Game scheduler callbacks, vtable hooks, Windows event and CBT hooks for the hidden start and debug register breakpoints. Game code is never patched; the only import table slot written is the one that starts the scheduler, restored after its first call | Through `core/` and `offsets/` only |
 | `core/` | Native wrappers, API layer, memory reads and writes, resolvers | Yes. Most memory access lives here |
 | `client/` | Thin wrappers around `core/` and game Lua for login, console and errors | A few direct reads and writes for login and console (`LoginAPI.cpp`, `ConsoleAPI.cpp`) |
 | `offsets/` | Base addresses and most structure offsets as `constexpr uintptr_t` | Constants only |

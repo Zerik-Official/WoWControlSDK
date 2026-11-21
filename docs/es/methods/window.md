@@ -81,6 +81,13 @@ Mantiene invisible la ventana del juego desde el momento en que el cliente la cr
 
 Llámalo antes de que el juego cree su ventana: [`WowInjector.exe --hidden`](../injection.md#argumentos) lo envía con el juego todavía congelado. `window.show`, `window.restore`, `window.maximize` y `window.focus` terminan el arranque oculto y muestran la ventana, por ejemplo cuando el personaje ya está en el mundo.
 
+El SDK no cambia ninguna función del juego ni de Windows para conseguirlo. Usa dos hooks de Windows:
+
+- Un hook de eventos del proceso (`SetWinEventHook` con `EVENT_OBJECT_CREATE`, en contexto). Windows lo llama en el hilo del juego en cuanto se crea la ventana del juego, y el SDK añade ahí los estilos de arriba.
+- Un hook CBT (`SetWindowsHookEx` con `WH_CBT`) en el hilo principal del juego, instalado en ese momento. Cuando algo intenta activar la ventana, el SDK lo impide, así que el juego nunca le quita el teclado a la aplicación que está delante.
+
+Los dos hooks se quitan cuando termina el arranque oculto.
+
 ### Parámetros
 
 | Nombre | Tipo | Obligatorio | Descripción |
