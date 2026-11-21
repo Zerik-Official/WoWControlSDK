@@ -9,7 +9,8 @@ namespace Runtime
         UNKNOWN,
         LOGIN,
         CHARSELECT,
-        WORLD
+        WORLD,
+        CHARCREATE
     };
 
     enum class LoginResult
