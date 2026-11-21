@@ -35,6 +35,12 @@ end
 | --- | --- |
 | `SDK.addon` | Nombre del addon que recibió el objeto |
 | `SDK.Emit(name, ...)` | Envía un evento a la aplicación |
+| `SDK.Print(text, r, g, b)` | Escribe una línea en el chat; consulta [Mensajes en el chat](#mensajes-en-el-chat) |
+| `SDK.RegisterCommand(names, handler)` | Añade un comando de chat sin globales; consulta [Comandos de chat](#comandos-de-chat) |
+| `SDK.UnregisterCommand(name)` | Quita un comando registrado por el mismo addon |
+| `SDK.Expose(name, function)` | Permite que la aplicación llame a la función con `lua.call`; consulta [De la aplicación al addon](#de-la-aplicacion-al-addon-luacall) |
+| `SDK.Save(key, value)`, `SDK.Load(key, default)`, `SDK.Delete(key)`, `SDK.Keys()` | Guardan datos en disco sin SavedVariables; consulta [Datos guardados](#datos-guardados) |
+| `SDK.OnDataChanged(function)` | Se ejecuta cuando la aplicación cambia una clave guardada |
 
 ### Quién puede acceder al objeto
 
@@ -72,41 +78,43 @@ Pon el nombre del addon como prefijo de los eventos, como `example.ready`, para 
 
 ## De la aplicación al addon: `lua.call`
 
-Expón funciones en una tabla global y llámalas desde la aplicación. Todos los valores de retorno vuelven como JSON:
+Expón funciones con `SDK.Expose` y llámalas desde la aplicación con `lua.call` y el nombre del addon. Todos los valores de retorno vuelven como JSON:
 
 ```lua
-WoWControlSDKExample = {}
-
-function WoWControlSDKExample.Ping(text)
+SDK.Expose("Ping", function(text)
     return "pong", text
-end
+end)
 ```
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "lua.call", "params": {"function": "WoWControlSDKExample.Ping", "args": ["hi"]}}
+{"jsonrpc": "2.0", "id": 1, "method": "lua.call", "params": {"addon": "WoWControlSDKExample", "function": "Ping", "args": ["hi"]}}
 ```
 
 ```json
 {"jsonrpc": "2.0", "id": 1, "result": {"ok": true, "result": ["pong", "hi"], "results": ["pong", "hi"]}}
 ```
 
+Las funciones expuestas se quedan dentro del SDK. Una tabla global también funciona con `lua.call` y una ruta, pero entonces cualquier addon o `/run` puede encontrar las funciones y llamarlas; `SDK.Expose` no deja nada en `_G`. Los nombres son identificadores de Lua de hasta 64 caracteres, y exponer otra vez un nombre reemplaza la función.
+
 El ejemplo expone:
 
 | Función | Descripción |
 | --- | --- |
-| `WoWControlSDKExample.Ping(text)` | Devuelve `"pong"` y el texto |
-| `WoWControlSDKExample.GetStatus()` | Devuelve el jugador, el nivel, la zona y las opciones como una tabla |
-| `WoWControlSDKExample.ShowMessage(text)` | Muestra el texto en un panel y emite `example.messageShown` |
-| `WoWControlSDKExample.HideMessage()` | Oculta el panel |
-| `WoWControlSDKExample.SetOption(key, value)` | Cambia una opción conocida y emite `example.optionChanged` |
-| `WoWControlSDKExample.Request(id, action)` | Responde con un evento `example.response` que lleva el mismo `id` |
+| `Ping(text)` | Devuelve `"pong"` y el texto |
+| `GetStatus()` | Devuelve el jugador, el nivel, la zona y las opciones como una tabla |
+| `ShowMessage(text)` | Muestra el texto en un panel y emite `example.messageShown` |
+| `HideMessage()` | Oculta el panel |
+| `SetOption(key, value)` | Cambia una opción conocida, la guarda y emite `example.optionChanged` |
+| `Request(id, action)` | Responde con un evento `example.response` que lleva el mismo `id` |
+
+El ejemplo no deja globales: su frame no tiene nombre, sus opciones se guardan con `SDK.Save` y `/wcs` se registra con `SDK.RegisterCommand`. `/wcs status` lo comprueba.
 
 ### Petición y respuesta
 
 `Request` muestra cómo responder trabajo que termina más tarde, por ejemplo después de un evento del juego. La aplicación envía un id y espera el evento con ese mismo id:
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "lua.call", "params": {"function": "WoWControlSDKExample.Request", "args": [7, "status"]}}
+{"jsonrpc": "2.0", "id": 1, "method": "lua.call", "params": {"addon": "WoWControlSDKExample", "function": "Request", "args": [7, "status"]}}
 ```
 
 ```json
@@ -117,14 +125,78 @@ El ejemplo expone:
 
 | Función | Ejemplo |
 | --- | --- |
-| Leer variables guardadas | [`lua.getGlobal`](methods/lua.md#luagetglobal) con `{"name": "WoWControlSDKExampleDB.options"}` |
-| Cambiar variables guardadas | [`lua.setGlobal`](methods/lua.md#luasetglobal) con `{"name": "WoWControlSDKExampleDB.options.greeting", "value": "Hola"}` |
-| Vigilar llamadas | [`lua.hook`](methods/lua.md#luahook) con `{"function": "WoWControlSDKExample.ShowMessage"}` envía cada llamada como `lua.hooked` |
-| Guardar una referencia a un frame | [`lua.getRef`](methods/lua.md#luagetref) con `{"path": "WoWControlSDKExampleFrame"}`, y después `lua.call` con `{"ref": 1, "method": "Hide"}` |
+| Leer los datos guardados | [`lua.getStorage`](methods/lua.md#luagetstorage) con `{"addon": "WoWControlSDKExample"}` |
+| Cambiar los datos guardados | [`lua.setStorage`](methods/lua.md#luasetstorage) con `{"addon": "WoWControlSDKExample", "key": "options", "value": {"forwardLevelUp": false, "greeting": "Hola"}}` |
+| Vigilar llamadas de una función global | [`lua.hook`](methods/lua.md#luahook) con `{"function": "ToggleCharacter"}` envía cada llamada como `lua.hooked` |
+| Guardar una referencia a un frame | [`lua.getRef`](methods/lua.md#luagetref) con `{"path": "PlayerFrame"}`, y después `lua.call` con `{"ref": 1, "method": "Hide"}` |
 | Varias llamadas en un frame | [`lua.batch`](methods/lua.md#luabatch) con una lista de operaciones |
 | Addons con acceso | [`lua.getAddons`](methods/lua.md#luagetaddons) lista los addons que recibieron el objeto |
 
 Las funciones que llama la aplicación se ejecutan contaminadas, igual que el propio addon. No pueden llamar funciones protegidas salvo que la aplicación use `secure: true`, que es [peligroso](methods/lua.md#taint-y-modo-seguro).
+
+## Mensajes en el chat
+
+```lua
+SDK.Print("|cff33ccff[MyAddon]|r Conectado")
+SDK.Print("Algo falló", 1, 0.2, 0.2)
+```
+
+`SDK.Print` escribe en el frame de chat por defecto con el método `AddMessage` del tipo de frame de chat, que el SDK guarda al iniciarse. Muchos addons de chat sustituyen `ChatFrame1.AddMessage` para leer, registrar o cambiar cada línea; esas sustituciones no ven los mensajes de `SDK.Print`. Los valores de color van de `0` a `1` y por defecto son blanco, y el texto se corta en 4096 caracteres. Devuelve `false` cuando no hay frame de chat, por ejemplo en la pantalla de login.
+
+## Comandos de chat
+
+```lua
+SDK.RegisterCommand({ "/mytool", "/mt" }, function(message)
+    SDK.Emit("mytool.command", message)
+end)
+```
+
+Un comando registrado de la forma clásica crea `SLASH_MYTOOL1` y una entrada `SlashCmdList.MYTOOL`, así que cualquier código, incluido `/run`, puede encontrar el handler y llamarlo con cualquier texto. `SDK.RegisterCommand` no crea ninguna de las dos: el handler queda dentro del SDK y el juego solo llega a él a través de la lista de comandos escritos que ya mantiene (`hash_SlashCmdList`). El SDK ejecuta el handler solo cuando el texto de la caja de chat que lo envió empieza de verdad por el comando y contiene el mismo mensaje, así que llamar a esa entrada de la lista con otro texto no hace nada.
+
+| Regla | Detalle |
+| --- | --- |
+| Nombres | Un nombre o una lista de hasta 8, cada uno empezando por `/` y con letras, dígitos o `_`, de hasta 32 caracteres. No distingue mayúsculas |
+| Conflictos | Los comandos seguros como `/cast`, los comandos del juego o de otros addons y los comandos de otro addon registrados con el SDK lanzan un error |
+| Handler | Recibe el texto que sigue al comando, sin espacios alrededor |
+| Macros | `/mytool` en una macro también ejecuta el handler, porque las macros envían sus líneas a través del chat |
+| Quitar | `SDK.UnregisterCommand("/mytool")` quita un nombre; devuelve `false` cuando el nombre no lo registró el mismo addon |
+
+Cualquier cosa que pueda hacer que el chat envíe una línea, como una macro o código que rellena una caja de chat y la envía, puede seguir ejecutando el comando, como si el usuario lo escribiera. Trata el mensaje como texto no confiable.
+
+## Datos guardados
+
+El juego solo guarda las SavedVariables en globales, así que cualquier addon puede leerlas y cambiarlas, y solo se escriben en disco cuando el jugador sale o recarga. El SDK guarda los datos de un addon fuera de `_G` y los escribe en disco en cuanto cambian:
+
+```lua
+local options = SDK.Load("options", { volume = 1 })
+options.volume = 0.5
+SDK.Save("options", options)
+
+SDK.OnDataChanged(function(key, value)
+    if key == "options" then
+        options = value
+    end
+end)
+```
+
+| Función | Descripción |
+| --- | --- |
+| `SDK.Save(key, value)` | Guarda una copia del valor. `nil` borra la clave |
+| `SDK.Load(key, default)` | Devuelve una copia del valor guardado, o `default` cuando la clave no está guardada |
+| `SDK.Delete(key)` | Borra la clave |
+| `SDK.Keys()` | Las claves guardadas, ordenadas |
+| `SDK.OnDataChanged(function(key, value))` | Se ejecuta cuando la aplicación cambia una clave con [`lua.setStorage`](methods/lua.md#luasetstorage); `value` es `nil` cuando la clave se borró. Lo que guarda el propio addon no la llama |
+
+| Regla | Detalle |
+| --- | --- |
+| Valores | Cadenas, números finitos, booleanos y tablas de ellos, con claves de texto o numéricas. Las funciones, los frames, los ciclos, más de 12 niveles o más de 2000 entradas en un valor lanzan un error |
+| Claves | Cadenas de 1 a 128 caracteres; hasta 1000 claves por addon |
+| Copias | `Save` y `Load` copian el valor, así que cambiar una tabla después de guardarla no cambia los datos guardados hasta que se vuelve a llamar a `Save` |
+| Disponibilidad | Los datos están listos cuando se ejecuta el primer archivo del addon, así que se pueden leer al cargar sin esperar a `ADDON_LOADED` |
+| Archivo | `<carpeta del juego>\WTF\WoWControlSDK\AddonData\<addon>.json`, que se escribe menos de un cuarto de segundo después de un cambio. El archivo lo comparten todas las cuentas y personajes de esa carpeta del juego |
+| Claves numéricas | Las tablas se guardan como JSON, así que una tabla con claves `1` a `n` vuelve como lista y las demás claves numéricas vuelven como texto |
+
+Solo los addons tienen datos guardados; los scripts cargados con `lua.loadScript` no.
 
 ## Comandos de chat del ejemplo
 
@@ -146,6 +218,7 @@ Una aplicación también puede enviar código Lua por el pipe con [`lua.loadScri
 | Objeto `SDK` | `ns.SDK` | `ns.SDK`, con `SDK.script = true` |
 | Tras `/reload` | El juego lo vuelve a cargar | El SDK lo vuelve a ejecutar cuando `persist` es `true` |
 | SavedVariables, XML y plantillas de un `.toc` | Sí | No |
+| Datos guardados con `SDK.Save` | Sí | No |
 | Se puede quitar sin `/reload` | No | Sí, con `lua.unloadScript` |
 
 Un script recibe los mismos argumentos que un archivo de addon:
@@ -160,10 +233,9 @@ frame:SetScript("OnEvent", function()
     SDK.Emit("tool.target", UnitName("target"))
 end)
 
-SLASH_MYTOOL1 = "/mytool"
-SlashCmdList.MYTOOL = function(text)
+SDK.RegisterCommand("/mytool", function(text)
     SDK.Emit("tool.command", text)
-end
+end)
 
 SDK.OnUnload(function()
     print(name .. " unloaded")
@@ -178,7 +250,7 @@ end)
 | `SDK.HookScript(frame, handler, function)` | Igual que `frame:HookScript`, pero el hook deja de ejecutarse al descargar el script. Úsala con frames que el script no creó |
 | `SDK.IsActive()` | `false` cuando el script ya se descargó |
 
-Después de descargarlo, `SDK.Emit` lanza un error, así que los temporizadores o callbacks antiguos no pueden enviar eventos en nombre del script.
+Después de descargarlo, `SDK.Emit`, `SDK.Print`, `SDK.RegisterCommand` y `SDK.Expose` lanzan un error, así que los temporizadores o callbacks antiguos no pueden actuar en nombre del script. Las funciones que expuso el script se quitan.
 
 ### Qué quita la descarga
 
@@ -190,6 +262,7 @@ El SDK ejecuta cada script en su propio entorno y registra lo que crea:
 | Hooks creados con `hooksecurefunc` o `SDK.HookScript` | Dejan de ejecutarse |
 | Globales escritos por el script, incluidas funciones y nombres `SLASH_*` | Recuperan el valor que tenían antes del script |
 | Entradas añadidas a `SlashCmdList` | Se quitan, junto con la caché de comandos escritos del juego |
+| Comandos registrados con `SDK.RegisterCommand` | Se quitan |
 
 El SDK no ve los cambios hechos a través de otras tablas, como campos nuevos en `StaticPopupDialogs`, `frame:HookScript` sobre un frame que el script no creó o `rawset(_G, ...)`. Deshazlos en una función de `SDK.OnUnload`.
 
