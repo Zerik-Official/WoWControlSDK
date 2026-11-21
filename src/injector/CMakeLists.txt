@@ -8,8 +8,14 @@ add_executable(WowInjector
     args.cpp
     process.cpp
     inject.cpp
-    manualmap.cpp
     pipe.cpp
+    manualmap/Diagnostics.cpp
+    manualmap/NativeLoader.cpp
+    manualmap/Pe.cpp
+    manualmap/RemoteCall.cpp
+    manualmap/Image.cpp
+    manualmap/Shellcode.cpp
+    manualmap/ManualMap.cpp
 )
 
 target_compile_definitions(WowInjector PRIVATE
