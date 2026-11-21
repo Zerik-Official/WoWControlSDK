@@ -6,12 +6,12 @@ if not ns.SDK then
     return
 end
 
--- Public functions the launcher calls with lua.call, for example
--- {"method": "lua.call", "params": {"function": "WoWControlSDKExample.Ping", "args": ["hi"]}}.
--- Treat every argument as untrusted data: check its type and size, and never
--- run it as code with loadstring or RunScript.
+-- Functions the launcher calls with lua.call, for example
+-- {"method": "lua.call", "params": {"addon": "WoWControlSDKExample", "function": "Ping", "args": ["hi"]}}.
+-- SDK.Expose keeps them inside the SDK: there is no global table, so other
+-- addons and /run cannot find or call them. Treat every argument as untrusted
+-- data: check its type and size, and never run it as code.
 local Api = {}
-WoWControlSDKExample = Api
 
 local MAX_TEXT = 255
 
@@ -19,7 +19,8 @@ local function isText(value)
     return type(value) == "string" and value ~= "" and #value <= MAX_TEXT
 end
 
-local panel = CreateFrame("Frame", "WoWControlSDKExampleFrame", UIParent)
+-- No frame name: a named frame is also a global.
+local panel = CreateFrame("Frame", nil, UIParent)
 panel:SetSize(320, 60)
 panel:SetPoint("TOP", 0, -120)
 panel:SetBackdrop({
@@ -78,6 +79,7 @@ function Api.SetOption(key, value)
         return false, "text must be a string of 1 to 255 characters"
     end
     options[key] = value
+    ns.SaveOptions()
     ns.Emit("example.optionChanged", key, value)
     return true
 end
@@ -106,4 +108,8 @@ function Api.Request(id, action)
     end
     ns.Emit("example.response", { id = id, ok = true, data = handler() })
     return true
+end
+
+for name, handler in pairs(Api) do
+    ns.SDK.Expose(name, handler)
 end
