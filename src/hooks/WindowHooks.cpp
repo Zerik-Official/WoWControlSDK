@@ -1,159 +1,138 @@
 #include <Windows.h>
-#include <TlHelp32.h>
-#include "base/IatHook.h"
 #include "WindowHooks.h"
 #include <atomic>
 #include <cstring>
-#include <memory>
 #include <mutex>
-#include <vector>
 
 namespace Hooks::WindowStart
 {
 
-static decltype(&CreateWindowExA) CreateWindowExA_orig = CreateWindowExA;
-static decltype(&ShowWindow) ShowWindow_orig = ShowWindow;
-static decltype(&SetWindowPos) SetWindowPos_orig = SetWindowPos;
-static decltype(&SetForegroundWindow) SetForegroundWindow_orig = SetForegroundWindow;
-
-static Detail::IatHook s_createWindowHook;
-static Detail::IatHook s_showWindowHook;
-static Detail::IatHook s_setWindowPosHook;
-static std::vector<std::unique_ptr<Detail::IatHook>> s_foregroundHooks;
-static std::mutex s_foregroundMutex;
-
 static std::atomic<bool> s_startHidden{false};
 static std::atomic<HWND> s_hiddenWindow{nullptr};
-static bool s_initialized = false;
+static std::atomic<HWND> s_previousForeground{nullptr};
+static std::atomic<HHOOK> s_cbtHook{nullptr};
+static std::mutex s_threadMutex;
+static HANDLE s_hookThread = nullptr;
+static HANDLE s_stopEvent = nullptr;
 
 static constexpr char GAME_WINDOW_CLASS_PREFIX[] = "GxWindowClass";
 static constexpr DWORD HIDDEN_EX_STYLE = WS_EX_LAYERED | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | WS_EX_TRANSPARENT;
 
-static void hookForegroundInLoadedModules();
-
-static bool isGameClass(LPCSTR className)
+static bool isGameWindow(HWND hwnd)
 {
-    if (!className || IS_INTRESOURCE(className)) return false;
+    char className[64] = {};
+    if (!GetClassNameA(hwnd, className, sizeof(className))) return false;
     return strncmp(className, GAME_WINDOW_CLASS_PREFIX, sizeof(GAME_WINDOW_CLASS_PREFIX) - 1) == 0;
 }
 
-static bool isGameWindow(HWND hwnd)
+static HMODULE selfModule()
 {
-    if (!hwnd) return false;
-    char className[64] = {};
-    if (!GetClassNameA(hwnd, className, sizeof(className))) return false;
-    return isGameClass(className);
-}
-
-static bool isHiddenGameWindow(HWND hwnd)
-{
-    return s_startHidden.load() && isGameWindow(hwnd);
-}
-
-static HWND WINAPI CreateWindowExA_hook(DWORD exStyle, LPCSTR className, LPCSTR windowName, DWORD style,
-                                        int x, int y, int width, int height, HWND parent, HMENU menu,
-                                        HINSTANCE instance, LPVOID param)
-{
-    bool hide = s_startHidden.load() && isGameClass(className);
-    if (hide)
-        exStyle |= HIDDEN_EX_STYLE;
-
-    HWND hwnd = CreateWindowExA_orig(exStyle, className, windowName, style, x, y, width, height,
-                                     parent, menu, instance, param);
-    if (hide && hwnd)
-    {
-        SetLayeredWindowAttributes(hwnd, 0, 0, LWA_ALPHA);
-        s_hiddenWindow.store(hwnd);
-        hookForegroundInLoadedModules();
-    }
-    return hwnd;
-}
-
-static BOOL WINAPI ShowWindow_hook(HWND hwnd, int command)
-{
-    if (isHiddenGameWindow(hwnd) && command != SW_HIDE && command != SW_MINIMIZE
-        && command != SW_SHOWMINIMIZED && command != SW_SHOWMINNOACTIVE)
-        command = SW_SHOWNOACTIVATE;
-    return ShowWindow_orig(hwnd, command);
-}
-
-static BOOL WINAPI SetWindowPos_hook(HWND hwnd, HWND insertAfter, int x, int y, int width, int height, UINT flags)
-{
-    if (isHiddenGameWindow(hwnd))
-        flags |= SWP_NOACTIVATE;
-    return SetWindowPos_orig(hwnd, insertAfter, x, y, width, height, flags);
-}
-
-static BOOL WINAPI SetForegroundWindow_hook(HWND hwnd)
-{
-    if (isHiddenGameWindow(hwnd))
-        return TRUE;
-    return SetForegroundWindow_orig(hwnd);
-}
-
-static void hookForegroundInLoadedModules()
-{
-    HMODULE self = nullptr;
+    HMODULE module = nullptr;
     GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                       reinterpret_cast<LPCSTR>(&hookForegroundInLoadedModules), &self);
-
-    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, GetCurrentProcessId());
-    if (snapshot == INVALID_HANDLE_VALUE) return;
-
-    std::lock_guard<std::mutex> lock(s_foregroundMutex);
-    MODULEENTRY32 entry{};
-    entry.dwSize = sizeof(entry);
-    for (BOOL more = Module32First(snapshot, &entry); more; more = Module32Next(snapshot, &entry))
-    {
-        if (entry.hModule == self) continue;
-        bool hooked = false;
-        for (const auto& hook : s_foregroundHooks)
-            hooked = hooked || hook->module() == entry.hModule;
-        if (hooked) continue;
-
-        auto hook = std::make_unique<Detail::IatHook>();
-        if (hook->install(entry.hModule, "user32.dll", "SetForegroundWindow",
-                          reinterpret_cast<void*>(SetForegroundWindow_hook)))
-            s_foregroundHooks.push_back(std::move(hook));
-    }
-    CloseHandle(snapshot);
+                       reinterpret_cast<LPCSTR>(&isGameWindow), &module);
+    return module;
 }
 
-static void unhookForeground()
+static LRESULT CALLBACK CbtProc(int code, WPARAM wParam, LPARAM lParam)
 {
-    std::lock_guard<std::mutex> lock(s_foregroundMutex);
-    for (auto& hook : s_foregroundHooks)
-        hook->uninstall();
-    s_foregroundHooks.clear();
+    if (code == HCBT_ACTIVATE && s_startHidden.load() && reinterpret_cast<HWND>(wParam) == s_hiddenWindow.load())
+        return 1;
+    return CallNextHookEx(nullptr, code, wParam, lParam);
+}
+
+static void blockActivationOnThisThread()
+{
+    if (s_cbtHook.load()) return;
+    HHOOK hook = SetWindowsHookExA(WH_CBT, CbtProc, nullptr, GetCurrentThreadId());
+    if (!hook)
+        hook = SetWindowsHookExA(WH_CBT, CbtProc, selfModule(), GetCurrentThreadId());
+    s_cbtHook.store(hook);
+}
+
+static void hideWindow(HWND hwnd)
+{
+    LONG_PTR exStyle = GetWindowLongPtrA(hwnd, GWL_EXSTYLE);
+    SetWindowLongPtrA(hwnd, GWL_EXSTYLE, exStyle | static_cast<LONG_PTR>(HIDDEN_EX_STYLE));
+    SetLayeredWindowAttributes(hwnd, 0, 0, LWA_ALPHA);
+    s_hiddenWindow.store(hwnd);
+}
+
+static void CALLBACK OnWindowCreated(HWINEVENTHOOK, DWORD event, HWND hwnd, LONG object, LONG child, DWORD, DWORD)
+{
+    if (event != EVENT_OBJECT_CREATE || object != OBJID_WINDOW || child != CHILDID_SELF || !hwnd) return;
+    if (!s_startHidden.load() || s_hiddenWindow.load() || GetParent(hwnd) || !isGameWindow(hwnd)) return;
+
+    hideWindow(hwnd);
+    blockActivationOnThisThread();
+
+    HWND previous = s_previousForeground.load();
+    if (GetForegroundWindow() == hwnd && previous && IsWindow(previous))
+        SetForegroundWindow(previous);
+}
+
+static DWORD WINAPI HookThread(LPVOID parameter)
+{
+    HANDLE stop = static_cast<HANDLE>(parameter);
+    HWINEVENTHOOK hook = SetWinEventHook(EVENT_OBJECT_CREATE, EVENT_OBJECT_CREATE, selfModule(), OnWindowCreated,
+                                         GetCurrentProcessId(), 0, WINEVENT_INCONTEXT);
+    WaitForSingleObject(stop, INFINITE);
+    if (hook)
+        UnhookWinEvent(hook);
+    return 0;
+}
+
+static void startWatching()
+{
+    std::lock_guard<std::mutex> lock(s_threadMutex);
+    if (s_hookThread) return;
+
+    s_previousForeground.store(GetForegroundWindow());
+    s_stopEvent = CreateEventA(nullptr, TRUE, FALSE, nullptr);
+    if (!s_stopEvent) return;
+    s_hookThread = CreateThread(nullptr, 0, HookThread, s_stopEvent, 0, nullptr);
+    if (!s_hookThread)
+    {
+        CloseHandle(s_stopEvent);
+        s_stopEvent = nullptr;
+    }
+}
+
+static void stopWatching()
+{
+    {
+        std::lock_guard<std::mutex> lock(s_threadMutex);
+        if (s_hookThread)
+        {
+            SetEvent(s_stopEvent);
+            WaitForSingleObject(s_hookThread, 2000);
+            CloseHandle(s_hookThread);
+            CloseHandle(s_stopEvent);
+            s_hookThread = nullptr;
+            s_stopEvent = nullptr;
+        }
+    }
+
+    HHOOK hook = s_cbtHook.exchange(nullptr);
+    if (hook)
+        UnhookWindowsHookEx(hook);
 }
 
 void Initialize()
 {
-    if (s_initialized) return;
-
-    HMODULE game = GetModuleHandleA(nullptr);
-    s_createWindowHook.install(game, "user32.dll", "CreateWindowExA", reinterpret_cast<void*>(CreateWindowExA_hook));
-    s_showWindowHook.install(game, "user32.dll", "ShowWindow", reinterpret_cast<void*>(ShowWindow_hook));
-    s_setWindowPosHook.install(game, "user32.dll", "SetWindowPos", reinterpret_cast<void*>(SetWindowPos_hook));
-
-    s_initialized = true;
 }
 
 void Shutdown()
 {
-    if (!s_initialized) return;
-
     Release();
-    s_createWindowHook.uninstall();
-    s_showWindowHook.uninstall();
-    s_setWindowPosHook.uninstall();
-
-    s_initialized = false;
 }
 
 void SetStartHidden(bool hidden)
 {
     s_startHidden.store(hidden);
+    if (hidden)
+        startWatching();
+    else
+        stopWatching();
 }
 
 bool IsStartHidden()
@@ -164,15 +143,15 @@ bool IsStartHidden()
 void Release()
 {
     s_startHidden.store(false);
-    unhookForeground();
+    stopWatching();
 
     HWND hwnd = s_hiddenWindow.exchange(nullptr);
     if (!hwnd || !IsWindow(hwnd)) return;
 
     LONG_PTR exStyle = GetWindowLongPtrA(hwnd, GWL_EXSTYLE);
     SetWindowLongPtrA(hwnd, GWL_EXSTYLE, exStyle & ~static_cast<LONG_PTR>(HIDDEN_EX_STYLE));
-    SetWindowPos_orig(hwnd, nullptr, 0, 0, 0, 0,
-                      SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+    SetWindowPos(hwnd, nullptr, 0, 0, 0, 0,
+                 SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
 }
 
 }
