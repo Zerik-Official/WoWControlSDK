@@ -414,6 +414,115 @@ Sets the `realmList` CVar.
 !!! note
     Set the realm list while the client is on the login screen. The value is used by the next login attempt.
 
+## client.getRealms
+
+Lists the realms the server sent, with the data the realm list window shows. It answers at the login, realm and character screens; in the world it returns an error.
+
+### Parameters
+
+None.
+
+### Response
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `realms` | array | Realm objects. Empty when the client has not received the list yet, for example before the login |
+
+**Realm fields:**
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `name` | string | Realm name |
+| `category` | string or `null` | Category tab of the realm list, such as `United States`; `null` when the server sends no categories |
+| `characters` | integer | Characters of the account on the realm |
+| `pvp` | boolean | PvP realm |
+| `rp` | boolean | Role-playing realm |
+| `population` | number | Population value sent by the server; `0.5`, `1` and `2` are shown as low, medium and high |
+| `locked` | boolean | The realm does not accept new characters |
+| `down` | boolean | The realm is offline |
+| `invalid` | boolean | The realm is not valid for this client |
+| `current` | boolean | The realm selected now |
+| `version` | string or `null` | Client version of the realm, such as `3.3.5` |
+| `build` | integer or `null` | Client build of the realm, such as `12340` |
+
+### Example
+
+```json
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "client.getRealms"}
+```
+
+```json
+{"jsonrpc": "2.0", "id": 1, "result": {"realms": [{"name": "Northrend", "category": null, "characters": 2, "pvp": false, "rp": false, "population": 1, "locked": false, "down": false, "invalid": false, "current": true, "version": "3.3.5", "build": 12340}]}}
+```
+
+The [`client.realmListOpened`](events.md#login-screens) event sends the same list when the realm list window opens.
+
+## client.submitAuthCode
+
+Answers the code the server asks for during the login, in place of typing it in the game's dialog. The [`client.authChallenge`](events.md#login-screens) event reports when the dialog opens and which kind it is.
+
+| Kind | Dialog | What the SDK does |
+| --- | --- | --- |
+| `token` | Authenticator code, usually 6 to 8 digits, used by servers with two-step authentication | Sends the code with `TokenEntered` and closes the dialog |
+| `pin` | PIN typed on a keypad whose digits change position every time | Finds the button that shows each digit, sends those buttons with `PINEntered` and closes the keypad |
+| `matrix` | Security matrix with coordinates | Not supported; the method returns an error |
+
+### Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `code` | string | Yes | Only digits: 4 to 16 for an authenticator code, 4 to 10 for a PIN. Send it as a string so leading zeros are kept |
+
+### Response
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `ok` | boolean | `true` |
+| `type` | string | Kind of dialog that was answered: `token` or `pin` |
+
+### Example
+
+```json
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "client.submitAuthCode", "params": {"code": "048213"}}
+```
+
+```json
+{"jsonrpc": "2.0", "id": 1, "result": {"ok": true, "type": "token"}}
+```
+
+The login then goes on as if the code had been typed: a wrong code makes the server reject the login, which [`client.login`](#clientlogin) reports.
+
+### Errors
+
+| Error | Cause |
+| --- | --- |
+| `code must be a string of digits` | `code` is missing or is not a string |
+| `code must contain only digits` | The code has other characters |
+| `the code must have 4 to 16 digits` | Wrong length for an authenticator code |
+| `the PIN must have 4 to 10 digits` | Wrong length for a PIN |
+| `no authentication code is requested` | No dialog is open |
+| `the security matrix cannot be answered with a code` | The server asked for the security matrix |
+| `only available at the login, realm and character screens` | The character is in the world |
+
+!!! note
+    `client.login` waits up to 20 seconds for the login result. When the server asks for a code, answer it within that time, or call `client.login` with the code ready to send as soon as `client.authChallenge` arrives.
+
+## client.cancelAuth
+
+Closes the code dialog and cancels the login, like its **Cancel** button.
+
+### Parameters
+
+None.
+
+### Response
+
+```json
+{"ok": true, "type": "token"}
+```
+
+`type` is the kind of dialog that was closed. It returns `no authentication code is requested` when no dialog is open.
+
 ## EULA and TOS methods
 
 The following methods dismiss the corresponding legal agreement dialog:
