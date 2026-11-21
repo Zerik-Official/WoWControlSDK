@@ -414,6 +414,115 @@ Define la CVar `realmList`.
 !!! note
     Define la lista de reinos mientras el cliente está en la pantalla de login. El valor se usa en el siguiente intento de login.
 
+## client.getRealms
+
+Lista los reinos que envió el servidor, con los datos que muestra la ventana de la lista de reinos. Responde en las pantallas de login, de reinos y de personajes; en el mundo devuelve un error.
+
+### Parámetros
+
+Ninguno.
+
+### Respuesta
+
+| Campo | Tipo | Descripción |
+| --- | --- | --- |
+| `realms` | array | Objetos de reino. Vacío cuando el cliente aún no recibió la lista, por ejemplo antes del login |
+
+**Campos de cada reino:**
+
+| Campo | Tipo | Descripción |
+| --- | --- | --- |
+| `name` | string | Nombre del reino |
+| `category` | string o `null` | Pestaña de categoría de la lista de reinos, como `United States`; `null` cuando el servidor no envía categorías |
+| `characters` | integer | Personajes de la cuenta en el reino |
+| `pvp` | boolean | Reino JcJ |
+| `rp` | boolean | Reino de rol |
+| `population` | number | Valor de población que envía el servidor; `0.5`, `1` y `2` se muestran como baja, media y alta |
+| `locked` | boolean | El reino no acepta personajes nuevos |
+| `down` | boolean | El reino está desconectado |
+| `invalid` | boolean | El reino no es válido para este cliente |
+| `current` | boolean | El reino seleccionado ahora |
+| `version` | string o `null` | Versión del cliente del reino, como `3.3.5` |
+| `build` | integer o `null` | Build del cliente del reino, como `12340` |
+
+### Ejemplo
+
+```json
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "client.getRealms"}
+```
+
+```json
+{"jsonrpc": "2.0", "id": 1, "result": {"realms": [{"name": "Northrend", "category": null, "characters": 2, "pvp": false, "rp": false, "population": 1, "locked": false, "down": false, "invalid": false, "current": true, "version": "3.3.5", "build": 12340}]}}
+```
+
+El evento [`client.realmListOpened`](events.md#pantallas-de-login) envía la misma lista cuando se abre la ventana de la lista de reinos.
+
+## client.submitAuthCode
+
+Responde al código que pide el servidor durante el login, en lugar de escribirlo en el diálogo del juego. El evento [`client.authChallenge`](events.md#pantallas-de-login) informa cuando se abre el diálogo y de qué tipo es.
+
+| Tipo | Diálogo | Qué hace el SDK |
+| --- | --- | --- |
+| `token` | Código del autenticador, normalmente de 6 a 8 dígitos, que usan los servidores con autenticación en dos pasos | Envía el código con `TokenEntered` y cierra el diálogo |
+| `pin` | PIN escrito en un teclado cuyos dígitos cambian de posición cada vez | Busca el botón que muestra cada dígito, envía esos botones con `PINEntered` y cierra el teclado |
+| `matrix` | Matriz de seguridad con coordenadas | No se admite; el método devuelve un error |
+
+### Parámetros
+
+| Nombre | Tipo | Obligatorio | Descripción |
+| --- | --- | --- | --- |
+| `code` | string | Sí | Solo dígitos: de 4 a 16 para un código de autenticador y de 4 a 10 para un PIN. Envíalo como texto para conservar los ceros iniciales |
+
+### Respuesta
+
+| Campo | Tipo | Descripción |
+| --- | --- | --- |
+| `ok` | boolean | `true` |
+| `type` | string | Tipo de diálogo que se respondió: `token` o `pin` |
+
+### Ejemplo
+
+```json
+{"jsonrpc": "2.0", "auth": "<session token>", "id": 1, "method": "client.submitAuthCode", "params": {"code": "048213"}}
+```
+
+```json
+{"jsonrpc": "2.0", "id": 1, "result": {"ok": true, "type": "token"}}
+```
+
+Después el login sigue como si se hubiera escrito el código: con un código incorrecto el servidor rechaza el login, y [`client.login`](#clientlogin) lo informa.
+
+### Errores
+
+| Error | Causa |
+| --- | --- |
+| `code must be a string of digits` | Falta `code` o no es texto |
+| `code must contain only digits` | El código tiene otros caracteres |
+| `the code must have 4 to 16 digits` | Longitud incorrecta para un código de autenticador |
+| `the PIN must have 4 to 10 digits` | Longitud incorrecta para un PIN |
+| `no authentication code is requested` | No hay ningún diálogo abierto |
+| `the security matrix cannot be answered with a code` | El servidor pidió la matriz de seguridad |
+| `only available at the login, realm and character screens` | El personaje está en el mundo |
+
+!!! note
+    `client.login` espera hasta 20 segundos el resultado del login. Cuando el servidor pide un código, respóndelo dentro de ese tiempo, o llama a `client.login` con el código listo para enviarlo en cuanto llegue `client.authChallenge`.
+
+## client.cancelAuth
+
+Cierra el diálogo del código y cancela el login, igual que su botón **Cancelar**.
+
+### Parámetros
+
+Ninguno.
+
+### Respuesta
+
+```json
+{"ok": true, "type": "token"}
+```
+
+`type` es el tipo de diálogo que se cerró. Devuelve `no authentication code is requested` cuando no hay ningún diálogo abierto.
+
 ## Métodos EULA y TOS
 
 Los siguientes métodos descartan el cuadro de acuerdo legal correspondiente:
