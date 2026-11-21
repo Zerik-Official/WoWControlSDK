@@ -7,7 +7,7 @@ Events fall into two groups:
 | Group | Delivery | Examples |
 | --- | --- | --- |
 | WoW UI events | Pushed only after `events.subscribe` | `PLAYER_LOGIN`, `PLAYER_ENTERING_WORLD`, `UNIT_HEALTH`, `ZONE_CHANGED` |
-| SDK events | Pushed automatically | `client.screenChanged`, `client.disconnected`, `loading.*`, `friends.*`, `group.invite*`, `summon.*`, `lfg.*`, `trade.*`, `duel.*`, `battlefield.*`, `chat.whisperReceived`, `lua.*` |
+| SDK events | Pushed automatically | `client.screenChanged`, `client.disconnected`, `client.authChallenge*`, `client.realmList*`, `loading.*`, `friends.*`, `group.invite*`, `summon.*`, `lfg.*`, `trade.*`, `duel.*`, `battlefield.*`, `chat.whisperReceived`, `lua.*` |
 
 Every event that reaches the event pipe is also stored in the history buffer.
 
@@ -211,7 +211,8 @@ None.
 
 | Event | Description | Arguments |
 | --- | --- | --- |
-| `client.screenChanged` | The glue screen changed | `{"old": <int>, "new": <int>}` where `0` is unknown, `1` is login, `2` is character select and `3` is world |
+| `client.screenChanged` | The screen changed | `{"old", "new", "oldName", "newName"}`; `old` and `new` are `0` unknown, `1` login, `2` character select, `3` world or `4` character creation, and the names are the game's screen names, such as `login`, `charselect`, `charcreate`, `realmwizard` or `world`. Screens without a code, such as `realmwizard`, are sent with `0` and their name |
+| `client.authChallenge`, `client.authChallengeClosed`, `client.realmListOpened`, `client.realmListClosed` | Login codes and the realm list | See [Login screens](#login-screens) |
 | `client.disconnected` | The connection to the server was lost and the client is returning to the login screen | `{"screen", "loggingIn", "kickReason"}`; see [Disconnections](#disconnections) |
 | `loading.startup` | A loading screen appeared | `{"mapId": <int>, "background": <object or null>}` |
 | `loading.progress` | Loading progress update | `{"progress": <float>}` between `0.0` and `1.0` |
@@ -260,6 +261,23 @@ None.
 Social, trade, duel, queue and whisper events are built from the matching WoW events (`PARTY_INVITE_REQUEST`, `CONFIRM_SUMMON`, `LFG_PROPOSAL_SHOW`, `FRIENDLIST_UPDATE`, `TRADE_*`, `DUEL_*`, `UPDATE_BATTLEFIELD_STATUS`, `CHAT_MSG_WHISPER`…) without subscribing to them, and their data is read from memory. Answers given with the game's own buttons are also reported, because the SDK follows the native functions behind those buttons. Friend events only compare entries already known in the same session, so logging in does not report every online friend. When the SDK closes a game dialog after answering for you, the WoW event it uses for that is not reported as a new SDK event.
 
 Loading events are polled from memory once per frame rather than hooked from Lua, and `loading.progress` is emitted at most once every 100 milliseconds. A loading screen is reported only while the client's loading bar exists, so the screen drawn and destroyed in the same frame when logging out to the character list does not produce events.
+
+### Login screens
+
+| Event | When | Arguments |
+| --- | --- | --- |
+| `client.authChallenge` | The server asks for a code during the login and the game opens its dialog | `{"type"}`, `type` is `token`, `pin` or `matrix`. A `pin` also has `minDigits` and `maxDigits` |
+| `client.authChallengeClosed` | The dialog closed, because a code was sent, the login was cancelled or the server stopped waiting | `{"type"}` |
+| `client.realmListOpened` | The realm list window opened, after the login or with **Change Realm** | `{"realms": [...]}` with the objects of [`client.getRealms`](client.md#clientgetrealms). It can be empty while the server is still sending the list |
+| `client.realmListClosed` | The realm list window closed | `{}` |
+
+Answer a code with [`client.submitAuthCode`](client.md#clientsubmitauthcode), or cancel the login with [`client.cancelAuth`](client.md#clientcancelauth):
+
+```json
+{"event": "client.authChallenge", "args": {"type": "token"}, "time": 1712345670000}
+```
+
+The character creation screen is reported by `client.screenChanged` with the code `4` and the name `charcreate`.
 
 ### Disconnections
 

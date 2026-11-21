@@ -179,6 +179,28 @@ LuaResult takeDirtyStorage()
     }, ReadLimits{1, 1000}, false);
 }
 
+LuaResult realmList()
+{
+    return LuaBridge::run("realmList", [](lua_State*) -> int {
+        return 0;
+    }, ReadLimits{3, 1000}, false);
+}
+
+LuaResult submitAuth(const std::string& code)
+{
+    return LuaBridge::run("submitAuth", [&](lua_State* L) -> int {
+        LuaNative::pushstring(L, code.c_str());
+        return 1;
+    }, ReadLimits{1, 10}, false);
+}
+
+LuaResult cancelAuth()
+{
+    return LuaBridge::run("cancelAuth", [](lua_State*) -> int {
+        return 0;
+    }, ReadLimits{1, 10}, false);
+}
+
 LuaResult readStorage(const std::string& owner)
 {
     return LuaBridge::run("storageOf", [&](lua_State* L) -> int {

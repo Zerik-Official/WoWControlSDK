@@ -157,11 +157,16 @@ namespace Runtime
         }
 
         Screen currentScreen = Glue::getScreen();
-        if (currentScreen != m_lastScreen)
+        const char* screenName = Glue::getScreenName();
+        std::string currentName = screenName ? screenName : "";
+        if (currentScreen != m_lastScreen || currentName != m_lastScreenName)
         {
             Json data;
             data["old"] = static_cast<int>(m_lastScreen);
             data["new"] = static_cast<int>(currentScreen);
+            data["oldName"] = m_lastScreenName;
+            data["newName"] = currentName;
+            m_lastScreenName = currentName;
             m_eventBus->emit(EVENT_SCREEN_CHANGED, data);
             EventPipe::PushEvent("client.screenChanged", data, GetTickCount64());
             m_lastScreen = currentScreen;

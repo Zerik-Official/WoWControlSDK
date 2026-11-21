@@ -7,7 +7,7 @@ Los eventos se dividen en dos grupos:
 | Grupo | Entrega | Ejemplos |
 | --- | --- | --- |
 | Eventos de la UI de WoW | Se envían solo después de `events.subscribe` | `PLAYER_LOGIN`, `PLAYER_ENTERING_WORLD`, `UNIT_HEALTH`, `ZONE_CHANGED` |
-| Eventos del SDK | Se envían automáticamente | `client.screenChanged`, `client.disconnected`, `loading.*`, `friends.*`, `group.invite*`, `summon.*`, `lfg.*`, `trade.*`, `duel.*`, `battlefield.*`, `chat.whisperReceived`, `lua.*` |
+| Eventos del SDK | Se envían automáticamente | `client.screenChanged`, `client.disconnected`, `client.authChallenge*`, `client.realmList*`, `loading.*`, `friends.*`, `group.invite*`, `summon.*`, `lfg.*`, `trade.*`, `duel.*`, `battlefield.*`, `chat.whisperReceived`, `lua.*` |
 
 Todo evento que llega al pipe de eventos también se guarda en el búfer de historial.
 
@@ -211,7 +211,8 @@ Ninguno.
 
 | Evento | Descripción | Argumentos |
 | --- | --- | --- |
-| `client.screenChanged` | La pantalla glue cambió | `{"old": <int>, "new": <int>}`, donde `0` es desconocido, `1` es login, `2` es selección de personajes y `3` es mundo |
+| `client.screenChanged` | La pantalla cambió | `{"old", "new", "oldName", "newName"}`; `old` y `new` son `0` desconocida, `1` login, `2` selección de personajes, `3` mundo o `4` creación de personajes, y los nombres son los de las pantallas del juego, como `login`, `charselect`, `charcreate`, `realmwizard` o `world`. Las pantallas sin código, como `realmwizard`, se envían con `0` y su nombre |
+| `client.authChallenge`, `client.authChallengeClosed`, `client.realmListOpened`, `client.realmListClosed` | Códigos del login y lista de reinos | Consulta [Pantallas de login](#pantallas-de-login) |
 | `client.disconnected` | Se perdió la conexión con el servidor y el cliente vuelve a la pantalla de login | `{"screen", "loggingIn", "kickReason"}`; consulta [Desconexiones](#desconexiones) |
 | `loading.startup` | Apareció una pantalla de carga | `{"mapId": <int>, "background": <objeto o null>}` |
 | `loading.progress` | Actualización del progreso de carga | `{"progress": <float>}` entre `0.0` y `1.0` |
@@ -260,6 +261,23 @@ Ninguno.
 Los eventos sociales, de comercio, de duelo, de colas y de susurros se construyen a partir de los eventos de WoW correspondientes (`PARTY_INVITE_REQUEST`, `CONFIRM_SUMMON`, `LFG_PROPOSAL_SHOW`, `FRIENDLIST_UPDATE`, `TRADE_*`, `DUEL_*`, `UPDATE_BATTLEFIELD_STATUS`, `CHAT_MSG_WHISPER`…) sin necesidad de suscribirse a ellos, y sus datos se leen de memoria. También se informan las respuestas dadas con los botones del propio juego, porque el SDK sigue las funciones nativas que hay detrás de esos botones. Los eventos de amigos solo comparan entradas ya conocidas en la misma sesión, así que al iniciar sesión no se informa de cada amigo conectado. Cuando el SDK cierra un diálogo del juego después de responder por ti, el evento de WoW que usa para cerrarlo no se informa como un evento nuevo del SDK.
 
 Los eventos de carga se sondean desde memoria una vez por frame en lugar de engancharse desde Lua, y `loading.progress` se emite como máximo una vez cada 100 milisegundos. Una pantalla de carga solo se informa mientras existe la barra de carga del cliente, por lo que la pantalla que se dibuja y se destruye en el mismo frame al salir a la lista de personajes no genera eventos.
+
+### Pantallas de login
+
+| Evento | Cuándo | Argumentos |
+| --- | --- | --- |
+| `client.authChallenge` | El servidor pide un código durante el login y el juego abre su diálogo | `{"type"}`, `type` es `token`, `pin` o `matrix`. Un `pin` trae también `minDigits` y `maxDigits` |
+| `client.authChallengeClosed` | El diálogo se cerró, porque se envió un código, se canceló el login o el servidor dejó de esperar | `{"type"}` |
+| `client.realmListOpened` | Se abrió la ventana de la lista de reinos, después del login o con **Cambiar reino** | `{"realms": [...]}` con los objetos de [`client.getRealms`](client.md#clientgetrealms). Puede venir vacía mientras el servidor aún envía la lista |
+| `client.realmListClosed` | Se cerró la ventana de la lista de reinos | `{}` |
+
+Responde a un código con [`client.submitAuthCode`](client.md#clientsubmitauthcode), o cancela el login con [`client.cancelAuth`](client.md#clientcancelauth):
+
+```json
+{"event": "client.authChallenge", "args": {"type": "token"}, "time": 1712345670000}
+```
+
+La pantalla de creación de personajes se informa con `client.screenChanged`, con el código `4` y el nombre `charcreate`.
 
 ### Desconexiones
 

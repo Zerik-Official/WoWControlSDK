@@ -7,8 +7,11 @@
 #include "hooks/GlueHooks.h"
 #include "runtime/state/GlueState.h"
 #include "runtime/realm/RealmList.h"
+#include "core/engine/LuaEngine.h"
+#include "rpc/handlers/core/LuaJson.h"
 #include <Windows.h>
 #include <chrono>
+#include <functional>
 
 namespace Rpc
 {
@@ -287,6 +290,64 @@ namespace Rpc
         return Json::parse(raw);
     }
 
+    static bool atGlueScreen()
+    {
+        return !WoW::IsInWorld();
+    }
+
+    static Json glueLua(std::function<Json()> task)
+    {
+        if (!atGlueScreen())
+            return SDK::makeErrorJson("only available at the login, realm and character screens");
+        std::string raw = Hooks::Glue::Execute([task]() -> std::string { return task().dump(); }, 5000);
+        return Json::parse(raw, nullptr, false);
+    }
+
+    static Json luaError(const LuaEngine::LuaResult& result)
+    {
+        return SDK::makeErrorJson(result.error.empty() ? "lua error" : result.error.c_str());
+    }
+
+    static Json handleGetRealms(const Json&)
+    {
+        return glueLua([]() -> Json {
+            LuaEngine::LuaResult result = LuaEngine::realmList();
+            if (!result.ok)
+                return luaError(result);
+            Json realms = result.values.empty() ? Json::array() : Rpc::makeLuaValueJson(result.values[0]);
+            Json j;
+            j["realms"] = realms.is_array() ? realms : Json::array();
+            return j;
+        });
+    }
+
+    static Json handleSubmitAuthCode(const Json& params)
+    {
+        if (!params.contains("code") || !params["code"].is_string())
+            return SDK::makeErrorJson("code must be a string of digits");
+        std::string code = params["code"].get<std::string>();
+        return glueLua([code]() -> Json {
+            LuaEngine::LuaResult result = LuaEngine::submitAuth(code);
+            if (!result.ok)
+                return luaError(result);
+            Json j = SDK::okJson();
+            j["type"] = result.values.empty() ? Json() : Rpc::makeLuaValueJson(result.values[0]);
+            return j;
+        });
+    }
+
+    static Json handleCancelAuth(const Json&)
+    {
+        return glueLua([]() -> Json {
+            LuaEngine::LuaResult result = LuaEngine::cancelAuth();
+            if (!result.ok)
+                return luaError(result);
+            Json j = SDK::okJson();
+            j["type"] = result.values.empty() ? Json() : Rpc::makeLuaValueJson(result.values[0]);
+            return j;
+        });
+    }
+
     void registerAuthMethods(Runtime::MethodRegistry& registry)
     {
         registry.registerMethod("client.login", handleLogin);
@@ -297,5 +358,8 @@ namespace Rpc
         registry.registerMethod("client.getDebugState", handleGetDebugState);
         registry.registerMethod("client.getRealmlist", handleGetRealmlist);
         registry.registerMethod("client.setRealmlist", handleSetRealmlist);
+        registry.registerMethod("client.getRealms", handleGetRealms);
+        registry.registerMethod("client.submitAuthCode", handleSubmitAuthCode);
+        registry.registerMethod("client.cancelAuth", handleCancelAuth);
     }
 }
