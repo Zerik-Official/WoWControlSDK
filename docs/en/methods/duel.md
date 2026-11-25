@@ -20,6 +20,7 @@ None.
 | `challengerGuid` | array[2] | `[high, low]` GUID of the challenger |
 | `arbiterGuid` | array[2] | `[high, low]` GUID of the duel flag |
 | `requestedAtMs` | integer | `GetTickCount64()` time of the request, `0` when none |
+| `player` | object or null | Race, gender and class of the challenger; see the [Player object](events.md#player-object) |
 
 ### Example
 
