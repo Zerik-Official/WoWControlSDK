@@ -10,6 +10,7 @@
 #include "core/api/BattlefieldAPI.h"
 #include "core/api/ChatAPI.h"
 #include "core/native/ObjectManager.h"
+#include "core/native/PlayerInfo.h"
 #include "offsets/OffsetsSocial.h"
 #include <Windows.h>
 #include <unordered_map>
@@ -116,6 +117,7 @@ namespace Runtime
                 CoreAPI::Group::ClearInvite();
                 SDK::Json data;
                 data["inviterName"] = invite.inviterName;
+                data["player"] = PlayerInfo::toJsonByName(invite.inviterName);
                 data["reason"] = reason;
                 data["roles"] = Rpc::makeRolesJson(roles);
                 EventPipe::PushEvent("group.inviteClosed", data, now());
@@ -128,6 +130,7 @@ namespace Runtime
 
                 SDK::Json data;
                 data["inviterName"] = inviter;
+                data["player"] = PlayerInfo::toJsonByName(inviter);
                 EventPipe::PushEvent("group.inviteReceived", data, timeMs);
             }
 
@@ -203,6 +206,9 @@ namespace Runtime
                 data["lineId"] = argValue(args, 10);
                 data["guid"] = argValue(args, 11);
                 data["presenceId"] = battleNet ? argValue(args, 12) : SDK::Json(nullptr);
+                data["player"] = battleNet
+                    ? SDK::Json(nullptr)
+                    : PlayerInfo::toJson(PlayerInfo::parseGuid(argString(args, 11)));
                 data["args"] = args;
 
                 CoreAPI::WhisperRecord record = {};
@@ -226,6 +232,7 @@ namespace Runtime
                 CoreAPI::Trade::ClearRequest();
                 SDK::Json data;
                 data["requesterName"] = request.requesterName;
+                data["player"] = PlayerInfo::toJsonByName(request.requesterName);
                 data["reason"] = reason;
                 EventPipe::PushEvent("trade.requestClosed", data, now());
             }
@@ -237,6 +244,7 @@ namespace Runtime
 
                 SDK::Json data;
                 data["requesterName"] = requester;
+                data["player"] = PlayerInfo::toJsonByName(requester);
                 EventPipe::PushEvent("trade.requested", data, timeMs);
             }
 
