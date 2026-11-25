@@ -221,16 +221,16 @@ Ninguno.
 | `friends.online` | Un amigo se conectó | [Objeto de amigo](friends.md#friendslist) |
 | `friends.offline` | Un amigo se desconectó | [Objeto de amigo](friends.md#friendslist) |
 | `friends.statusChanged` | Un amigo conectado se puso o dejó de estar ausente o en no molestar | [Objeto de amigo](friends.md#friendslist) |
-| `group.inviteReceived` | Alguien te invitó a un grupo | `{"inviterName": <string>}` |
-| `group.inviteClosed` | La invitación terminó | `{"inviterName", "reason", "roles"}`; `reason` es `"accepted"`, `"declined"`, `"cancelled"` (quien invitó la retiró o caducó) o `"joined"`; `roles` son los [roles](group.md#roles) enviados al aceptar |
+| `group.inviteReceived` | Alguien te invitó a un grupo | `{"inviterName", "player"}`; `player` es el [objeto de jugador](#objeto-de-jugador) de quien invita |
+| `group.inviteClosed` | La invitación terminó | `{"inviterName", "player", "reason", "roles"}`; `reason` es `"accepted"`, `"declined"`, `"cancelled"` (quien invitó la retiró o caducó) o `"joined"`; `roles` son los [roles](group.md#roles) enviados al aceptar |
 | `summon.requested` | Alguien te invoca | [Objeto de invocación](summon.md#summonget) sin `canTeleport` |
 | `summon.closed` | La invocación se respondió o se canceló | Objeto de invocación más `reason`: `"accepted"`, `"declined"` o `"cancelled"` |
 | `lfg.proposalShown` | El Buscador de mazmorras encontró grupo | [Objeto de propuesta](lfg.md#lfggetproposal) |
 | `lfg.proposalUpdated` | Un miembro respondió a la propuesta | Objeto de propuesta |
 | `lfg.proposalFailed` | Alguien rechazó o la propuesta caducó | Objeto de propuesta (normalmente `{"exists": false}`) |
 | `lfg.proposalSucceeded` | Todos aceptaron | Objeto de propuesta |
-| `trade.requested` | Alguien quiere comerciar contigo | `{"requesterName": <string>}` |
-| `trade.requestClosed` | La solicitud terminó | `{"requesterName", "reason"}`; `reason` es `"accepted"`, `"declined"`, `"cancelled"` o `"closed"` |
+| `trade.requested` | Alguien quiere comerciar contigo | `{"requesterName", "player"}`; `player` es el [objeto de jugador](#objeto-de-jugador) de quien lo pide |
+| `trade.requestClosed` | La solicitud terminó | `{"requesterName", "player", "reason"}`; `reason` es `"accepted"`, `"declined"`, `"cancelled"` o `"closed"` |
 | `trade.opened` | Se abrió la ventana de comercio | [Objeto de comercio](trade.md#tradeget) |
 | `trade.updated` | Cambiaron los objetos, el dinero o las aceptaciones | Objeto de comercio más `change`: `"update"`, `"accept"`, `"playerItem"`, `"targetItem"` o `"money"` |
 | `trade.closed` | Se cerró la ventana de comercio | `{"bothAccepted": <bool>}`; `true` indica que los dos jugadores habían aceptado, así que lo más probable es que el comercio se completara |
@@ -240,7 +240,7 @@ Ninguno.
 | `duel.boundsChanged` | Saliste o volviste a entrar en la zona del duelo | `{"inBounds": <bool>}` |
 | `battlefield.statusChanged` | Una cola cambió de estado | [Objeto de cola](battlefield.md#battlefieldgetqueues) más `previousStatusId` |
 | `battlefield.ready` | Un campo de batalla o una arena está listo para entrar | Objeto de cola |
-| `chat.whisperReceived` | Recibiste un susurro | `{"battleNet", "text", "author", "language", "status", "lineId", "guid", "presenceId", "args"}`; `status` es `"AFK"`, `"DND"`, `"GM"` o vacío, `presenceId` solo tiene valor en susurros de Battle.net y `args` contiene los argumentos originales del evento |
+| `chat.whisperReceived` | Recibiste un susurro | `{"battleNet", "text", "author", "language", "status", "lineId", "guid", "presenceId", "player", "args"}`; `status` es `"AFK"`, `"DND"`, `"GM"` o vacío, `presenceId` solo tiene valor en susurros de Battle.net, `player` es el [objeto de jugador](#objeto-de-jugador) de quien susurra (`null` en Battle.net) y `args` contiene los argumentos originales del evento |
 | `client.crashed` | El juego tuvo un error fatal y va a mostrar su ventana de error | El mismo objeto que [client.getLastCrash](client.md#clientgetlastcrash), log incluido |
 | `lua.error` | Un script de Lua lanzó un error | `{"message", "addon", "stack"}`; `addon` se obtiene de la ruta `Interface\AddOns\<Addon>\` del mensaje y es `null` si no la tiene. El mismo mensaje se envía como mucho una vez cada 10 segundos |
 | `lua.script` | Un script guardado con [`lua.loadScript`](lua.md#lualoadscript) se ejecutó tras un `/reload` o al cargar el mundo | `{"name", "status", "error", "stack"}`; `status` es `"loaded"` o `"failed"`, y `error` y `stack` solo aparecen cuando falló. Un script que falla se elimina |
@@ -257,6 +257,20 @@ Ninguno.
 | `name` | string | Nombre interno de la pantalla de carga |
 | `file` | string | Ruta de la imagen `.blp`, por ejemplo `Interface\Glues\LoadingScreens\LoadScreenNorthrend.blp` |
 | `hasWideScreen` | boolean | Si existe una variante `Wide`; el cliente la muestra en resoluciones panorámicas |
+
+### Objeto de jugador
+
+Los eventos sociales describen al otro jugador con un objeto `player`, leído de la caché de nombres del cliente (los datos que hay detrás de `GetPlayerInfoByGUID`), o `null` cuando el jugador todavía no está en la caché. Los eventos que solo traen un nombre, como las invitaciones a grupo y las solicitudes de comercio, buscan ese nombre en la lista de amigos y en el grupo; un jugador que no esté en ninguno de los dos es `null`.
+
+| Campo | Tipo | Descripción |
+| --- | --- | --- |
+| `race` | integer | ID de raza |
+| `gender` | integer | `0` masculino, `1` femenino |
+| `classId` | integer | ID de clase |
+
+```json
+{"race": 11, "gender": 1, "classId": 7}
+```
 
 Los eventos sociales, de comercio, de duelo, de colas y de susurros se construyen a partir de los eventos de WoW correspondientes (`PARTY_INVITE_REQUEST`, `CONFIRM_SUMMON`, `LFG_PROPOSAL_SHOW`, `FRIENDLIST_UPDATE`, `TRADE_*`, `DUEL_*`, `UPDATE_BATTLEFIELD_STATUS`, `CHAT_MSG_WHISPER`…) sin necesidad de suscribirse a ellos, y sus datos se leen de memoria. También se informan las respuestas dadas con los botones del propio juego, porque el SDK sigue las funciones nativas que hay detrás de esos botones. Los eventos de amigos solo comparan entradas ya conocidas en la misma sesión, así que al iniciar sesión no se informa de cada amigo conectado. Cuando el SDK cierra un diálogo del juego después de responder por ti, el evento de WoW que usa para cerrarlo no se informa como un evento nuevo del SDK.
 
