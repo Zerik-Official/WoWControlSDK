@@ -38,6 +38,7 @@ None.
 | `classFileName` | string | Class token, for example `"MAGE"` |
 | `areaId` | integer | `AreaTable.dbc` ID of the friend's zone, `0` when offline |
 | `areaName` | string | Localized zone name |
+| `player` | object or null | Race, gender and class of the friend from the name cache; see the [Player object](events.md#player-object) |
 
 ### Example
 

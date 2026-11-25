@@ -221,16 +221,16 @@ None.
 | `friends.online` | A friend connected | [Friend object](friends.md#friendslist) |
 | `friends.offline` | A friend disconnected | [Friend object](friends.md#friendslist) |
 | `friends.statusChanged` | An online friend became AFK or DND, or stopped being | [Friend object](friends.md#friendslist) |
-| `group.inviteReceived` | Someone invited you to a group | `{"inviterName": <string>}` |
-| `group.inviteClosed` | The invitation ended | `{"inviterName", "reason", "roles"}`; `reason` is `"accepted"`, `"declined"`, `"cancelled"` (the inviter withdrew it or it expired) or `"joined"`; `roles` are the [roles](group.md#roles) sent when accepting |
+| `group.inviteReceived` | Someone invited you to a group | `{"inviterName", "player"}`; `player` is the [Player object](#player-object) of the inviter |
+| `group.inviteClosed` | The invitation ended | `{"inviterName", "player", "reason", "roles"}`; `reason` is `"accepted"`, `"declined"`, `"cancelled"` (the inviter withdrew it or it expired) or `"joined"`; `roles` are the [roles](group.md#roles) sent when accepting |
 | `summon.requested` | Someone summons you | [Summon object](summon.md#summonget) without `canTeleport` |
 | `summon.closed` | The summon was answered or cancelled | Summon object plus `reason`: `"accepted"`, `"declined"` or `"cancelled"` |
 | `lfg.proposalShown` | The Dungeon Finder found a group | [Proposal object](lfg.md#lfggetproposal) |
 | `lfg.proposalUpdated` | A member answered the proposal | Proposal object |
 | `lfg.proposalFailed` | Someone declined or the proposal expired | Proposal object (usually `{"exists": false}`) |
 | `lfg.proposalSucceeded` | Everyone accepted | Proposal object |
-| `trade.requested` | Someone wants to trade with you | `{"requesterName": <string>}` |
-| `trade.requestClosed` | The request ended | `{"requesterName", "reason"}`; `reason` is `"accepted"`, `"declined"`, `"cancelled"` or `"closed"` |
+| `trade.requested` | Someone wants to trade with you | `{"requesterName", "player"}`; `player` is the [Player object](#player-object) of the requester |
+| `trade.requestClosed` | The request ended | `{"requesterName", "player", "reason"}`; `reason` is `"accepted"`, `"declined"`, `"cancelled"` or `"closed"` |
 | `trade.opened` | The trade window opened | [Trade object](trade.md#tradeget) |
 | `trade.updated` | Items, money or accept states changed | Trade object plus `change`: `"update"`, `"accept"`, `"playerItem"`, `"targetItem"` or `"money"` |
 | `trade.closed` | The trade window closed | `{"bothAccepted": <bool>}`; `true` means both players had accepted, so the trade most likely completed |
@@ -240,7 +240,7 @@ None.
 | `duel.boundsChanged` | You left or re-entered the duel area | `{"inBounds": <bool>}` |
 | `battlefield.statusChanged` | A queue changed status | [Queue object](battlefield.md#battlefieldgetqueues) plus `previousStatusId` |
 | `battlefield.ready` | A battleground or arena is ready to enter | Queue object |
-| `chat.whisperReceived` | You received a whisper | `{"battleNet", "text", "author", "language", "status", "lineId", "guid", "presenceId", "args"}`; `status` is `"AFK"`, `"DND"`, `"GM"` or empty, `presenceId` is only set for Battle.net whispers and `args` holds the raw event arguments |
+| `chat.whisperReceived` | You received a whisper | `{"battleNet", "text", "author", "language", "status", "lineId", "guid", "presenceId", "player", "args"}`; `status` is `"AFK"`, `"DND"`, `"GM"` or empty, `presenceId` is only set for Battle.net whispers, `player` is the [Player object](#player-object) of the sender (`null` for Battle.net) and `args` holds the raw event arguments |
 | `client.crashed` | The game hit a fatal error and is about to show its error window | Same object as [client.getLastCrash](client.md#clientgetlastcrash), including the log |
 | `lua.error` | A Lua script raised an error | `{"message", "addon", "stack"}`; `addon` is taken from the `Interface\AddOns\<Addon>\` path of the message and is `null` when there is none. The same message is sent at most once every 10 seconds |
 | `lua.script` | A script stored with [`lua.loadScript`](lua.md#lualoadscript) ran after a `/reload` or when the world loaded | `{"name", "status", "error", "stack"}`; `status` is `"loaded"` or `"failed"`, and `error` and `stack` are only present when it failed. A failed script is removed |
@@ -257,6 +257,20 @@ None.
 | `name` | string | Internal name of the loading screen |
 | `file` | string | Path of the `.blp` image, for example `Interface\Glues\LoadingScreens\LoadScreenNorthrend.blp` |
 | `hasWideScreen` | boolean | Whether a `Wide` variant exists; the client shows it on wide resolutions |
+
+### Player object
+
+Social events describe the other player with a `player` object, read from the client's name cache (the data behind `GetPlayerInfoByGUID`), or `null` when the player is not in the cache yet. Events that only carry a name, such as group invitations and trade requests, look the name up in the friend list and the group; a player outside both is `null`.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `race` | integer | Race ID |
+| `gender` | integer | `0` male, `1` female |
+| `classId` | integer | Class ID |
+
+```json
+{"race": 11, "gender": 1, "classId": 7}
+```
 
 Social, trade, duel, queue and whisper events are built from the matching WoW events (`PARTY_INVITE_REQUEST`, `CONFIRM_SUMMON`, `LFG_PROPOSAL_SHOW`, `FRIENDLIST_UPDATE`, `TRADE_*`, `DUEL_*`, `UPDATE_BATTLEFIELD_STATUS`, `CHAT_MSG_WHISPER`…) without subscribing to them, and their data is read from memory. Answers given with the game's own buttons are also reported, because the SDK follows the native functions behind those buttons. Friend events only compare entries already known in the same session, so logging in does not report every online friend. When the SDK closes a game dialog after answering for you, the WoW event it uses for that is not reported as a new SDK event.
 

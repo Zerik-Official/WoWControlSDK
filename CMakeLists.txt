@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(WoWControlSDK VERSION 2.3.0)
+project(WoWControlSDK VERSION 2.4.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -57,6 +57,7 @@ add_library(WoWControlSDK SHARED
     src/core/native/CharacterReader.cpp
     src/core/native/ClientDb.cpp
     src/core/native/NameCache.cpp
+    src/core/native/PlayerInfo.cpp
     src/core/native/FrameScript.cpp
     src/core/native/ClientPacket.cpp
 

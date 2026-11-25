@@ -18,6 +18,7 @@ None.
 | `request` | object | `pending`, `requesterName` and `receivedAtMs` of a request waiting for an answer |
 | `traderGuid` | array[2] | `[high, low]` GUID of the other player |
 | `traderName` | string | Name of the other player |
+| `player` | object or null | Race, gender and class of the other player; see the [Player object](events.md#player-object) |
 | `playerAccepted` | boolean | Whether you pressed **Trade** |
 | `targetAccepted` | boolean | Whether the other player pressed **Trade** |
 | `playerMoney` | integer | Copper you offer (`GetPlayerTradeMoney`) |
