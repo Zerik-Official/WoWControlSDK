@@ -20,6 +20,7 @@ Ninguno.
 | `areaId` | integer | ID de `AreaTable.dbc` del destino |
 | `areaName` | string | Destino localizado (`GetSummonConfirmAreaName`) |
 | `timeLeftMs` | integer | Milisegundos hasta que caduque (`GetSummonConfirmTimeLeft`), `0` si caducó |
+| `player` | objeto o null | Raza, sexo y clase de quien invoca; ver el [objeto de jugador](events.md#objeto-de-jugador) |
 | `canTeleport` | boolean | Indica si el juego permitiría aceptar ahora (fuera de combate, sin aturdimiento, miedo ni otros bloqueos) |
 
 ### Ejemplo
