@@ -23,6 +23,7 @@ static uint64_t s_generation = 0;
 static std::vector<std::string> s_eventNames;
 static bool s_eventsHideBlocked = true;
 static uint64_t s_eventsGeneration = 0;
+static StorageProvider s_storageProvider;
 
 static bool isAllowed(const std::string& addon)
 {
@@ -35,7 +36,9 @@ static bool install(lua_State* L)
 {
     LuaTaint::Scope scope(true);
 
-    std::string source(SOURCE);
+    std::string source;
+    for (const char* part : SOURCE_PARTS)
+        source += part;
     bool ok = LuaNative::loadbuffer(L, source.c_str(), source.size(), "=WoWControlSDK") == 0
         && LuaNative::pcall(L, 0, 1, 0) == 0
         && LuaNative::type(L, -1) == LuaNative::TYPE_TABLE;
@@ -193,10 +196,21 @@ bool grantAddon(const char* addon)
     LuaNative::pushvalue(L, top);
     LuaNative::pushstring(L, addon);
 
+    int nargs = 2;
+    LuaEngine::LuaValue data;
+    if (s_storageProvider && s_storageProvider(addon, data))
+    {
+        int before = LuaNative::gettop(L);
+        if (LuaStack::pushValue(L, data))
+            nargs = 3;
+        else
+            LuaNative::settop(L, before);
+    }
+
     bool granted = false;
     {
         LuaTaint::Scope scope(true);
-        granted = LuaNative::pcall(L, 2, 1, errorIndex) == 0
+        granted = LuaNative::pcall(L, nargs, 1, errorIndex) == 0
             && LuaNative::type(L, -1) == LuaNative::TYPE_BOOLEAN
             && LuaNative::toboolean(L, -1) != 0;
     }
@@ -205,6 +219,11 @@ bool grantAddon(const char* addon)
     if (granted && std::find(s_granted.begin(), s_granted.end(), addon) == s_granted.end())
         s_granted.push_back(addon);
     return granted;
+}
+
+void setStorageProvider(StorageProvider provider)
+{
+    s_storageProvider = std::move(provider);
 }
 
 void configureEvents(const std::vector<std::string>& names, bool hideBlocked)

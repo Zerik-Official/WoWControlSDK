@@ -31,10 +31,46 @@ namespace Runtime
                 && message.args[index].boolVal;
         }
 
+        static SDK::Json argJson(const LuaEngine::BridgeMessage& message, size_t index)
+        {
+            return index < message.args.size() ? Rpc::makeLuaValueJson(message.args[index]) : SDK::Json();
+        }
+
+        static void onLoginScreenMessage(const LuaEngine::BridgeMessage& message)
+        {
+            const std::string& name = message.name;
+            uint64_t timeMs = static_cast<uint64_t>(GetTickCount64());
+            SDK::Json data = SDK::Json::object();
+            if (name == "AUTH_CHALLENGE" || name == "AUTH_CHALLENGE_CLOSED")
+            {
+                data["type"] = argJson(message, 0);
+                if (name == "AUTH_CHALLENGE" && data["type"] == "pin")
+                {
+                    data["minDigits"] = argJson(message, 1);
+                    data["maxDigits"] = argJson(message, 2);
+                }
+                EventPipe::PushEvent(name == "AUTH_CHALLENGE" ? "client.authChallenge" : "client.authChallengeClosed",
+                                     sanitize(data), timeMs);
+            }
+            else if (name == "REALM_LIST_OPENED")
+            {
+                SDK::Json realms = argJson(message, 0);
+                data["realms"] = realms.is_array() ? realms : SDK::Json::array();
+                EventPipe::PushEvent("client.realmListOpened", sanitize(data), timeMs);
+            }
+            else if (name == "REALM_LIST_CLOSED")
+            {
+                EventPipe::PushEvent("client.realmListClosed", data, timeMs);
+            }
+        }
+
         static void onInternalMessage(const LuaEngine::BridgeMessage& message)
         {
             const std::string& name = message.name;
-            if (name == "GLUE_LOADED")                Hooks::GlueXML::notifyPostLoad();
+            if (name == "AUTH_CHALLENGE" || name == "AUTH_CHALLENGE_CLOSED" || name == "REALM_LIST_OPENED"
+                || name == "REALM_LIST_CLOSED")
+                onLoginScreenMessage(message);
+            else if (name == "GLUE_LOADED")           Hooks::GlueXML::notifyPostLoad();
             else if (name == "CHARACTER_LIST_UPDATE") Hooks::GlueXML::notifyCharEnum();
             else if (name == "AcceptGroup")
             {

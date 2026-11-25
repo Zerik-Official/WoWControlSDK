@@ -34,7 +34,7 @@ flowchart TD
         ipc["ipc/<br/>transporte named pipe"]
         rpc["rpc/<br/>protocolo y handlers JSON-RPC"]
         runtime["runtime/<br/>caché de estado, event bus, consola, ventana"]
-        hooks["hooks/<br/>Scheduler, hooks de IAT y vtable"]
+        hooks["hooks/<br/>Scheduler, hooks de vtable y de Windows"]
         client["client/<br/>wrappers finos del juego"]
         core["core/<br/>wrappers nativos y API"]
         offsets["offsets/<br/>constantes de direcciones"]
@@ -63,7 +63,7 @@ Todas las capas viven en `src/`. La raíz del repositorio conserva los archivos 
 | `ipc/` | Transporte named pipe y lectura/escritura de JSON crudo | Ninguno |
 | `rpc/` | Parseo, dispatch, handlers y serialización JSON-RPC 2.0 | Ninguno |
 | `runtime/` | Caché de estado, event bus, pipe de eventos, consola, captura de logs, lista de reinos y servicio de ventana | Ninguno directo; lee a través de `core/` |
-| `hooks/` | Callbacks del scheduler del juego, hooks de IAT y de vtable y un breakpoint por registros de depuración. Nunca se parchea código del juego | Solo a través de `core/` y `offsets/` |
+| `hooks/` | Callbacks del scheduler del juego, hooks de vtable, hooks de eventos y CBT de Windows para el arranque oculto y breakpoints por registros de depuración. Nunca se parchea código del juego; el único slot de la tabla de importaciones que se escribe es el que arranca el scheduler, y se restaura tras su primera llamada | Solo a través de `core/` y `offsets/` |
 | `core/` | Wrappers nativos, capa API, lecturas y escrituras de memoria, resolvers | Sí. La mayor parte del acceso a memoria está aquí |
 | `client/` | Wrappers finos sobre `core/` y el Lua del juego para login, consola y errores | Algunas lecturas y escrituras directas para login y consola (`LoginAPI.cpp`, `ConsoleAPI.cpp`) |
 | `offsets/` | Direcciones base y la mayoría de offsets de estructuras como `constexpr uintptr_t` | Solo constantes |

@@ -81,6 +81,13 @@ Keeps the game window invisible from the moment the client creates it, for headl
 
 Call it before the game creates its window: [`WowInjector.exe --hidden`](../injection.md#arguments) sends it while the game is still frozen. `window.show`, `window.restore`, `window.maximize` and `window.focus` end the hidden start and show the window, for example once the character is in the world.
 
+The SDK does not change any function of the game or of Windows to do it. It uses two Windows hooks:
+
+- An event hook for the process (`SetWinEventHook` with `EVENT_OBJECT_CREATE`, in context). Windows calls it on the game's thread as soon as the game window is created, and the SDK adds the styles above there.
+- A CBT hook (`SetWindowsHookEx` with `WH_CBT`) on the game's main thread, installed at that moment. When anything tries to activate the window, the SDK refuses it, so the game never takes the keyboard from the application in front.
+
+Both hooks are removed when the hidden start ends.
+
 ### Parameters
 
 | Name | Type | Required | Description |

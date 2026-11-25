@@ -41,6 +41,7 @@ struct LuaResult {
 
 struct CallTarget {
     std::string path;
+    std::string addon;
     int ref = 0;
     std::string method;
 };

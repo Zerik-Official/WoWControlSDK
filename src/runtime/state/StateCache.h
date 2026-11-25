@@ -80,6 +80,7 @@ namespace Runtime
         WorldCacheEntry  m_world;
         PerformanceCacheEntry m_performance;
         Screen           m_lastScreen = Screen::UNKNOWN;
+        std::string      m_lastScreenName;
         mutable std::mutex m_mutex;
         EventBus* m_eventBus = nullptr;
 

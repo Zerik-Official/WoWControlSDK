@@ -18,6 +18,7 @@ Ninguno.
 | `request` | object | `pending`, `requesterName` y `receivedAtMs` de una solicitud que espera respuesta |
 | `traderGuid` | array[2] | GUID `[high, low]` del otro jugador |
 | `traderName` | string | Nombre del otro jugador |
+| `player` | objeto o null | Raza, sexo y clase del otro jugador; ver el [objeto de jugador](events.md#objeto-de-jugador) |
 | `playerAccepted` | boolean | Indica si pulsaste **Comerciar** |
 | `targetAccepted` | boolean | Indica si el otro jugador pulsó **Comerciar** |
 | `playerMoney` | integer | Cobre que ofreces (`GetPlayerTradeMoney`) |

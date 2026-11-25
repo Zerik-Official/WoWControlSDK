@@ -6,6 +6,7 @@
 #include "hooks/LoadingHooks.h"
 #include "window/WindowService.h"
 #include "events/LuaEventBridge.h"
+#include "storage/AddonStorage.h"
 #include <Windows.h>
 
 namespace Runtime
@@ -30,6 +31,7 @@ namespace Runtime
         });
 
         Glue::initialize();
+        AddonStorage::initialize();
         s_cache.setEventBus(&s_eventBus);
         Rpc::registerAllMethods(s_registry);
 
@@ -48,6 +50,7 @@ namespace Runtime
 
     void shutdown()
     {
+        AddonStorage::flush();
         Window::WindowService::Instance().Shutdown();
         s_initialized = false;
     }
@@ -57,6 +60,7 @@ namespace Runtime
         s_cache.update();
         Hooks::Loading::PollFlag();
         LuaEventBridge::Poll();
+        AddonStorage::poll();
         Hooks::Errors::Initialize();
     }
 

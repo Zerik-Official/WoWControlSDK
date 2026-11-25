@@ -35,6 +35,12 @@ end
 | --- | --- |
 | `SDK.addon` | Name of the addon that received the object |
 | `SDK.Emit(name, ...)` | Sends an event to the application |
+| `SDK.Print(text, r, g, b)` | Writes a line to the chat; see [Chat messages](#chat-messages) |
+| `SDK.RegisterCommand(names, handler)` | Adds a chat command without globals; see [Chat commands](#chat-commands) |
+| `SDK.UnregisterCommand(name)` | Removes a command registered by the same addon |
+| `SDK.Expose(name, function)` | Lets the application call the function with `lua.call`; see [Application to addon](#application-to-addon-luacall) |
+| `SDK.Save(key, value)`, `SDK.Load(key, default)`, `SDK.Delete(key)`, `SDK.Keys()` | Keep data on disk without SavedVariables; see [Saved data](#saved-data) |
+| `SDK.OnDataChanged(function)` | Runs when the application changes a saved key |
 
 ### Who can reach the object
 
@@ -72,41 +78,43 @@ Prefix event names with the addon name, such as `example.ready`, so the applicat
 
 ## Application to addon: `lua.call`
 
-Expose functions in a global table and call them from the application. Every return value comes back as JSON:
+Expose functions with `SDK.Expose` and call them from the application with `lua.call` and the name of the addon. Every return value comes back as JSON:
 
 ```lua
-WoWControlSDKExample = {}
-
-function WoWControlSDKExample.Ping(text)
+SDK.Expose("Ping", function(text)
     return "pong", text
-end
+end)
 ```
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "lua.call", "params": {"function": "WoWControlSDKExample.Ping", "args": ["hi"]}}
+{"jsonrpc": "2.0", "id": 1, "method": "lua.call", "params": {"addon": "WoWControlSDKExample", "function": "Ping", "args": ["hi"]}}
 ```
 
 ```json
 {"jsonrpc": "2.0", "id": 1, "result": {"ok": true, "result": ["pong", "hi"], "results": ["pong", "hi"]}}
 ```
 
+Exposed functions are kept inside the SDK. A global table also works with `lua.call` and a path, but any addon or `/run` can then find the functions and call them; `SDK.Expose` leaves nothing in `_G`. Names are Lua identifiers of up to 64 characters, and exposing a name again replaces the function.
+
 The example exposes:
 
 | Function | Description |
 | --- | --- |
-| `WoWControlSDKExample.Ping(text)` | Returns `"pong"` and the text |
-| `WoWControlSDKExample.GetStatus()` | Returns the player, level, zone and options as a table |
-| `WoWControlSDKExample.ShowMessage(text)` | Shows the text in a panel and emits `example.messageShown` |
-| `WoWControlSDKExample.HideMessage()` | Hides the panel |
-| `WoWControlSDKExample.SetOption(key, value)` | Changes a known option and emits `example.optionChanged` |
-| `WoWControlSDKExample.Request(id, action)` | Answers with an `example.response` event that carries the same `id` |
+| `Ping(text)` | Returns `"pong"` and the text |
+| `GetStatus()` | Returns the player, level, zone and options as a table |
+| `ShowMessage(text)` | Shows the text in a panel and emits `example.messageShown` |
+| `HideMessage()` | Hides the panel |
+| `SetOption(key, value)` | Changes a known option, saves it and emits `example.optionChanged` |
+| `Request(id, action)` | Answers with an `example.response` event that carries the same `id` |
+
+The example leaves no globals: its frame has no name, its options are saved with `SDK.Save` and `/wcs` is registered with `SDK.RegisterCommand`. `/wcs status` checks it.
 
 ### Request and response
 
 `Request` shows how to answer work that finishes later, for example after a game event. The application sends an id and waits for the event with the same id:
 
 ```json
-{"jsonrpc": "2.0", "id": 1, "method": "lua.call", "params": {"function": "WoWControlSDKExample.Request", "args": [7, "status"]}}
+{"jsonrpc": "2.0", "id": 1, "method": "lua.call", "params": {"addon": "WoWControlSDKExample", "function": "Request", "args": [7, "status"]}}
 ```
 
 ```json
@@ -117,14 +125,78 @@ The example exposes:
 
 | Feature | Example |
 | --- | --- |
-| Read saved variables | [`lua.getGlobal`](methods/lua.md#luagetglobal) with `{"name": "WoWControlSDKExampleDB.options"}` |
-| Change saved variables | [`lua.setGlobal`](methods/lua.md#luasetglobal) with `{"name": "WoWControlSDKExampleDB.options.greeting", "value": "Hi"}` |
-| Watch calls | [`lua.hook`](methods/lua.md#luahook) with `{"function": "WoWControlSDKExample.ShowMessage"}` sends each call as `lua.hooked` |
-| Keep a reference to a frame | [`lua.getRef`](methods/lua.md#luagetref) with `{"path": "WoWControlSDKExampleFrame"}`, then `lua.call` with `{"ref": 1, "method": "Hide"}` |
+| Read saved data | [`lua.getStorage`](methods/lua.md#luagetstorage) with `{"addon": "WoWControlSDKExample"}` |
+| Change saved data | [`lua.setStorage`](methods/lua.md#luasetstorage) with `{"addon": "WoWControlSDKExample", "key": "options", "value": {"forwardLevelUp": false, "greeting": "Hi"}}` |
+| Watch calls of a global function | [`lua.hook`](methods/lua.md#luahook) with `{"function": "ToggleCharacter"}` sends each call as `lua.hooked` |
+| Keep a reference to a frame | [`lua.getRef`](methods/lua.md#luagetref) with `{"path": "PlayerFrame"}`, then `lua.call` with `{"ref": 1, "method": "Hide"}` |
 | Several calls in one frame | [`lua.batch`](methods/lua.md#luabatch) with a list of operations |
 | Addons with access | [`lua.getAddons`](methods/lua.md#luagetaddons) lists the addons that received the object |
 
 Functions called by the application run tainted, like the addon itself. They cannot call protected functions unless the application uses `secure: true`, which is [dangerous](methods/lua.md#taint-and-secure-mode).
+
+## Chat messages
+
+```lua
+SDK.Print("|cff33ccff[MyAddon]|r Connected")
+SDK.Print("Something failed", 1, 0.2, 0.2)
+```
+
+`SDK.Print` writes to the default chat frame with the `AddMessage` method of the chat frame type, which the SDK keeps when it starts. Many chat addons replace `ChatFrame1.AddMessage` to read, log or change every line; those replacements do not see the messages of `SDK.Print`. The color values go from `0` to `1` and default to white, and the text is cut at 4096 characters. It returns `false` when there is no chat frame, for example at the login screen.
+
+## Chat commands
+
+```lua
+SDK.RegisterCommand({ "/mytool", "/mt" }, function(message)
+    SDK.Emit("mytool.command", message)
+end)
+```
+
+A command registered the classic way creates `SLASH_MYTOOL1` and a `SlashCmdList.MYTOOL` entry, so any code, including `/run`, can find the handler and call it with any text. `SDK.RegisterCommand` creates neither: the handler stays inside the SDK, and the game only reaches it through the list of typed commands it already keeps (`hash_SlashCmdList`). The SDK runs the handler only when the text of the chat box that sent it really starts with the command and contains the same message, so calling that list entry with any other text does nothing.
+
+| Rule | Detail |
+| --- | --- |
+| Names | One name or a list of up to 8, each starting with `/` and using letters, digits or `_`, up to 32 characters. Case does not matter |
+| Conflicts | Secure commands such as `/cast`, commands of the game or of other addons, and commands of another addon registered with the SDK raise an error |
+| Handler | Receives the text after the command, without surrounding spaces |
+| Macros | `/mytool` in a macro also runs the handler, because macros send their lines through the chat |
+| Removing | `SDK.UnregisterCommand("/mytool")` removes one name; it returns `false` when the name was not registered by the same addon |
+
+Anything that can make the chat send a line, such as a macro or code that fills a chat box and sends it, can still run the command, as if the user typed it. Treat the message as untrusted text.
+
+## Saved data
+
+The game only keeps SavedVariables in globals, so any addon can read and change them, and they are written to disk only when the player logs out or reloads. The SDK keeps an addon's data out of `_G` and writes it to disk as soon as it changes:
+
+```lua
+local options = SDK.Load("options", { volume = 1 })
+options.volume = 0.5
+SDK.Save("options", options)
+
+SDK.OnDataChanged(function(key, value)
+    if key == "options" then
+        options = value
+    end
+end)
+```
+
+| Function | Description |
+| --- | --- |
+| `SDK.Save(key, value)` | Saves a copy of the value. `nil` deletes the key |
+| `SDK.Load(key, default)` | Returns a copy of the saved value, or `default` when the key is not saved |
+| `SDK.Delete(key)` | Deletes the key |
+| `SDK.Keys()` | Saved keys, sorted |
+| `SDK.OnDataChanged(function(key, value))` | Runs when the application changes a key with [`lua.setStorage`](methods/lua.md#luasetstorage); `value` is `nil` when the key was deleted. Saves of the addon itself do not call it |
+
+| Rule | Detail |
+| --- | --- |
+| Values | Strings, finite numbers, booleans and tables of them, with string or number keys. Functions, frames, cycles, more than 12 levels or more than 2000 entries in one value raise an error |
+| Keys | Strings of 1 to 128 characters; up to 1000 keys per addon |
+| Copies | `Save` and `Load` copy the value, so changing a table after saving it does not change the saved data until `Save` runs again |
+| Availability | The data is ready when the addon's first file runs, so it can be read at load time without waiting for `ADDON_LOADED` |
+| File | `<game folder>\WTF\WoWControlSDK\AddonData\<addon>.json`, written within a quarter of a second after a change. The file is shared by every account and character of that game folder |
+| Number keys | Tables are saved as JSON, so a table with keys `1` to `n` comes back as a list and other number keys come back as strings |
+
+Only addons have saved data; scripts loaded with `lua.loadScript` do not.
 
 ## Chat commands of the example
 
@@ -146,6 +218,7 @@ An application can also send Lua code through the pipe with [`lua.loadScript`](m
 | `SDK` object | `ns.SDK` | `ns.SDK`, with `SDK.script = true` |
 | After `/reload` | The game loads it again | The SDK runs it again when `persist` is `true` |
 | SavedVariables, XML and templates from a `.toc` | Yes | No |
+| Saved data with `SDK.Save` | Yes | No |
 | Can be removed without `/reload` | No | Yes, with `lua.unloadScript` |
 
 A script receives the same arguments as an addon file:
@@ -160,10 +233,9 @@ frame:SetScript("OnEvent", function()
     SDK.Emit("tool.target", UnitName("target"))
 end)
 
-SLASH_MYTOOL1 = "/mytool"
-SlashCmdList.MYTOOL = function(text)
+SDK.RegisterCommand("/mytool", function(text)
     SDK.Emit("tool.command", text)
-end
+end)
 
 SDK.OnUnload(function()
     print(name .. " unloaded")
@@ -178,7 +250,7 @@ end)
 | `SDK.HookScript(frame, handler, function)` | Like `frame:HookScript`, but the hook stops running when the script is unloaded. Use it for frames that the script did not create |
 | `SDK.IsActive()` | `false` once the script was unloaded |
 
-After unloading, `SDK.Emit` raises an error, so old timers or callbacks cannot send events in the script's name.
+After unloading, `SDK.Emit`, `SDK.Print`, `SDK.RegisterCommand` and `SDK.Expose` raise an error, so old timers or callbacks cannot act in the script's name. The functions the script exposed are removed.
 
 ### What unloading removes
 
@@ -190,6 +262,7 @@ The SDK runs each script in its own environment and records what it creates:
 | Hooks created with `hooksecurefunc` or `SDK.HookScript` | They stop running |
 | Globals written by the script, including functions and `SLASH_*` names | They get back the value they had before the script |
 | Entries added to `SlashCmdList` | Removed, together with the game's cache of typed commands |
+| Commands registered with `SDK.RegisterCommand` | Removed |
 
 The SDK cannot see changes made through other tables, such as new fields in `StaticPopupDialogs`, `frame:HookScript` on a frame the script did not create, or `rawset(_G, ...)`. Undo those in an `SDK.OnUnload` function.
 

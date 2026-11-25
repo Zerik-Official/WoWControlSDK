@@ -20,6 +20,7 @@ Ninguno.
 | `challengerGuid` | array[2] | GUID `[high, low]` de quien te retó |
 | `arbiterGuid` | array[2] | GUID `[high, low]` de la bandera del duelo |
 | `requestedAtMs` | integer | Momento de `GetTickCount64()` de la solicitud, `0` si no hay ninguna |
+| `player` | objeto o null | Raza, sexo y clase de quien te reta; ver el [objeto de jugador](events.md#objeto-de-jugador) |
 
 ### Ejemplo
 

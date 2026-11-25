@@ -28,6 +28,9 @@ namespace Runtime
             if (strcmp(name, "charselect") == 0)
                 return Screen::CHARSELECT;
 
+            if (strcmp(name, "charcreate") == 0)
+                return Screen::CHARCREATE;
+
             return Screen::UNKNOWN;
         }
 

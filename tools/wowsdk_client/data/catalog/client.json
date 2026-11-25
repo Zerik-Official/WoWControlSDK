@@ -191,6 +191,38 @@
       ]
     },
     {
+      "name": "client.getRealms",
+      "description": {
+        "en": "Realms sent by the server, with characters, type, population and state.",
+        "es": "Reinos que envió el servidor, con personajes, tipo, población y estado."
+      }
+    },
+    {
+      "name": "client.submitAuthCode",
+      "description": {
+        "en": "Answer the authenticator code or PIN the server asks for during the login.",
+        "es": "Responde el código del autenticador o el PIN que pide el servidor durante el login."
+      },
+      "params": [
+        {
+          "name": "code",
+          "type": "string",
+          "required": true,
+          "description": {
+            "en": "Digits of the code",
+            "es": "Dígitos del código"
+          }
+        }
+      ]
+    },
+    {
+      "name": "client.cancelAuth",
+      "description": {
+        "en": "Close the code dialog and cancel the login.",
+        "es": "Cierra el diálogo del código y cancela el login."
+      }
+    },
+    {
       "name": "client.acceptEULA",
       "description": {
         "en": "Accept the EULA dialog.",

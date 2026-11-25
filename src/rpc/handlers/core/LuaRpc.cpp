@@ -2,6 +2,7 @@
 #include "LuaJson.h"
 #include "core/engine/LuaEngine.h"
 #include "hooks/GlueHooks.h"
+#include "runtime/storage/AddonStorage.h"
 #include "utils/json/Json.h"
 #include <functional>
 #include <string>
@@ -118,8 +119,16 @@ namespace Rpc
         LuaEngine::CallTarget target;
         target.path = stringParam(params, "function");
         target.method = stringParam(params, "method");
+        target.addon = stringParam(params, "addon");
 
-        if (params.contains("ref"))
+        if (params.contains("addon"))
+        {
+            if (target.addon.empty())
+                return errorJson("addon must be the name of an addon or script");
+            if (!LuaEngine::isIdentifier(target.path))
+                return errorJson("function must be the name of a function the addon exposed with SDK.Expose");
+        }
+        else if (params.contains("ref"))
         {
             if (!params["ref"].is_number_integer() || params["ref"].get<int>() <= 0)
                 return errorJson("ref must be a positive integer");
@@ -402,6 +411,46 @@ namespace Rpc
         return j;
     }
 
+    static Json runGetStorage(const Json& params)
+    {
+        std::string addon = stringParam(params, "addon");
+        if (!Runtime::AddonStorage::isValidOwner(addon))
+            return errorJson("addon must be the name of an addon");
+
+        Json data = Runtime::AddonStorage::get(addon);
+        Json j;
+        j["ok"] = true;
+        j["addon"] = addon;
+        if (params.contains("key"))
+        {
+            std::string key = stringParam(params, "key");
+            j["key"] = key;
+            j["value"] = data.contains(key) ? data[key] : Json();
+            j["exists"] = data.contains(key);
+        }
+        else
+        {
+            j["data"] = data;
+        }
+        return j;
+    }
+
+    static Json runSetStorage(const Json& params)
+    {
+        std::string addon = stringParam(params, "addon");
+        std::string key = stringParam(params, "key");
+        Json value = params.contains("value") ? params["value"] : Json();
+
+        std::string error = Runtime::AddonStorage::set(addon, key, value);
+        if (!error.empty())
+            return errorJson(error);
+
+        Json j;
+        j["ok"] = true;
+        j["deleted"] = value.is_null();
+        return j;
+    }
+
     static const std::unordered_map<std::string, LuaRunner>& runners()
     {
         static const std::unordered_map<std::string, LuaRunner> table = {
@@ -422,6 +471,8 @@ namespace Rpc
             {"lua.loadScript", runLoadScript},
             {"lua.unloadScript", runUnloadScript},
             {"lua.getScripts", runGetScripts},
+            {"lua.getStorage", runGetStorage},
+            {"lua.setStorage", runSetStorage},
         };
         return table;
     }
