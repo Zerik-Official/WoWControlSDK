@@ -20,6 +20,7 @@ None.
 | `areaId` | integer | `AreaTable.dbc` ID of the destination |
 | `areaName` | string | Localized destination (`GetSummonConfirmAreaName`) |
 | `timeLeftMs` | integer | Milliseconds until the summon expires (`GetSummonConfirmTimeLeft`), `0` when expired |
+| `player` | object or null | Race, gender and class of the summoner; see the [Player object](events.md#player-object) |
 | `canTeleport` | boolean | Whether the game would allow accepting now (not in combat, not stunned, not feared or otherwise locked) |
 
 ### Example
