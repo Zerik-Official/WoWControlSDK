@@ -38,6 +38,7 @@ Ninguno.
 | `classFileName` | string | Token de la clase, por ejemplo `"MAGE"` |
 | `areaId` | integer | ID de `AreaTable.dbc` de la zona del amigo, `0` si está desconectado |
 | `areaName` | string | Nombre localizado de la zona |
+| `player` | objeto o null | Raza, sexo y clase del amigo según la caché de nombres; ver el [objeto de jugador](events.md#objeto-de-jugador) |
 
 ### Ejemplo
 
