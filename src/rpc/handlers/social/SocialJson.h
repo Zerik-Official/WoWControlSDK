@@ -6,6 +6,7 @@
 #include "core/api/TradeAPI.h"
 #include "core/api/DuelAPI.h"
 #include "core/api/BattlefieldAPI.h"
+#include "core/native/PlayerInfo.h"
 #include "offsets/OffsetsSocial.h"
 #include "utils/json/Json.h"
 
@@ -45,6 +46,7 @@ inline SDK::Json makeFriendJson(const CoreAPI::FriendInfo& f)
     j["classFileName"] = f.classFileName;
     j["areaId"] = f.areaId;
     j["areaName"] = f.areaName;
+    j["player"] = PlayerInfo::toJson(f.guid);
     return j;
 }
 
@@ -57,6 +59,7 @@ inline SDK::Json makeSummonJson(const CoreAPI::SummonInfo& s)
     j["areaId"] = s.areaId;
     j["areaName"] = s.areaName;
     j["timeLeftMs"] = s.timeLeftMs;
+    j["player"] = PlayerInfo::toJson(s.summonerGuid);
     return j;
 }
 
@@ -175,6 +178,7 @@ inline SDK::Json makeTradeJson(const CoreAPI::TradeInfo& t)
 
     j["traderGuid"] = makeGuidArrayJson(t.traderGuid);
     j["traderName"] = t.traderName;
+    j["player"] = PlayerInfo::toJson(t.traderGuid);
     j["playerAccepted"] = t.playerAccepted;
     j["targetAccepted"] = t.targetAccepted;
     j["playerMoney"] = t.playerMoney;
@@ -201,6 +205,9 @@ inline SDK::Json makeDuelJson(const CoreAPI::DuelInfo& d)
     j["challengerGuid"] = makeGuidArrayJson(d.challengerGuid);
     j["arbiterGuid"] = makeGuidArrayJson(d.arbiterGuid);
     j["requestedAtMs"] = d.requestedAtMs;
+    j["player"] = d.challengerGuid.isValid()
+        ? PlayerInfo::toJson(d.challengerGuid)
+        : PlayerInfo::toJsonByName(d.challengerName);
     return j;
 }
 
