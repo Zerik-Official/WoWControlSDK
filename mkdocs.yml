@@ -5,6 +5,7 @@ docs_dir: docs
 dev_addr: 127.0.0.1:8001
 exclude_docs: |
   README.md
+  releases/
 
 theme:
   name: material
