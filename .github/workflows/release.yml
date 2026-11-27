@@ -16,6 +16,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check the release notes
+        shell: pwsh
+        run: |
+          $notes = "docs/releases/${{ github.ref_name }}.md"
+          if (-not (Test-Path $notes)) {
+            Write-Error "Missing release notes: $notes"
+            exit 1
+          }
+
       - name: Configure CMake for the 32-bit client
         run: cmake -B build -A Win32
 
@@ -124,10 +133,18 @@ jobs:
             -Path $package `
             -DestinationPath "WoWControlClient-$version.zip"
 
+      - name: Version without the leading v
+        id: version
+        shell: pwsh
+        run: '"number=$("${{ github.ref_name }}".TrimStart("v"))" >> $env:GITHUB_OUTPUT'
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          name: WoWControlSDK ${{ steps.version.outputs.number }}
+          body_path: docs/releases/${{ github.ref_name }}.md
           generate_release_notes: true
+          make_latest: true
           files: |
             WoWControlSDK-${{ github.ref_name }}.zip
             WoWControlClient-${{ github.ref_name }}.zip
